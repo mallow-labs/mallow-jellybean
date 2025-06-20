@@ -1,0 +1,6 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "mallow-market",
+	"extends": "../tsconfig/base.json",
+	"include": ["src"]
+}

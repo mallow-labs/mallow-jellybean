@@ -8,7 +8,7 @@
 		"programs:clean": "rm -rf ./programs/.bin",
 		"generate": "pnpm generate:idls && pnpm generate:clients",
 		"generate:idls": "node ./configs/shank.cjs",
-		"generate:clients": "node ./configs/kinobi.cjs && pnpm --filter @mallow-labs/mallow-gumball format:fix",
+		"generate:clients": "node ./configs/codama.cjs && pnpm --filter @mallow-labs/mallow-jellybean format:fix",
 		"test": "pnpm test:js",
 		"test:js": "cd clients/js && pnpm test",
 		"validator": "CI=1 amman start --config ./configs/validator.cjs",
@@ -16,9 +16,12 @@
 		"validator:stop": "amman stop"
 	},
 	"devDependencies": {
+		"@codama/nodes-from-anchor": "^1.1.13",
+		"@codama/renderers-js-umi": "^1.1.14",
+		"@codama/renderers-rust": "^1.0.21",
 		"@metaplex-foundation/amman": "^0.12.1",
-		"@metaplex-foundation/kinobi": "^0.14.0",
 		"@metaplex-foundation/shank-js": "^0.1.5",
+		"codama": "1.2.13",
 		"typescript": "^5.8.3"
 	},
 	"packageManager": "pnpm@10.9.0"

@@ -7,24 +7,11 @@ const programDir = path.join(__dirname, "..", "programs");
 
 generateIdl({
 	generator: "anchor",
-	programName: "mallow_gumball",
-	programId: "MGUMqztv7MHgoHBYWbvMyL3E3NJ4UHfTwgLJUQAbKGa",
+	programName: "mallow_jellybean",
+	programId: "J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq",
 	idlDir,
 	binaryInstallDir,
-	programDir: path.join(programDir, "mallow-gumball", "program"),
-	rustbin: {
-		locked: true,
-		versionRangeFallback: "0.27.0",
-	},
-});
-
-generateIdl({
-	generator: "anchor",
-	programName: "gumball_guard",
-	programId: "GGRDy4ieS7ExrUu313QkszyuT9o3BvDLuc3H5VLgCpSF",
-	idlDir,
-	binaryInstallDir,
-	programDir: path.join(programDir, "gumball-guard", "program"),
+	programDir: path.join(programDir, "mallow-jellybean", "program"),
 	rustbin: {
 		locked: true,
 		versionRangeFallback: "0.27.0",

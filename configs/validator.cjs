@@ -13,8 +13,8 @@ module.exports = {
 		programs: [
 			{
 				label: "Mallow Gumball",
-				programId: "MGUMqztv7MHgoHBYWbvMyL3E3NJ4UHfTwgLJUQAbKGa",
-				deployPath: getProgram("mallow_gumball.so"),
+				programId: "J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq",
+				deployPath: getProgram("mallow_jellybean.so"),
 			},
 			{
 				label: "Gumball Guard",
