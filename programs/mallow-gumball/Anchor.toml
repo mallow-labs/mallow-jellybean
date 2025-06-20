@@ -1,0 +1,15 @@
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[workspace]
+members = [
+  "program",
+]
+
+[toolchain]
+anchor_version = "0.29.0"
+solana_version = "1.18.15"

@@ -1,0 +1,83 @@
+{
+  "name": "@mallow-labs/mallow-gumball",
+  "version": "0.7.0",
+  "description": "Client library for Gumball Machine related programs",
+  "main": "dist/src/cjs/index.js",
+  "module": "dist/src/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/src/esm/index.js",
+      "require": "./dist/src/cjs/index.js"
+    }
+  },
+  "types": "dist/src/esm/index.d.ts",
+  "scripts": {
+    "dev": "concurrently \"tsc --watch\" \"tsc -p tsconfig-cjs.json --watch\" \"tsc -p tsconfig-test.json --watch\" \"tsc -p tsconfig-test-cjs.json --watch\"",
+    "build": "rimraf dist/* && concurrently \"tsc\" \"tsc -p tsconfig-cjs.json\" \"tsc -p tsconfig-test.json\" \"tsc -p tsconfig-test-cjs.json\" && ./fixup.sh",
+    "build:server": "rimraf dist/ && tsc && tsc -p tsconfig-cjs.json && ./fixup-server.sh",
+    "build:docs": "typedoc",
+    "test": "ava",
+    "lint": "eslint --ext js,ts,tsx src",
+    "lint:fix": "eslint --fix --ext js,ts,tsx src",
+    "format": "prettier --check src test",
+    "format:fix": "prettier --write src test"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "homepage": "https://mallow.art",
+  "repository": "https://github.com/mallow-labs/mallow-gumball.git",
+  "author": "mallow labs <admin@mallow.art>",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@metaplex-foundation/umi": ">= 0.8.2 < 1"
+  },
+  "dependencies": {
+    "@metaplex-foundation/mpl-core": "^1.1.1",
+    "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
+    "@metaplex-foundation/mpl-toolbox": "^0.9.0",
+    "@metaplex-foundation/umi": "^0.9.2",
+    "@noble/hashes": "^1.2.0",
+    "merkletreejs": "^0.5.2"
+  },
+  "devDependencies": {
+    "@ava/typescript": "^3.0.1",
+    "@identity.com/solana-gateway-ts": "^0.12.0",
+    "@metaplex-foundation/mpl-token-auth-rules": "^3.0.3",
+    "@metaplex-foundation/umi-bundle-tests": "^0.9.2",
+    "@metaplex-foundation/umi-web3js-adapters": "^0.9.2",
+    "@solana/web3.js": "^1.73.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.46.1",
+    "ava": "^5.1.0",
+    "buffer": "^6.0.3",
+    "concurrently": "^7.6.0",
+    "eslint": "^8.0.1",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^3.5.3",
+    "prettier-plugin-organize-imports": "^4.0.0",
+    "rimraf": "^3.0.2",
+    "typedoc": "^0.23.16",
+    "typedoc-plugin-expand-object-like-types": "^0.1.2",
+    "typedoc-plugin-missing-exports": "^1.0.0",
+    "typescript": "^5.8.3",
+    "vercel": "^28.16.0"
+  },
+  "ava": {
+    "files": [
+      "dist/test/cjs/**/*.test.js"
+    ],
+    "typescript": {
+      "compile": false,
+      "rewritePaths": {
+        "src/": "dist/test/esm/src/",
+        "test/": "dist/test/esm/test/"
+      }
+    }
+  },
+  "packageManager": "pnpm@10.9.0"
+}

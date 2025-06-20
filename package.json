@@ -1,0 +1,25 @@
+{
+	"private": true,
+	"scripts": {
+		"build": "pnpm programs:build && pnpm generate",
+		"dev": "cd clients/js && pnpm dev",
+		"programs:build": "./configs/program-scripts/build.sh",
+		"programs:test": "./configs/program-scripts/test.sh",
+		"programs:clean": "rm -rf ./programs/.bin",
+		"generate": "pnpm generate:idls && pnpm generate:clients",
+		"generate:idls": "node ./configs/shank.cjs",
+		"generate:clients": "node ./configs/kinobi.cjs && pnpm --filter @mallow-labs/mallow-gumball format:fix",
+		"test": "pnpm test:js",
+		"test:js": "cd clients/js && pnpm test",
+		"validator": "CI=1 amman start --config ./configs/validator.cjs",
+		"validator:debug": "amman start --config ./configs/validator.cjs",
+		"validator:stop": "amman stop"
+	},
+	"devDependencies": {
+		"@metaplex-foundation/amman": "^0.12.1",
+		"@metaplex-foundation/kinobi": "^0.14.0",
+		"@metaplex-foundation/shank-js": "^0.1.5",
+		"typescript": "^5.8.3"
+	},
+	"packageManager": "pnpm@10.9.0"
+}
