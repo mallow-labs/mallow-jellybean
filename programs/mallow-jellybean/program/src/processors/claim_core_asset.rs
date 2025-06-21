@@ -5,12 +5,12 @@ use mpl_core::{
 };
 use utils::transfer_sol;
 
-use crate::GumballMachine;
+use crate::JellybeanMachine;
 
 use super::claim_item;
 
 pub fn claim_core_asset<'a, 'b>(
-    gumball_machine: &mut Box<Account<'a, GumballMachine>>,
+    gumball_machine: &mut Box<Account<'a, JellybeanMachine>>,
     index: u32,
     authority_pda: &AccountInfo<'a>,
     payer: &AccountInfo<'a>,

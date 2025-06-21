@@ -1,12 +1,12 @@
 use crate::{
     constants::{CONFIG_LINE_SIZE, GUMBALL_MACHINE_SIZE},
-    get_config_count, GumballError, GumballMachine,
+    get_config_count, GumballError, JellybeanMachine,
 };
 use anchor_lang::prelude::*;
 
 /// DEPRECATED: Use remove_multiple_items_span instead
 pub fn remove_multiple_items(
-    gumball_machine: &mut Account<GumballMachine>,
+    gumball_machine: &mut Account<JellybeanMachine>,
     authority: Pubkey,
     mint: Pubkey,
     expected_seller: Pubkey,
@@ -122,7 +122,7 @@ pub fn remove_multiple_items(
 }
 
 pub fn remove_multiple_items_span(
-    gumball_machine: &mut Account<GumballMachine>,
+    gumball_machine: &mut Account<JellybeanMachine>,
     authority: Pubkey,
     mint: Pubkey,
     expected_seller: Pubkey,

@@ -2,6 +2,35 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum GumballError {
+    #[msg("Invalid public key")]
+    PublicKeyMismatch,
+    #[msg("Invalid owner")]
+    InvalidOwner,
+    #[msg("Account not initialized")]
+    UninitializedAccount,
+    #[msg("Overflow error")]
+    OverflowError,
+    #[msg("Collection not set")]
+    CollectionNotSet,
+
+    /// 6005
+    #[msg("Invalid edition")]
+    InvalidEdition,
+    #[msg("Invalid edition max supply")]
+    InvalidEditionMaxSupply,
+    #[msg("Invalid PDA")]
+    InvalidPDA,
+    #[msg("No supply remaining")]
+    NoSupplyRemaining,
+    #[msg("Invalid listing")]
+    InvalidListing,
+
+    /// 6010
+    #[msg("Valid listing")]
+    ValidListing,
+    #[msg("Invalid collection")]
+    InvalidCollection,
+
     #[msg("Account does not have correct owner")]
     IncorrectOwner,
 
@@ -21,7 +50,7 @@ pub enum GumballError {
     TooManyCreators,
 
     #[msg("Gumball machine is empty")]
-    GumballMachineEmpty,
+    JellybeanMachineEmpty,
 
     #[msg("Gumball machines using hidden uris do not have config lines, they have a single hash representing hashed order")]
     HiddenSettingsDoNotHaveConfigLines,
@@ -75,7 +104,7 @@ pub enum GumballError {
     MissingMetadataDelegateRecord,
 
     #[msg("Invalid token standard")]
-    InvalidTokenStandard,
+    Invalid
 
     #[msg("Missing token account")]
     MissingTokenAccount,
@@ -108,7 +137,7 @@ pub enum GumballError {
     InvalidCollection,
 
     #[msg("Gumball machine detailed finalized")]
-    GumballMachineDetailsFinalized,
+    JellybeanMachineDetailsFinalized,
 
     #[msg("Invalid state")]
     InvalidState,
@@ -156,7 +185,7 @@ pub enum GumballError {
     ItemAlreadyDrawn,
 
     #[msg("Invalid gumball machine")]
-    InvalidGumballMachine,
+    InvalidJellybeanMachine,
 
     #[msg("Seller cannot be authority")]
     SellerCannotBeAuthority,

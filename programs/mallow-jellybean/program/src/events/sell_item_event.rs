@@ -10,5 +10,5 @@ pub struct SellItemEvent {
     pub seller: Pubkey,
     pub buyer: Pubkey,
     pub amount: u64,
-    pub token_standard: TokenStandard,
+    pub token_standard: 
 }

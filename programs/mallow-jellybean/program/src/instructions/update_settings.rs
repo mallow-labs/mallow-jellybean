@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    get_config_count, state::GumballMachine, BuyBackConfig, GumballError, GumballSettings,
-    GumballState,
+    get_config_count, state::JellybeanMachine, BuyBackConfig, GumballError, GumballSettings,
+    JellybeanState,
 };
 
 /// Initializes a new gumball machine.
@@ -13,7 +13,7 @@ pub struct UpdateSettings<'info> {
         mut, 
         has_one = authority
     )]
-    gumball_machine: Box<Account<'info, GumballMachine>>,
+    gumball_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// Gumball Machine authority. This is the address that controls the upate of the gumball machine.
     #[account(mut)]
@@ -59,7 +59,7 @@ pub fn update_settings(ctx: Context<UpdateSettings>, args: UpdateArgs) -> Result
     }
 
     // Limit the possible updates when details are finalized or there are already items loaded
-    if gumball_machine.state != GumballState::None || items_loaded > 0 {
+    if gumball_machine.state != JellybeanState::None || items_loaded > 0 {
         // Can only increase items_per_seller
         if settings.items_per_seller < gumball_machine.settings.items_per_seller {
             msg!("Cannot decrease items_per_seller");
@@ -84,7 +84,7 @@ pub fn update_settings(ctx: Context<UpdateSettings>, args: UpdateArgs) -> Result
 
     // Details are considered finalized once sellers are invited
     if settings.sellers_merkle_root.is_some() {
-        gumball_machine.state = GumballState::DetailsFinalized;
+        gumball_machine.state = JellybeanState::DetailsFinalized;
     }
 
     Ok(())

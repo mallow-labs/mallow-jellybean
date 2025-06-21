@@ -1,10 +1,13 @@
 use crate::{
     constants::{CONFIG_LINE_SIZE, GUMBALL_MACHINE_SIZE},
-    get_bit_byte_info, GumballError, GumballMachine,
+    get_bit_byte_info, GumballError, JellybeanMachine,
 };
 use anchor_lang::prelude::*;
 
-pub fn is_item_claimed(gumball_machine: &Box<Account<GumballMachine>>, index: u32) -> Result<bool> {
+pub fn is_item_claimed(
+    gumball_machine: &Box<Account<JellybeanMachine>>,
+    index: u32,
+) -> Result<bool> {
     let account_info = gumball_machine.to_account_info();
     let data = account_info.data.borrow();
 
@@ -28,7 +31,7 @@ pub fn is_item_claimed(gumball_machine: &Box<Account<GumballMachine>>, index: u3
     Ok(is_claimed)
 }
 
-pub fn claim_item(gumball_machine: &mut Box<Account<GumballMachine>>, index: u32) -> Result<u64> {
+pub fn claim_item(gumball_machine: &mut Box<Account<JellybeanMachine>>, index: u32) -> Result<u64> {
     let account_info = gumball_machine.to_account_info();
     let mut data = account_info.data.borrow_mut();
 

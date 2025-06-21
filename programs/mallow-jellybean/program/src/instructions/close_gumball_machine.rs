@@ -1,6 +1,6 @@
 use crate::{
     constants::AUTHORITY_SEED, get_config_count, transfer_and_close_if_empty, try_from,
-    GumballError, GumballMachine, Token,
+    GumballError, JellybeanMachine, Token,
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
@@ -8,7 +8,7 @@ use utils::{assert_is_ata, is_native_mint};
 
 /// Withdraw the rent SOL from the gumball machine account.
 #[derive(Accounts)]
-pub struct CloseGumballMachine<'info> {
+pub struct CloseJellybeanMachine<'info> {
     /// Gumball Machine acccount.
     #[account(
         mut, 
@@ -16,7 +16,7 @@ pub struct CloseGumballMachine<'info> {
         has_one = authority @ GumballError::InvalidAuthority,
         has_one = mint_authority @ GumballError::InvalidMintAuthority
     )]
-    gumball_machine: Account<'info, GumballMachine>,
+    gumball_machine: Account<'info, JellybeanMachine>,
 
     /// Authority of the gumball machine.
     #[account(mut)]
@@ -46,7 +46,7 @@ pub struct CloseGumballMachine<'info> {
 }
 
 pub fn close_gumball_machine<'info>(
-    ctx: Context<'_, '_, '_, 'info, CloseGumballMachine<'info>>,
+    ctx: Context<'_, '_, '_, 'info, CloseJellybeanMachine<'info>>,
 ) -> Result<()> {
     let account_info = ctx.accounts.gumball_machine.to_account_info();
     let account_data = account_info.data.borrow();

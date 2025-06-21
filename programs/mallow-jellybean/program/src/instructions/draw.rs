@@ -1,6 +1,6 @@
 use crate::{
-    constants::GUMBALL_MACHINE_SIZE, events::DrawItemEvent, utils::*, GumballError, GumballMachine,
-    GumballState,
+    constants::GUMBALL_MACHINE_SIZE, events::DrawItemEvent, utils::*, GumballError, JellybeanMachine,
+    JellybeanState,
 };
 use anchor_lang::prelude::*;
 use arrayref::array_ref;
@@ -14,9 +14,9 @@ pub struct Draw<'info> {
     #[account(
         mut, 
         has_one = mint_authority,
-        constraint = gumball_machine.state == GumballState::SaleLive @ GumballError::InvalidState
+        constraint = gumball_machine.state == JellybeanState::SaleLive @ GumballError::InvalidState
     )]
-    gumball_machine: Box<Account<'info, GumballMachine>>,
+    gumball_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// Gumball machine mint authority (mint only allowed for the mint_authority).
     mint_authority: Signer<'info>,
@@ -71,7 +71,7 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
 /// a psuedo-randomly selected one or sequential. In both cases, after minted a
 /// specific index, the gumball machine does not allow to mint the same index again.
 pub(crate) fn process_draw(
-    gumball_machine: &mut Box<Account<'_, GumballMachine>>,
+    gumball_machine: &mut Box<Account<'_, JellybeanMachine>>,
     accounts: DrawAccounts,
 ) -> Result<u32> {
     let account_info = gumball_machine.to_account_info();
@@ -81,7 +81,7 @@ pub(crate) fn process_draw(
 
     // are there items to be minted?
     if gumball_machine.items_redeemed >= config_count {
-        return err!(GumballError::GumballMachineEmpty);
+        return err!(GumballError::JellybeanMachineEmpty);
     }
 
     // (2) selecting an item to mint
@@ -111,7 +111,7 @@ pub(crate) fn process_draw(
 
     // Sale has ended if this is the last item to be redeemed
     if gumball_machine.items_redeemed == config_count {
-        gumball_machine.state = GumballState::SaleEnded;
+        gumball_machine.state = JellybeanState::SaleEnded;
     }
 
     // release the data borrow
@@ -124,7 +124,7 @@ pub(crate) fn process_draw(
 ///
 /// The selection could be either sequential or random.
 pub fn set_config_line_buyer(
-    gumball_machine: &Account<'_, GumballMachine>,
+    gumball_machine: &Account<'_, JellybeanMachine>,
     buyer: Pubkey,
     index: usize,
     mint_number: u64,

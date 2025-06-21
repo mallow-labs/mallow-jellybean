@@ -1,6 +1,12 @@
+pub mod checks;
+pub mod math;
+
+pub use checks::*;
+pub use math::*;
+
 use crate::{
-    constants::GUMBALL_MACHINE_SIZE, instructions::AddItemArgs, ConfigLine, ConfigLineV2,
-    GumballError, GumballMachine, GumballState, SellerHistory, TokenStandard,
+    constants::GUMBALL_MACHINE_SIZE, instructions::AddItemArgs, GumballError, JellybeanMachine,
+    JellybeanState, LoadedItem,
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
@@ -26,7 +32,7 @@ use mpl_token_metadata::{
     },
     types::{
         AuthorizationData, DelegateArgs, LockArgs, ProgrammableConfig, RevokeArgs,
-        TokenDelegateRole, TokenStandard as MplTokenStandard, UnlockArgs,
+        TokenDelegateRole, TokenStandard as Mpl UnlockArgs,
     },
 };
 use solana_program::{
@@ -59,7 +65,7 @@ impl anchor_lang::Id for AssociatedToken {
 }
 
 pub fn assert_can_add_item(
-    gumball_machine: &mut Box<Account<GumballMachine>>,
+    gumball_machine: &mut Box<Account<JellybeanMachine>>,
     seller_history: &mut Box<Account<SellerHistory>>,
     quantity: u16,
     args: &AddItemArgs,
@@ -74,7 +80,7 @@ pub fn assert_can_add_item(
         // Can only add item back to a live solo gumball
         require!(!gumball_machine.is_collab(), GumballError::NotASoloGumball);
         require!(
-            gumball_machine.state == GumballState::SaleLive,
+            gumball_machine.state == JellybeanState::SaleLive,
             GumballError::InvalidState
         );
     }
@@ -109,7 +115,7 @@ pub fn assert_can_add_item(
 }
 
 pub fn assert_can_request_add_item(
-    gumball_machine: &mut Box<Account<GumballMachine>>,
+    gumball_machine: &mut Box<Account<JellybeanMachine>>,
     seller_history: &mut Box<Account<SellerHistory>>,
 ) -> Result<()> {
     let seller = seller_history.seller;
@@ -126,7 +132,7 @@ pub fn assert_can_request_add_item(
 }
 
 pub fn assert_config_line(
-    gumball_machine: &Box<Account<GumballMachine>>,
+    gumball_machine: &Box<Account<JellybeanMachine>>,
     index: u32,
     config_line: ConfigLine,
     is_burnt: bool,
@@ -175,16 +181,15 @@ pub fn assert_config_line_values(
     mint: Pubkey,
     seller: Pubkey,
     buyer: Pubkey,
-) -> Result<ConfigLineV2> {
+) -> Result<LoadedItem> {
     let count = get_config_count(gumball_machine_data)?;
 
     if index >= count as u32 {
         return err!(GumballError::IndexGreaterThanLength);
     }
 
-    let config_line = ConfigLineV2::try_from_slice(
-        &gumball_machine_data
-            [config_line_position..config_line_position + ConfigLineV2::INIT_SPACE],
+    let config_line = LoadedItem::try_from_slice(
+        &gumball_machine_data[config_line_position..config_line_position + LoadedItem::INIT_SPACE],
     )?;
 
     require!(mint == config_line.mint, GumballError::InvalidMint);

@@ -37,9 +37,8 @@ pub const GUMBALL_MACHINE_SIZE: usize = GUMBALL_SETTINGS_BYTE_INDEX
     + 1                                     // hide sold items
     + 32; // payment token
 
-pub const CONFIG_LINE_SIZE: usize = 32// mint
-    + 32 // seller
-    + 32 // buyer
-    +1; // token standard
-
-pub const CONFIG_LINE_V2_SIZE: usize = CONFIG_LINE_SIZE + 8; // amount
+pub const LOADED_ITEM_SIZE: usize = 32// mint
+    + 8 // supply_redeemed
+    + 8 // supply_loaded
+    + 8 // amount
+    + 1; // token standard

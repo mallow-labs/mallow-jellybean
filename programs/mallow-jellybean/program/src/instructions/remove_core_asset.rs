@@ -1,7 +1,7 @@
 use crate::{
     constants::{AUTHORITY_SEED, SELLER_HISTORY_SEED},
     processors,
-    state::GumballMachine,
+    state::JellybeanMachine,
     thaw_and_revoke_core_asset, GumballError, SellerHistory,
 };
 use anchor_lang::prelude::*;
@@ -14,7 +14,7 @@ pub struct RemoveCoreAsset<'info> {
         mut,
         constraint = gumball_machine.can_edit_items() @ GumballError::InvalidState,
     )]
-    gumball_machine: Account<'info, GumballMachine>,
+    gumball_machine: Account<'info, JellybeanMachine>,
 
     /// Seller history account.
     #[account(

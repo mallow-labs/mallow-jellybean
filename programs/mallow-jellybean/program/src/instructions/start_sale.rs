@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{get_config_count, state::GumballMachine, GumballError, GumballState};
+use crate::{get_config_count, state::JellybeanMachine, GumballError, JellybeanState};
 
 /// Manually starts a sale.
 #[derive(Accounts)]
@@ -9,9 +9,9 @@ pub struct StartSale<'info> {
     #[account(
         mut, 
         constraint = authority.key() == gumball_machine.authority || authority.key() == gumball_machine.mint_authority @ GumballError::InvalidAuthority,
-        constraint = gumball_machine.state != GumballState::SaleLive && gumball_machine.state != GumballState::SaleEnded @ GumballError::InvalidState
+        constraint = gumball_machine.state != JellybeanState::SaleLive && gumball_machine.state != JellybeanState::SaleEnded @ GumballError::InvalidState
     )]
-    gumball_machine: Box<Account<'info, GumballMachine>>,
+    gumball_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// Gumball Machine authority. This can be the mint authority or the authority.
     authority: Signer<'info>,
@@ -23,9 +23,9 @@ pub fn start_sale(ctx: Context<StartSale>) -> Result<()> {
     let data = account_info.data.borrow_mut();
     let count = get_config_count(&data)?;
 
-    require!(count > 0, GumballError::GumballMachineEmpty);
+    require!(count > 0, GumballError::JellybeanMachineEmpty);
 
-    gumball_machine.state = GumballState::SaleLive;
+    gumball_machine.state = JellybeanState::SaleLive;
 
     Ok(())
 }

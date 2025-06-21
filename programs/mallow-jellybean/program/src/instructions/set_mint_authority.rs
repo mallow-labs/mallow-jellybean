@@ -1,13 +1,13 @@
 use anchor_lang::prelude::*;
 
-use crate::GumballMachine;
+use crate::JellybeanMachine;
 
 /// Sets a new gumball machine authority.
 #[derive(Accounts)]
 pub struct SetMintAuthority<'info> {
     /// Gumball Machine account.
     #[account(mut, has_one = authority)]
-    gumball_machine: Account<'info, GumballMachine>,
+    gumball_machine: Account<'info, JellybeanMachine>,
 
     /// Gumball Machine authority
     authority: Signer<'info>,

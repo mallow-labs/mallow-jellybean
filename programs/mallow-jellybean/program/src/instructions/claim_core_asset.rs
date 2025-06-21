@@ -1,6 +1,6 @@
 use crate::{
     assert_config_line, constants::AUTHORITY_SEED, events::ClaimItemEvent, processors,
-    state::GumballMachine, ConfigLine, GumballError, GumballState, TokenStandard,
+    state::JellybeanMachine, ConfigLine, GumballError, JellybeanState, 
 };
 use anchor_lang::prelude::*;
 
@@ -14,9 +14,9 @@ pub struct ClaimCoreAsset<'info> {
     /// Gumball machine account.
     #[account(
         mut,
-        constraint = gumball_machine.state == GumballState::SaleLive || gumball_machine.state == GumballState::SaleEnded @ GumballError::InvalidState
+        constraint = gumball_machine.state == JellybeanState::SaleLive || gumball_machine.state == JellybeanState::SaleEnded @ GumballError::InvalidState
     )]
-    gumball_machine: Box<Account<'info, GumballMachine>>,
+    gumball_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// CHECK: Safe due to seeds constraint
     #[account(

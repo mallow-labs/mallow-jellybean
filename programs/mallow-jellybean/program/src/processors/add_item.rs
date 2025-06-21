@@ -1,14 +1,13 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    constants::GUMBALL_MACHINE_SIZE, get_bit_byte_info, get_config_count, ConfigLineV2Input,
-    GumballError, GumballMachine, GumballState, TokenStandard,
+    constants::GUMBALL_MACHINE_SIZE, get_bit_byte_info, get_config_count, GumballError,
+    JellybeanMachine, JellybeanState, LoadedItem,
 };
 
 pub fn add_item(
-    gumball_machine: &mut Account<GumballMachine>,
-    config_line: ConfigLineV2Input,
-    token_standard: TokenStandard,
+    gumball_machine: &mut Account<JellybeanMachine>,
+    config_line: LoadedItem,
     quantity: u16,
     // Populate to indicate re-adding an item
     re_add_index: Option<u32>,
@@ -18,7 +17,7 @@ pub fn add_item(
         require!(gumball_machine.version >= 5, GumballError::InvalidVersion);
     }
 
-    if gumball_machine.state == GumballState::SaleLive {
+    if gumball_machine.state == JellybeanState::SaleLive {
         require!(is_re_add, GumballError::MissingItemIndex);
     }
 

@@ -25,4 +25,3 @@ spl-token = ">=3.5.0"
 spl-associated-token-account = {version = ">=1.0.0", features = ["no-entrypoint"]}
 mpl-token-metadata = ">=5.1.0"
 mpl-core = { version= ">=0.9.1"}
-utils = { path="../../utils" }

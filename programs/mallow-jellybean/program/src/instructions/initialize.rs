@@ -1,7 +1,7 @@
 use crate::{
     constants::{AUTHORITY_SEED, GUMBALL_MACHINE_SIZE},
-    state::GumballMachine,
-    BuyBackConfig, FeeConfig, GumballError, GumballSettings, GumballState,
+    state::JellybeanMachine,
+    BuyBackConfig, FeeConfig, GumballError, GumballSettings, JellybeanState,
 };
 use anchor_lang::{prelude::*, Discriminator};
 use mpl_token_metadata::MAX_URI_LENGTH;
@@ -17,7 +17,7 @@ pub struct Initialize<'info> {
     #[account(
         zero,
         rent_exempt = skip,
-        constraint = gumball_machine.to_account_info().owner == __program_id && gumball_machine.to_account_info().data_len() >= GumballMachine::get_size(settings.item_capacity, GumballMachine::CURRENT_VERSION)
+        constraint = gumball_machine.to_account_info().owner == __program_id && gumball_machine.to_account_info().data_len() >= JellybeanMachine::get_size(settings.item_capacity, JellybeanMachine::CURRENT_VERSION)
     )]
     gumball_machine: UncheckedAccount<'info>,
 
@@ -72,13 +72,13 @@ pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> 
 
     // Details are considered finalized once sellers are invited
     let state = if settings.sellers_merkle_root.is_some() {
-        GumballState::DetailsFinalized
+        JellybeanState::DetailsFinalized
     } else {
-        GumballState::None
+        JellybeanState::None
     };
 
-    let gumball_machine = GumballMachine {
-        version: GumballMachine::CURRENT_VERSION,
+    let gumball_machine = JellybeanMachine {
+        version: JellybeanMachine::CURRENT_VERSION,
         authority: ctx.accounts.authority.key(),
         mint_authority: ctx.accounts.authority.key(),
         marketplace_fee_config: fee_config,
@@ -89,7 +89,7 @@ pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> 
         settings,
     };
 
-    let mut struct_data = GumballMachine::discriminator().try_to_vec().unwrap();
+    let mut struct_data = JellybeanMachine::discriminator().try_to_vec().unwrap();
     struct_data.append(&mut gumball_machine.try_to_vec().unwrap());
 
     let mut account_data = gumball_machine_account.data.borrow_mut();

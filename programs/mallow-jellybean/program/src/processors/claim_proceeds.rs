@@ -1,5 +1,5 @@
 use crate::{
-    get_bit_byte_info, get_config_count, state::GumballMachine, GumballError, SellerHistory,
+    get_bit_byte_info, get_config_count, state::JellybeanMachine, GumballError, SellerHistory,
 };
 use anchor_lang::prelude::*;
 use utils::{
@@ -7,7 +7,7 @@ use utils::{
 };
 
 pub fn claim_proceeds<'a, 'b>(
-    gumball_machine: &mut Box<Account<'a, GumballMachine>>,
+    gumball_machine: &mut Box<Account<'a, JellybeanMachine>>,
     index: u32,
     seller_history: &mut Box<Account<'a, SellerHistory>>,
     fee_payer: &AccountInfo<'a>,
@@ -134,7 +134,7 @@ pub fn claim_proceeds<'a, 'b>(
 }
 
 pub fn get_total_proceeds<'a>(
-    gumball_machine: &Box<Account<'a, GumballMachine>>,
+    gumball_machine: &Box<Account<'a, JellybeanMachine>>,
     total_proceeds_settled: u64,
     config_count: u64,
 ) -> Result<(u64, u16)> {
@@ -173,7 +173,7 @@ pub fn get_total_proceeds<'a>(
 }
 
 pub fn transfer_proceeds<'a, 'b>(
-    gumball_machine: &Box<Account<'a, GumballMachine>>,
+    gumball_machine: &Box<Account<'a, JellybeanMachine>>,
     total_proceeds: u64,
     marketplace_fee_bps: u16,
     authority_pda: &mut AccountInfo<'a>,

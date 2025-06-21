@@ -1,8 +1,8 @@
 use crate::{
     approve_and_freeze_core_asset, assert_can_add_item,
     constants::{AUTHORITY_SEED, SELLER_HISTORY_SEED},
-    state::GumballMachine,
-    ConfigLineV2Input, GumballError, SellerHistory, TokenStandard,
+    state::JellybeanMachine,
+    LoadedItem, GumballError, SellerHistory, 
 };
 use anchor_lang::prelude::*;
 
@@ -16,7 +16,7 @@ pub struct AddCoreAsset<'info> {
         mut,
         constraint = gumball_machine.can_add_items() @ GumballError::InvalidState,
     )]
-    gumball_machine: Box<Account<'info, GumballMachine>>,
+    gumball_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// Seller history account.
     #[account(
@@ -88,7 +88,7 @@ pub fn add_core_asset(ctx: Context<AddCoreAsset>, args: AddItemArgs) -> Result<(
 
     crate::processors::add_item(
         gumball_machine,
-        ConfigLineV2Input {
+        LoadedItem {
             mint: ctx.accounts.asset.key(),
             seller: ctx.accounts.seller.key(),
             amount: 1,

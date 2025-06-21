@@ -1,7 +1,5 @@
-pub use add_item_request::*;
-pub use gumball_machine::*;
-pub use seller_history::*;
+pub mod jellybean_machine;
+pub mod unclaimed_draws;
 
-pub mod add_item_request;
-pub mod gumball_machine;
-pub mod seller_history;
+pub use jellybean_machine::*;
+pub use unclaimed_draws::*;

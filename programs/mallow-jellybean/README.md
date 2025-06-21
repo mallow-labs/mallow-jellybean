@@ -49,10 +49,10 @@ This model ensures fair compensation for all participating sellers, regardless o
 
 ## Account
 
-The `GumballMachine` state is stored in a single account, which includes settings that
+The `JellybeanMachine` state is stored in a single account, which includes settings that
 control the behaviour of the gumball machine and metadata information for the NFTs sold through it.
 The account data is represented by the
-[`GumballMachine`](https://github.com/mallow-labs/mallow-jellybean/blob/febo/mallow-jellybean/mallow-jellybean/program/src/state/gumball_machine.rs)
+[`JellybeanMachine`](https://github.com/mallow-labs/mallow-jellybean/blob/febo/mallow-jellybean/mallow-jellybean/program/src/state/gumball_machine.rs)
 struct, which include references to auxiliary structs
 `ConfigLineSettings` and `HiddenSettings`.
 
@@ -104,7 +104,7 @@ Used by the marketplace/platform hosting the Gumball sale to take an optional fe
 | `fee_account` | 0      | 32   | Where fees will go.         |
 | `fee_bps`     | 32     | 2    | Sale basis points for fees. |
 
-### `GumballState`
+### `JellybeanState`
 
 | Value              | Description                                                                  |
 | ------------------ | ---------------------------------------------------------------------------- |
@@ -117,14 +117,14 @@ Used by the marketplace/platform hosting the Gumball sale to take an optional fe
 
 ### 📄 `initialize`
 
-This instruction creates and initializes a new `GumballMachine` account with the specified settings and fee configuration.
+This instruction creates and initializes a new `JellybeanMachine` account with the specified settings and fee configuration.
 
 <details>
   <summary>Accounts</summary>
 
 | Name              | Writable | Signer | Description                                                         |
 | ----------------- | :------: | :----: | ------------------------------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `GumballMachine` account (uninitialized).                       |
+| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account (uninitialized).                     |
 | `authority`       |          |        | Public key of the gumball machine authority.                        |
 | `authority_pda`   |    ✅    |        | Authority PDA account (PDA, seeds: ["authority", gumball_machine]). |
 | `payer`           |    ✅    |   ✅   | Payer of the transaction.                                           |
@@ -152,7 +152,7 @@ This instruction updates the gumball machine settings.
 
 | Name              | Writable | Signer | Description                                  |
 | ----------------- | :------: | :----: | -------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `GumballMachine` account.                |
+| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.              |
 | `authority`       |          |   ✅   | Public key of the gumball machine authority. |
 
 </details>
@@ -175,7 +175,7 @@ This instruction adds a legacy NFT to the gumball machine.
 
 | Name                     | Writable | Signer | Description                                                                       |
 | ------------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`        |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`        |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`         |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `authority_pda`          |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `seller`                 |    ✅    |   ✅   | Seller of the NFT.                                                                |
@@ -211,7 +211,7 @@ This instruction adds a Core asset to the gumball machine.
 
 | Name               | Writable | Signer | Description                                                                       |
 | ------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `seller`           |    ✅    |   ✅   | Seller of the asset.                                                              |
@@ -240,7 +240,7 @@ This instruction adds fungible tokens to the gumball machine.
 
 | Name                          | Writable | Signer | Description                                                                       |
 | ----------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`             |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `seller`                      |    ✅    |   ✅   | Seller of the tokens.                                                             |
@@ -267,14 +267,14 @@ This instruction adds fungible tokens to the gumball machine.
 
 ### 📄 `remove_nft`
 
-This instruction removes a legacy NFT from the gumball machine. It thaws and revokes the delegate from the seller's NFT and removes the item from the `GumballMachine` config lines. The signer (`authority`) must be either the gumball machine authority or the seller of the NFT being removed.
+This instruction removes a legacy NFT from the gumball machine. It thaws and revokes the delegate from the seller's NFT and removes the item from the `JellybeanMachine` config lines. The signer (`authority`) must be either the gumball machine authority or the seller of the NFT being removed.
 
 <details>
   <summary>Accounts</summary>
 
 | Name                          | Writable | Signer | Description                                                                       |
 | ----------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`             |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `authority`                   |          |   ✅   | Authority allowed to remove (gumball machine authority or item seller).           |
@@ -307,14 +307,14 @@ This instruction removes a legacy NFT from the gumball machine. It thaws and rev
 
 ### 📄 `remove_core_asset`
 
-This instruction removes a Core asset from the gumball machine. It thaws and revokes the delegate from the seller's asset and removes the item from the `GumballMachine` config lines. The signer (`authority`) must be either the gumball machine authority or the seller of the asset being removed.
+This instruction removes a Core asset from the gumball machine. It thaws and revokes the delegate from the seller's asset and removes the item from the `JellybeanMachine` config lines. The signer (`authority`) must be either the gumball machine authority or the seller of the asset being removed.
 
 <details>
   <summary>Accounts</summary>
 
 | Name               | Writable | Signer | Description                                                                       |
 | ------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `authority`        |          |   ✅   | Authority allowed to remove (gumball machine authority or item seller).           |
@@ -344,7 +344,7 @@ This instruction allows drawing from the gumball machine to begin by setting the
 
 | Name              | Writable | Signer | Description                                                               |
 | ----------------- | :------: | :----: | ------------------------------------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `GumballMachine` account.                                             |
+| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.                                           |
 | `authority`       |          |   ✅   | Gumball Machine authority (can be `authority` or `mint_authority` field). |
 
 </details>
@@ -365,7 +365,7 @@ This instruction disables minting and allows sales to be settled.
 
 | Name              | Writable | Signer | Description                                  |
 | ----------------- | :------: | :----: | -------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `GumballMachine` account.                |
+| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.              |
 | `authority`       |          |   ✅   | Public key of the gumball machine authority. |
 
 </details>
@@ -379,14 +379,14 @@ None.
 
 ### 📄 `draw`
 
-This instruction pseudo-randomly selects an available item from the `GumballMachine` config lines, assigns the `buyer` pubkey to it, and increments the `items_redeemed` count. Only callable by the `mint_authority` when the gumball machine state is `SaleLive`.
+This instruction pseudo-randomly selects an available item from the `JellybeanMachine` config lines, assigns the `buyer` pubkey to it, and increments the `items_redeemed` count. Only callable by the `mint_authority` when the gumball machine state is `SaleLive`.
 
 <details>
   <summary>Accounts</summary>
 
 | Name                | Writable | Signer | Description                                       |
 | ------------------- | :------: | :----: | ------------------------------------------------- |
-| `gumball_machine`   |    ✅    |        | The `GumballMachine` account.                     |
+| `gumball_machine`   |    ✅    |        | The `JellybeanMachine` account.                   |
 | `mint_authority`    |          |   ✅   | Gumball Machine mint authority.                   |
 | `payer`             |    ✅    |   ✅   | Payer for the transaction.                        |
 | `buyer`             |          |        | Account that will receive the item (pubkey only). |
@@ -411,7 +411,7 @@ This instruction increments the total revenue earned by the gumball machine.
 
 | Name              | Writable | Signer | Description                                       |
 | ----------------- | :------: | :----: | ------------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `GumballMachine` account.                     |
+| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.                   |
 | `mint_authority`  |          |   ✅   | Public key of the gumball machine mint authority. |
 
 </details>
@@ -435,7 +435,7 @@ This instruction claims a Core asset from the gumball machine for a specific buy
 | Name               | Writable | Signer | Description                                                          |
 | ------------------ | :------: | :----: | -------------------------------------------------------------------- |
 | `payer`            |    ✅    |   ✅   | Payer for the transaction (anyone can claim the item for the buyer). |
-| `gumball_machine`  |    ✅    |        | The `GumballMachine` account (must be `SaleLive` or `SaleEnded`).    |
+| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account (must be `SaleLive` or `SaleEnded`).  |
 | `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).          |
 | `seller`           |    ✅    |        | Seller account (from config line).                                   |
 | `buyer`            |          |        | Buyer account (from config line).                                    |
@@ -465,7 +465,7 @@ This instruction claims a legacy NFT from the gumball machine for a specific buy
 | Name                          | Writable | Signer | Description                                                          |
 | ----------------------------- | :------: | :----: | -------------------------------------------------------------------- |
 | `payer`                       |    ✅    |   ✅   | Payer for the transaction (anyone can claim the item for the buyer). |
-| `gumball_machine`             |    ✅    |        | The `GumballMachine` account (must be `SaleLive` or `SaleEnded`).    |
+| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account (must be `SaleLive` or `SaleEnded`).  |
 | `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).          |
 | `seller`                      |    ✅    |        | Seller account (from config line).                                   |
 | `buyer`                       |          |        | Buyer account (from config line).                                    |
@@ -507,7 +507,7 @@ This instruction settles a Core asset sale. If the item hasn't been claimed yet,
 | Name                            | Writable | Signer | Description                                                                       |
 | ------------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
 | `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                           |
-| `gumball_machine`               |    ✅    |        | The `GumballMachine` account (must be `SaleEnded`).                               |
+| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                             |
 | `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).   |
 | `authority`                     |    ✅    |        | Gumball machine authority account (checked via `gumball_machine`).                |
@@ -549,7 +549,7 @@ This instruction settles a legacy NFT sale. If the item hasn't been claimed yet,
 | Name                            | Writable | Signer | Description                                                                       |
 | ------------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
 | `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                           |
-| `gumball_machine`               |    ✅    |        | The `GumballMachine` account (must be `SaleEnded`).                               |
+| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                             |
 | `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).   |
 | `authority`                     |    ✅    |        | Gumball machine authority account (checked via `gumball_machine`).                |
@@ -600,7 +600,7 @@ This instruction settles a range of fungible token sales (`start_index` to `end_
 | Name                            | Writable | Signer | Description                                                                       |
 | ------------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
 | `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                           |
-| `gumball_machine`               |    ✅    |        | The `GumballMachine` account (must be `SaleEnded`).                               |
+| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                             |
 | `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).   |
 | `authority`                     |    ✅    |        | Gumball machine authority account (checked via `gumball_machine`).                |
@@ -639,7 +639,7 @@ This instruction sets a new authority for the gumball machine.
 
 | Name              | Writable | Signer | Description                                  |
 | ----------------- | :------: | :----: | -------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `GumballMachine` account.                |
+| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.              |
 | `authority`       |          |   ✅   | Public key of the gumball machine authority. |
 
 </details>
@@ -662,7 +662,7 @@ This instruction sets a new mint authority for the gumball machine. Requires the
 
 | Name              | Writable | Signer | Description                         |
 | ----------------- | :------: | :----: | ----------------------------------- |
-| `gumball_machine` |    ✅    |        | The `GumballMachine` account.       |
+| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.     |
 | `authority`       |          |   ✅   | Current gumball machine authority.  |
 | `mint_authority`  |          |   ✅   | New gumball machine mint authority. |
 
@@ -677,14 +677,14 @@ None.
 
 ### 📄 `withdraw`
 
-This instruction closes the `GumballMachine` account and sends its rent lamports to the `authority`. It requires all items to be settled (`items_settled == config_count`). If a non-native `payment_mint` was used, it also closes the `authority_pda_payment_account` and transfers its remaining balance to the `authority`'s associated token account for that mint (which must be provided in remaining accounts). Requires both the `authority` and `mint_authority` to sign.
+This instruction closes the `JellybeanMachine` account and sends its rent lamports to the `authority`. It requires all items to be settled (`items_settled == config_count`). If a non-native `payment_mint` was used, it also closes the `authority_pda_payment_account` and transfers its remaining balance to the `authority`'s associated token account for that mint (which must be provided in remaining accounts). Requires both the `authority` and `mint_authority` to sign.
 
 <details>
   <summary>Accounts</summary>
 
 | Name                            | Writable | Signer | Description                                                                   |
 | ------------------------------- | :------: | :----: | ----------------------------------------------------------------------------- |
-| `gumball_machine`               |    ✅    |        | The `GumballMachine` account (will be closed).                                |
+| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (will be closed).                              |
 | `authority`                     |    ✅    |   ✅   | Gumball machine authority (receiver of rent lamports).                        |
 | `mint_authority`                |    ✅    |   ✅   | Gumball machine mint authority.                                               |
 | `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                   |
@@ -715,7 +715,7 @@ This instruction requests to add a legacy NFT to the gumball machine. It freezes
 
 | Name                     | Writable | Signer | Description                                                                       |
 | ------------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`        |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`        |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`         |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `add_item_request`       |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", mint]).                |
 | `authority_pda`          |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
@@ -750,7 +750,7 @@ This instruction requests to add a Core asset to the gumball machine. It freezes
 
 | Name               | Writable | Signer | Description                                                                       |
 | ------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `add_item_request` |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset]).               |
 | `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
@@ -835,14 +835,14 @@ None.
 
 ### 📄 `approve_add_item`
 
-This instruction approves a request to add an item (NFT or Core asset) to the gumball machine. It moves the item details from the `AddItemRequest` account to the `GumballMachine` config lines and closes the `AddItemRequest` account.
+This instruction approves a request to add an item (NFT or Core asset) to the gumball machine. It moves the item details from the `AddItemRequest` account to the `JellybeanMachine` config lines and closes the `AddItemRequest` account.
 
 <details>
   <summary>Accounts</summary>
 
 | Name               | Writable | Signer | Description                                                                                 |
 | ------------------ | :------: | :----: | ------------------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `GumballMachine` account.                                                               |
+| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                             |
 | `add_item_request` |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset_or_mint]). Will be closed. |
 | `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                                 |
 | `authority`        |          |   ✅   | Authority of the gumball machine.                                                           |
@@ -868,7 +868,7 @@ This instruction removes fungible token items from the gumball machine within a 
 
 | Name                          | Writable | Signer | Description                                                                       |
 | ----------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`             |    ✅    |        | The `GumballMachine` account.                                                     |
+| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account.                                                   |
 | `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
 | `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
 | `authority`                   |    ✅    |   ✅   | Authority allowed to remove (gumball machine authority or item seller).           |
