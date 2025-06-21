@@ -1,7 +1,7 @@
 use std::cell::RefMut;
 
 use crate::{
-    constants::BASE_JELLYBEAN_MACHINE_SIZE, events::DrawItemEvent, utils::*, JellybeanError, JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedDraws
+    constants::BASE_JELLYBEAN_MACHINE_SIZE, events::DrawItemEvent, JellybeanError, JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedDraws
 };
 use anchor_lang::prelude::*;
 use arrayref::array_ref;

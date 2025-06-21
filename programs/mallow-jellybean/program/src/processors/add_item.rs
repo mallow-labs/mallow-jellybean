@@ -2,11 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::{constants::BASE_JELLYBEAN_MACHINE_SIZE, JellybeanError, JellybeanMachine, LoadedItem};
 
-pub fn add_item(
-    jellybean_machine: &mut Account<JellybeanMachine>,
-    item: LoadedItem,
-    supply: u32,
-) -> Result<()> {
+pub fn add_item(jellybean_machine: &mut Account<JellybeanMachine>, item: LoadedItem) -> Result<()> {
     let account_info = jellybean_machine.to_account_info();
     let mut data = account_info.data.borrow_mut();
     let new_item_index = jellybean_machine.items_loaded as usize;
@@ -18,7 +14,7 @@ pub fn add_item(
 
     jellybean_machine.supply_loaded = jellybean_machine
         .supply_loaded
-        .checked_add(supply as u64)
+        .checked_add(item.supply_loaded as u64)
         .ok_or(JellybeanError::NumericalOverflowError)?;
 
     let mut position = BASE_JELLYBEAN_MACHINE_SIZE + new_item_index * size_of::<LoadedItem>();
@@ -28,7 +24,7 @@ pub fn add_item(
     position += 32;
 
     let supply_loaded_slice: &mut [u8] = &mut data[position..position + 4];
-    supply_loaded_slice.copy_from_slice(&u32::to_le_bytes(supply));
+    supply_loaded_slice.copy_from_slice(&u32::to_le_bytes(item.supply_loaded));
     position += 4;
 
     let supply_redeemed_slice: &mut [u8] = &mut data[position..position + 4];

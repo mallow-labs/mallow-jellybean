@@ -1,6 +1,6 @@
-pub mod add_core_asset;
+pub mod add_core_item;
 pub mod claim_core_asset;
-pub mod close_gumball_machine;
+pub mod close_jellybean_machine;
 pub mod draw;
 pub mod end_sale;
 pub mod initialize;
@@ -9,9 +9,9 @@ pub mod set_mint_authority;
 pub mod start_sale;
 pub mod update_settings;
 
-pub use add_core_asset::*;
+pub use add_core_item::*;
 pub use claim_core_asset::*;
-pub use close_gumball_machine::*;
+pub use close_jellybean_machine::*;
 pub use draw::*;
 pub use end_sale::*;
 pub use initialize::*;

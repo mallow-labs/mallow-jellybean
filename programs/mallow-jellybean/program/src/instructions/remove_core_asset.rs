@@ -1,34 +1,21 @@
 use crate::{
-    constants::{AUTHORITY_SEED, SELLER_HISTORY_SEED},
+    constants::{AUTHORITY_SEED},
     processors,
     state::JellybeanMachine,
-    thaw_and_revoke_core_asset, JellybeanError, SellerHistory,
+    thaw_and_revoke_core_asset,
 };
 use anchor_lang::prelude::*;
 
 /// Add core asset to a gumball machine.
 #[derive(Accounts)]
-pub struct RemoveCoreAsset<'info> {
+pub struct RemoveCoreItem<'info> {
     /// Gumball Machine account.
     #[account(
         mut,
+        has_one = authority @ JellybeanError::InvalidAuthority,
         constraint = jellybean_machine.can_edit_items() @ JellybeanError::InvalidState,
     )]
     jellybean_machine: Account<'info, JellybeanMachine>,
-
-    /// Seller history account.
-    #[account(
-		mut,
-		seeds = [
-			SELLER_HISTORY_SEED.as_bytes(),
-			jellybean_machine.key().as_ref(),
-            seller.key().as_ref(),
-		],
-		bump,
-        has_one = jellybean_machine,
-        has_one = seller,
-	)]
-    seller_history: Box<Account<'info, SellerHistory>>,
 
     /// CHECK: Safe due to seeds constraint
     #[account(
@@ -41,16 +28,12 @@ pub struct RemoveCoreAsset<'info> {
     )]
     authority_pda: UncheckedAccount<'info>,
 
-    /// Seller of the asset.
+    /// Authority of the jellybean machine.
     authority: Signer<'info>,
-
-    /// CHECK: Safe due to item seller check
-    #[account(mut)]
-    seller: UncheckedAccount<'info>,
 
     /// CHECK: Safe due to freeze
     #[account(mut)]
-    asset: UncheckedAccount<'info>,
+    asset: Option<UncheckedAccount<'info>>,
 
     /// Core asset's collection if it's part of one.
     /// CHECK: Verified in mpl_core processors
@@ -64,15 +47,13 @@ pub struct RemoveCoreAsset<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn remove_core_asset(ctx: Context<RemoveCoreAsset>, index: u32) -> Result<()> {
-    let asset_info = &ctx.accounts.asset.to_account_info();
+pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> {
     let authority = &ctx.accounts.authority.to_account_info();
     let mpl_core_program = &ctx.accounts.mpl_core_program.to_account_info();
     let system_program = &ctx.accounts.system_program.to_account_info();
+    let authority = &ctx.accounts.authority.to_account_info();
     let authority_pda = &ctx.accounts.authority_pda.to_account_info();
-    let seller = &ctx.accounts.seller.to_account_info();
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
-    let seller_history = &mut ctx.accounts.seller_history;
 
     processors::remove_multiple_items_span(
         jellybean_machine,

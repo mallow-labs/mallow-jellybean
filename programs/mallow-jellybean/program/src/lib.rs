@@ -2,7 +2,7 @@
 
 use anchor_lang::prelude::*;
 
-pub use errors::JellybeanError;
+pub use errors::*;
 use instructions::*;
 pub use state::*;
 pub use utils::*;
@@ -56,24 +56,8 @@ pub mod mallow_jellybean {
     ///   5. `[writable, optional]` Collection account
     ///   6. `[]` MPL Core program
     ///   7. `[]` System program
-    pub fn add_core_asset(ctx: Context<AddCoreAsset>, args: AddItemArgs) -> Result<()> {
-        instructions::add_core_asset(ctx, args)
-    }
-
-    /// Add Core assets to the gumball machine.
-    ///
-    /// # Accounts
-    ///
-    ///   0. `[writable]` Gumball Machine account
-    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller])
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
-    ///   3. `[signer, writable]` Seller
-    ///   4. `[writable]` Asset account
-    ///   5. `[writable, optional]` Collection account
-    ///   6. `[]` MPL Core program
-    ///   7. `[]` System program
-    pub fn add_core_master_edition(ctx: Context<AddCoreAsset>, args: AddItemArgs) -> Result<()> {
-        instructions::add_core_asset(ctx, args)
+    pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
+        instructions::add_core_item(ctx)
     }
 
     /// Remove Core asset from the gumball machine.
@@ -91,8 +75,8 @@ pub mod mallow_jellybean {
     ///   6. `[writable, optional]` Collection account if asset is part of one.
     ///   7. `[]` MPL Core program.
     ///   8. `[]` System program.
-    pub fn remove_core_asset(ctx: Context<RemoveCoreAsset>, index: u32) -> Result<()> {
-        instructions::remove_core_asset(ctx, index)
+    pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> {
+        instructions::remove_core_item(ctx, index)
     }
 
     /// Remove Core asset from the gumball machine.
@@ -223,6 +207,6 @@ pub mod mallow_jellybean {
     pub fn withdraw<'info>(
         ctx: Context<'_, '_, '_, 'info, CloseJellybeanMachine<'info>>,
     ) -> Result<()> {
-        instructions::close_gumball_machine(ctx)
+        instructions::close_jellybean_machine(ctx)
     }
 }

@@ -104,7 +104,7 @@ pub enum JellybeanError {
     MissingMetadataDelegateRecord,
 
     #[msg("Invalid token standard")]
-    Invalid
+    InvalidTokenStandard,
 
     #[msg("Missing token account")]
     MissingTokenAccount,
@@ -129,12 +129,6 @@ pub enum JellybeanError {
 
     #[msg("Invalid master edition supply")]
     InvalidMasterEditionSupply,
-
-    #[msg("Public key mismatch")]
-    PublicKeyMismatch,
-
-    #[msg("Invalid collection")]
-    InvalidCollection,
 
     #[msg("Gumball machine detailed finalized")]
     JellybeanMachineDetailsFinalized,
@@ -237,4 +231,13 @@ pub enum JellybeanError {
 
     #[msg("Missing item index")]
     MissingItemIndex,
+
+    #[msg("Missing master edition")]
+    MissingMasterEdition,
+
+    #[msg("Master edition not empty")]
+    MasterEditionNotEmpty,
+
+    #[msg("Invalid asset")]
+    InvalidAsset,
 }

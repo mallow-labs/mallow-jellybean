@@ -64,73 +64,6 @@ impl anchor_lang::Id for AssociatedToken {
     }
 }
 
-pub fn assert_can_add_item(
-    jellybean_machine: &mut Box<Account<JellybeanMachine>>,
-    seller_history: &mut Box<Account<SellerHistory>>,
-    quantity: u16,
-    args: &AddItemArgs,
-) -> Result<()> {
-    let AddItemArgs {
-        seller_proof_path,
-        index,
-    } = args;
-
-    // Having an index means we're re-adding an item
-    if index.is_some() {
-        // Can only add item back to a live solo gumball
-        require!(!jellybean_machine.is_collab(), JellybeanError::NotASoloGumball);
-        require!(
-            jellybean_machine.state == JellybeanState::SaleLive,
-            JellybeanError::InvalidState
-        );
-    }
-
-    let seller = seller_history.seller;
-
-    if seller == jellybean_machine.authority {
-        return Ok(());
-    }
-
-    if seller_history.item_count + quantity as u64
-        > jellybean_machine.settings.items_per_seller as u64
-    {
-        return err!(JellybeanError::SellerTooManyItems);
-    }
-
-    if seller_proof_path.is_none() || jellybean_machine.settings.sellers_merkle_root.is_none() {
-        return err!(JellybeanError::InvalidProofPath);
-    }
-
-    let leaf = solana_program::keccak::hashv(&[seller.to_string().as_bytes()]);
-    require!(
-        verify_proof(
-            &seller_proof_path.as_ref().unwrap()[..],
-            &jellybean_machine.settings.sellers_merkle_root.unwrap(),
-            &leaf.0,
-        ),
-        JellybeanError::InvalidProofPath
-    );
-
-    Ok(())
-}
-
-pub fn assert_can_request_add_item(
-    jellybean_machine: &mut Box<Account<JellybeanMachine>>,
-    seller_history: &mut Box<Account<SellerHistory>>,
-) -> Result<()> {
-    let seller = seller_history.seller;
-
-    if seller == jellybean_machine.authority {
-        return err!(JellybeanError::SellerCannotBeAuthority);
-    }
-
-    if seller_history.item_count >= jellybean_machine.settings.items_per_seller as u64 {
-        return err!(JellybeanError::SellerTooManyItems);
-    }
-
-    Ok(())
-}
-
 pub fn assert_config_line(
     jellybean_machine: &Box<Account<JellybeanMachine>>,
     index: u32,
@@ -223,20 +156,6 @@ pub fn get_core_asset_update_authority<'info>(
         }
         UpdateAuthority::None => return Ok((None, asset)),
     }
-}
-
-pub fn get_bit_byte_info(base_position: usize, position: usize) -> Result<(usize, usize, u8)> {
-    let byte_position = base_position
-        + position
-            .checked_div(8)
-            .ok_or(JellybeanError::NumericalOverflowError)?;
-    // bit index corresponding to the position of the line
-    let bit = 7 - position
-        .checked_rem(8)
-        .ok_or(JellybeanError::NumericalOverflowError)?;
-    let mask = u8::pow(2, bit as u32);
-
-    return Ok((byte_position, bit, mask));
 }
 
 pub fn approve_and_freeze_core_asset<'a>(
