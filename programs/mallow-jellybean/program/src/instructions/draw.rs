@@ -167,7 +167,6 @@ pub(crate) fn process_draw(
 
     // release the data borrow
     drop(data);
-    drop(account_data);
 
     Ok(prize)
 }
@@ -193,22 +192,22 @@ fn get_prize_and_update_supply_redeemed(mut account_data: RefMut<'_, &mut [u8]>,
         // Check if the target index falls within this item's remaining supply
         if target_supply_index < remaining_supply_covered + remaining_supply as usize {
             // Update the supply_redeemed count for the item
-            item.supply_redeemed = item.supply_redeemed
+            let new_supply_redeemed = item.supply_redeemed
                 .checked_add(1)
                 .ok_or(JellybeanError::NumericalOverflowError)?;
 
             // 36 is the offset of the supply_redeemed field in the LoadedItem struct
             let supply_redeemed_slice: &mut [u8] = &mut account_data[item_position + 36..item_position + 40];
-            supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(item.supply_redeemed));
+            supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(new_supply_redeemed));
             
             return Ok(Prize {
                 item_index: i,
-                edition_number: item.supply_redeemed + 1,
+                edition_number: new_supply_redeemed,
             });
         }
 
         remaining_supply_covered += remaining_supply as usize;
     }
     
-    err!(JellybeanError::ItemNotFound)
+    err!(JellybeanError::IndexGreaterThanLength)
 }

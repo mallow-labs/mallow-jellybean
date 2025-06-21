@@ -2,10 +2,48 @@ use anchor_lang::prelude::*;
 
 use crate::{constants::BASE_JELLYBEAN_MACHINE_SIZE, JellybeanError, JellybeanMachine, LoadedItem};
 
-pub fn add_item(jellybean_machine: &mut Account<JellybeanMachine>, item: LoadedItem) -> Result<()> {
+pub fn add_item<'info>(
+    jellybean_machine: &mut Account<'info, JellybeanMachine>,
+    item: LoadedItem,
+    payer: &AccountInfo<'info>,
+    system_program: &AccountInfo<'info>,
+) -> Result<()> {
+    // Calculate space needed for one more item
+    let current_items_loaded = jellybean_machine.items_loaded as usize;
+    let new_space = JellybeanMachine::get_size((current_items_loaded + 1) as u64);
+    let current_space = jellybean_machine.to_account_info().data_len();
+
+    // Reallocate if needed
+    if new_space > current_space {
+        let rent = Rent::get()?;
+        let new_rent_minimum = rent.minimum_balance(new_space);
+        let current_lamports = jellybean_machine.to_account_info().lamports();
+
+        if new_rent_minimum > current_lamports {
+            let additional_lamports = new_rent_minimum - current_lamports;
+
+            // Transfer additional lamports from payer
+            anchor_lang::system_program::transfer(
+                anchor_lang::context::CpiContext::new(
+                    system_program.clone(),
+                    anchor_lang::system_program::Transfer {
+                        from: payer.clone(),
+                        to: jellybean_machine.to_account_info(),
+                    },
+                ),
+                additional_lamports,
+            )?;
+        }
+
+        // Reallocate the account
+        jellybean_machine
+            .to_account_info()
+            .realloc(new_space, false)?;
+    }
+
     let account_info = jellybean_machine.to_account_info();
     let mut data = account_info.data.borrow_mut();
-    let new_item_index = jellybean_machine.items_loaded as usize;
+    let new_item_index = current_items_loaded;
 
     jellybean_machine.items_loaded = jellybean_machine
         .items_loaded
@@ -28,7 +66,15 @@ pub fn add_item(jellybean_machine: &mut Account<JellybeanMachine>, item: LoadedI
     position += 4;
 
     let supply_redeemed_slice: &mut [u8] = &mut data[position..position + 4];
-    supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(0));
+    supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(item.supply_redeemed));
+
+    msg!(
+        "Added item: mint={}, supply_loaded={}, new items_loaded={}, new supply_loaded={}",
+        item.mint,
+        item.supply_loaded,
+        jellybean_machine.items_loaded,
+        jellybean_machine.supply_loaded
+    );
 
     Ok(())
 }

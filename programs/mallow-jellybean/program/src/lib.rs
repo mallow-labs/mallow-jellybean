@@ -49,10 +49,10 @@ pub mod mallow_jellybean {
     /// # Accounts
     ///
     ///   0. `[writable]` Gumball Machine account
-    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller])
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
-    ///   3. `[signer, writable]` Seller
-    ///   4. `[writable]` Asset account
+    ///   1. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
+    ///   2. `[signer, writable]` Authority
+    ///   3. `[signer, writable]` Payer for account reallocation
+    ///   4. `[writable]` Asset account (optional)
     ///   5. `[writable, optional]` Collection account
     ///   6. `[]` MPL Core program
     ///   7. `[]` System program

@@ -1,10 +1,11 @@
 use crate::{constants::BASE_JELLYBEAN_MACHINE_SIZE, JellybeanError, JellybeanMachine, LoadedItem};
 use anchor_lang::prelude::*;
 
-pub fn remove_multiple_items_span(
-    jellybean_machine: &mut Account<JellybeanMachine>,
+pub fn remove_multiple_items_span<'info>(
+    jellybean_machine: &mut Account<'info, JellybeanMachine>,
     start_index: u32,
     end_index: u32,
+    authority: &AccountInfo<'info>,
 ) -> Result<()> {
     if start_index > end_index {
         return err!(JellybeanError::InvalidInputLength);
@@ -68,6 +69,34 @@ pub fn remove_multiple_items_span(
         .iter_mut()
         .for_each(|x| *x = 0);
 
+    drop(data);
+
+    // Calculate new space needed and reallocate if smaller
+    let new_space = JellybeanMachine::get_size(jellybean_machine.items_loaded as u64);
+    let current_space = jellybean_machine.to_account_info().data_len();
+
+    if new_space < current_space {
+        let rent = Rent::get()?;
+        let new_rent_minimum = rent.minimum_balance(new_space);
+        let current_lamports = jellybean_machine.to_account_info().lamports();
+
+        // Reallocate to smaller size
+        jellybean_machine
+            .to_account_info()
+            .realloc(new_space, false)?;
+
+        // Refund excess rent to authority
+        if current_lamports > new_rent_minimum {
+            let excess_lamports = current_lamports - new_rent_minimum;
+
+            // Transfer excess lamports to authority
+            **jellybean_machine
+                .to_account_info()
+                .try_borrow_mut_lamports()? -= excess_lamports;
+            **authority.try_borrow_mut_lamports()? += excess_lamports;
+        }
+    }
+
     msg!(
         "Items removed: span from {} to {}, new items_loaded={}, new supply_loaded={}",
         start_index,
@@ -75,8 +104,6 @@ pub fn remove_multiple_items_span(
         jellybean_machine.items_loaded,
         jellybean_machine.supply_loaded
     );
-
-    drop(data);
 
     Ok(())
 }

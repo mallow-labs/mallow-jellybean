@@ -5,7 +5,14 @@ use crate::{
     LoadedItem, JellybeanError, 
 };
 use anchor_lang::prelude::*;
-use mpl_core::Collection;
+use mpl_core::{
+    Collection,
+    instructions::{
+        TransferV1CpiBuilder,
+        ApproveCollectionPluginAuthorityV1CpiBuilder,
+    },
+    types::{PluginAuthority, PluginType},
+};
 
 /// Add core asset to a gumball machine.
 #[derive(Accounts)]
@@ -33,6 +40,10 @@ pub struct AddCoreItem<'info> {
     #[account(mut)]
     authority: Signer<'info>,
 
+    /// Payer for account reallocation
+    #[account(mut)]
+    payer: Signer<'info>,
+
     /// CHECK: Safe due to freeze
     #[account(mut)]
     asset: Option<UncheckedAccount<'info>>,
@@ -54,6 +65,7 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
     let authority_pda = &ctx.accounts.authority_pda.to_account_info();
     let mpl_core_program = &ctx.accounts.mpl_core_program.to_account_info();
     let system_program = &ctx.accounts.system_program.to_account_info();
+    let payer = &ctx.accounts.payer.to_account_info();
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
 
     let collection_info = ctx
@@ -115,6 +127,8 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
     crate::processors::add_item(
         jellybean_machine,
         loaded_item,
+        payer,
+        system_program,
     )?;
 
     Ok(())
