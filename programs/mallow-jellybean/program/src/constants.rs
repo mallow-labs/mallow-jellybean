@@ -1,44 +1,18 @@
+use mpl_core::types::Creator;
 pub use mpl_token_metadata::MAX_URI_LENGTH;
-use solana_program::{pubkey, pubkey::Pubkey};
-
-pub const MPL_TOKEN_AUTH_RULES_PROGRAM: Pubkey =
-    pubkey!("auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3rboVmgg");
 
 // Seed used to derive the authority PDA address.
-pub const AUTHORITY_SEED: &str = "gumball_machine";
+pub const AUTHORITY_SEED: &str = "jellybean_machine";
 
-// Seed used to derive the seller history PDA address.
-pub const SELLER_HISTORY_SEED: &str = "seller_history";
-
-// Seed used to derive the add item request PDA address.
-pub const ADD_ITEM_REQUEST_SEED: &str = "add_item_request";
-
-pub const GUMBALL_SETTINGS_BYTE_INDEX: usize = 8 // discriminator
+pub const BASE_JELLYBEAN_MACHINE_SIZE: usize = 8 // discriminator
     + 1                                       // version
     + 32                                      // authority
     + 32                                      // mint authority
-    + FEE_CONFIG_SIZE + 1                     // marketplace fee config (+1 for optional)
-    + 8                                       // items redeemed
-    + 8                                       // finalized items count
-    + 8                                       // items settled
-    + 8                                       // total revenue
-    + 1; // state
-
-pub const FEE_CONFIG_SIZE: usize = 32 // fee account
-    + 2; // bps
-
-// Determine the start of the account hidden section.
-pub const GUMBALL_MACHINE_SIZE: usize = GUMBALL_SETTINGS_BYTE_INDEX
-    + MAX_URI_LENGTH                        // uri
-    + 8                                     // item capacity
-    + 2                                     // items per seller
-    + 33                                    // add items merkle root
-    + 2                                     // curator fee bps
-    + 1                                     // hide sold items
-    + 32; // payment token
-
-pub const LOADED_ITEM_SIZE: usize = 32// mint
-    + 8 // supply_redeemed
-    + 8 // supply_loaded
-    + 8 // amount
-    + 1; // token standard
+    + 5 * size_of::<Creator>()                 // fee splits
+    + 2                                       // items loaded
+    + 8                                       // supply loaded
+    + 8                                       // supply redeemed
+    + 8                                       // supply settled
+    + 1 // state
+    + MAX_URI_LENGTH // uri
+    + 320; // padding

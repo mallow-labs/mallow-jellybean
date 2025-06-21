@@ -1,7 +1,7 @@
 use crate::{
-    constants::{AUTHORITY_SEED, GUMBALL_MACHINE_SIZE},
+    constants::{AUTHORITY_SEED, BASE_JELLYBEAN_MACHINE_SIZE},
     state::JellybeanMachine,
-    BuyBackConfig, FeeConfig, GumballError, GumballSettings, JellybeanState,
+    BuyBackConfig, FeeConfig, JellybeanError, GumballSettings, JellybeanState,
 };
 use anchor_lang::{prelude::*, Discriminator};
 use mpl_token_metadata::MAX_URI_LENGTH;
@@ -17,9 +17,9 @@ pub struct Initialize<'info> {
     #[account(
         zero,
         rent_exempt = skip,
-        constraint = gumball_machine.to_account_info().owner == __program_id && gumball_machine.to_account_info().data_len() >= JellybeanMachine::get_size(settings.item_capacity, JellybeanMachine::CURRENT_VERSION)
+        constraint = jellybean_machine.to_account_info().owner == __program_id && jellybean_machine.to_account_info().data_len() >= JellybeanMachine::get_size(settings.item_capacity, JellybeanMachine::CURRENT_VERSION)
     )]
-    gumball_machine: UncheckedAccount<'info>,
+    jellybean_machine: UncheckedAccount<'info>,
 
     /// Gumball Machine authority. This is the address that controls the upate of the gumball machine.
     ///
@@ -33,7 +33,7 @@ pub struct Initialize<'info> {
         space = 0,
         seeds = [
             AUTHORITY_SEED.as_bytes(), 
-            gumball_machine.key().as_ref()
+            jellybean_machine.key().as_ref()
         ],
         bump
     )]
@@ -56,7 +56,7 @@ pub struct InitializeArgs {
 }
 
 pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> {
-    let gumball_machine_account = &mut ctx.accounts.gumball_machine;
+    let gumball_machine_account = &mut ctx.accounts.jellybean_machine;
 
     let InitializeArgs {
         settings,
@@ -67,7 +67,7 @@ pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> 
     } = args;
 
     if settings.uri.len() >= MAX_URI_LENGTH - 4 {
-        return err!(GumballError::UriTooLong);
+        return err!(JellybeanError::UriTooLong);
     }
 
     // Details are considered finalized once sellers are invited
@@ -77,7 +77,7 @@ pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> 
         JellybeanState::None
     };
 
-    let gumball_machine = JellybeanMachine {
+    let jellybean_machine = JellybeanMachine {
         version: JellybeanMachine::CURRENT_VERSION,
         authority: ctx.accounts.authority.key(),
         mint_authority: ctx.accounts.authority.key(),
@@ -90,21 +90,21 @@ pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> 
     };
 
     let mut struct_data = JellybeanMachine::discriminator().try_to_vec().unwrap();
-    struct_data.append(&mut gumball_machine.try_to_vec().unwrap());
+    struct_data.append(&mut jellybean_machine.try_to_vec().unwrap());
 
     let mut account_data = gumball_machine_account.data.borrow_mut();
     account_data[0..struct_data.len()].copy_from_slice(&struct_data);
     // set the initial number of config lines
-    account_data[GUMBALL_MACHINE_SIZE..GUMBALL_MACHINE_SIZE + 4]
+    account_data[BASE_JELLYBEAN_MACHINE_SIZE..BASE_JELLYBEAN_MACHINE_SIZE + 4]
         .copy_from_slice(&u32::MIN.to_le_bytes());
 
-    let disable_primary_split_position = gumball_machine.get_disable_primary_split_position()?;
+    let disable_primary_split_position = jellybean_machine.get_disable_primary_split_position()?;
     account_data[disable_primary_split_position] = if disable_primary_split { 1 } else { 0 };
 
-    let disable_royalties_position = gumball_machine.get_disable_royalties_position()?;
+    let disable_royalties_position = jellybean_machine.get_disable_royalties_position()?;
     account_data[disable_royalties_position] = if disable_royalties { 1 } else { 0 };
 
-    let buy_back_config_position = gumball_machine.get_buy_back_config_position()?;
+    let buy_back_config_position = jellybean_machine.get_buy_back_config_position()?;
     let final_buy_back_config = if let Some(buy_back_config) = buy_back_config {
         buy_back_config
     } else {
@@ -114,7 +114,7 @@ pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> 
         .copy_from_slice(&final_buy_back_config.try_to_vec().unwrap());
 
     let buy_back_funds_available_position =
-        gumball_machine.get_buy_back_funds_available_position()?;
+        jellybean_machine.get_buy_back_funds_available_position()?;
     account_data[buy_back_funds_available_position..buy_back_funds_available_position + 8]
         .copy_from_slice(&u64::MIN.to_le_bytes());
 

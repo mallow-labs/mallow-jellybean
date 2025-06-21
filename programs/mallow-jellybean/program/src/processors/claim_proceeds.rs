@@ -1,5 +1,5 @@
 use crate::{
-    get_bit_byte_info, get_config_count, state::JellybeanMachine, GumballError, SellerHistory,
+    get_bit_byte_info, get_config_count, state::JellybeanMachine, JellybeanError, SellerHistory,
 };
 use anchor_lang::prelude::*;
 use utils::{
@@ -7,7 +7,7 @@ use utils::{
 };
 
 pub fn claim_proceeds<'a, 'b>(
-    gumball_machine: &mut Box<Account<'a, JellybeanMachine>>,
+    jellybean_machine: &mut Box<Account<'a, JellybeanMachine>>,
     index: u32,
     seller_history: &mut Box<Account<'a, SellerHistory>>,
     fee_payer: &AccountInfo<'a>,
@@ -28,32 +28,32 @@ pub fn claim_proceeds<'a, 'b>(
     rent: &AccountInfo<'a>,
     auth_seeds: &[&[u8]],
 ) -> Result<u64> {
-    let is_native = is_native_mint(gumball_machine.settings.payment_mint);
+    let is_native = is_native_mint(jellybean_machine.settings.payment_mint);
 
     if !is_native {
         require!(
             payment_mint.is_some()
-                && payment_mint.unwrap().key() == gumball_machine.settings.payment_mint,
-            GumballError::InvalidPaymentMint
+                && payment_mint.unwrap().key() == jellybean_machine.settings.payment_mint,
+            JellybeanError::InvalidPaymentMint
         );
     }
 
-    let account_info = gumball_machine.to_account_info();
+    let account_info = jellybean_machine.to_account_info();
     let mut account_data = account_info.data.borrow_mut();
     let config_count = get_config_count(&account_data)? as u64;
 
     // bit-mask
-    let bit_mask_start = gumball_machine.get_settled_items_bit_mask_position()?;
+    let bit_mask_start = jellybean_machine.get_settled_items_bit_mask_position()?;
     let (byte_position, bit, mask) = get_bit_byte_info(bit_mask_start, index as usize)?;
     let current_value = account_data[byte_position];
     let is_settled = current_value & mask == mask;
-    require!(!is_settled, GumballError::ItemAlreadySettled);
+    require!(!is_settled, JellybeanError::ItemAlreadySettled);
 
     account_data[byte_position] |= mask;
 
-    let disable_primary_split_position = gumball_machine.get_disable_primary_split_position()?;
-    let disable_royalties_position = gumball_machine.get_disable_royalties_position()?;
-    let (disable_primary_split, disable_royalties) = if gumball_machine.version >= 3 {
+    let disable_primary_split_position = jellybean_machine.get_disable_primary_split_position()?;
+    let disable_royalties_position = jellybean_machine.get_disable_royalties_position()?;
+    let (disable_primary_split, disable_royalties) = if jellybean_machine.version >= 3 {
         // Read the boolean value from the data at the calculated position
         (
             account_data[disable_primary_split_position] == 1,
@@ -75,31 +75,31 @@ pub fn claim_proceeds<'a, 'b>(
         disable_royalties
     );
 
-    let (total_proceeds, marketplace_fee_bps) = if gumball_machine.version >= 5 {
+    let (total_proceeds, marketplace_fee_bps) = if jellybean_machine.version >= 5 {
         let mut total_proceeds_settled =
-            gumball_machine.get_total_proceeds_settled(&account_data)?;
+            jellybean_machine.get_total_proceeds_settled(&account_data)?;
 
         let (total_proceeds, marketplace_fee_bps) =
-            get_total_proceeds(gumball_machine, total_proceeds_settled, config_count)?;
+            get_total_proceeds(jellybean_machine, total_proceeds_settled, config_count)?;
 
         total_proceeds_settled = total_proceeds_settled
             .checked_add(total_proceeds)
-            .ok_or(GumballError::NumericalOverflowError)?;
+            .ok_or(JellybeanError::NumericalOverflowError)?;
         // Update the total proceeds settled
         let total_proceeds_settled_position =
-            gumball_machine.get_total_proceeds_settled_position()?;
+            jellybean_machine.get_total_proceeds_settled_position()?;
         account_data[total_proceeds_settled_position..total_proceeds_settled_position + 8]
             .copy_from_slice(&total_proceeds_settled.to_le_bytes());
 
         (total_proceeds, marketplace_fee_bps)
     } else {
-        get_total_proceeds(gumball_machine, 0, config_count)?
+        get_total_proceeds(jellybean_machine, 0, config_count)?
     };
 
     drop(account_data);
 
     transfer_proceeds(
-        gumball_machine,
+        jellybean_machine,
         total_proceeds,
         marketplace_fee_bps,
         authority_pda,
@@ -128,52 +128,52 @@ pub fn claim_proceeds<'a, 'b>(
         seller_history.close(seller.to_account_info())?;
     }
 
-    gumball_machine.items_settled += 1;
+    jellybean_machine.items_settled += 1;
 
     Ok(total_proceeds)
 }
 
 pub fn get_total_proceeds<'a>(
-    gumball_machine: &Box<Account<'a, JellybeanMachine>>,
+    jellybean_machine: &Box<Account<'a, JellybeanMachine>>,
     total_proceeds_settled: u64,
     config_count: u64,
 ) -> Result<(u64, u16)> {
-    let marketplace_fee_bps = if let Some(fee_config) = gumball_machine.marketplace_fee_config {
+    let marketplace_fee_bps = if let Some(fee_config) = jellybean_machine.marketplace_fee_config {
         fee_config.fee_bps
     } else {
         0
     };
 
     // Version 1+ takes fee on draw
-    let fees_taken = if gumball_machine.version > 0 && marketplace_fee_bps > 0 {
-        get_bps_of(gumball_machine.total_revenue, marketplace_fee_bps)?
+    let fees_taken = if jellybean_machine.version > 0 && marketplace_fee_bps > 0 {
+        get_bps_of(jellybean_machine.total_revenue, marketplace_fee_bps)?
     } else {
         0
     };
 
     // Version 5+ can have re-added items so total proceeds settled and items settled should be removed
-    let count = if gumball_machine.version >= 5 {
-        config_count - gumball_machine.items_settled
+    let count = if jellybean_machine.version >= 5 {
+        config_count - jellybean_machine.items_settled
     } else {
         config_count
     };
 
     // Proceeds are calculated as total revenue divided by total number of items in the gumball machine
     // (This also accounts for items that have been settled)
-    let total_proceeds = gumball_machine
+    let total_proceeds = jellybean_machine
         .total_revenue
         .checked_sub(fees_taken)
-        .ok_or(GumballError::NumericalOverflowError)?
+        .ok_or(JellybeanError::NumericalOverflowError)?
         .checked_sub(total_proceeds_settled)
-        .ok_or(GumballError::NumericalOverflowError)?
+        .ok_or(JellybeanError::NumericalOverflowError)?
         .checked_div(count)
-        .ok_or(GumballError::NumericalOverflowError)?;
+        .ok_or(JellybeanError::NumericalOverflowError)?;
 
     Ok((total_proceeds, marketplace_fee_bps))
 }
 
 pub fn transfer_proceeds<'a, 'b>(
-    gumball_machine: &Box<Account<'a, JellybeanMachine>>,
+    jellybean_machine: &Box<Account<'a, JellybeanMachine>>,
     total_proceeds: u64,
     marketplace_fee_bps: u16,
     authority_pda: &mut AccountInfo<'a>,
@@ -200,7 +200,7 @@ pub fn transfer_proceeds<'a, 'b>(
         msg!("Total proceeds: {}", total_proceeds);
 
         // Version 1+ takes fee on draw, so no fee on claim
-        let marketplace_fee = if gumball_machine.version > 0 {
+        let marketplace_fee = if jellybean_machine.version > 0 {
             0
         } else {
             get_bps_of(total_proceeds, marketplace_fee_bps)?
@@ -225,7 +225,7 @@ pub fn transfer_proceeds<'a, 'b>(
             )?;
         }
 
-        let curator_fee = get_bps_of(total_proceeds, gumball_machine.settings.curator_fee_bps)?;
+        let curator_fee = get_bps_of(total_proceeds, jellybean_machine.settings.curator_fee_bps)?;
 
         if curator_fee > 0 {
             msg!("Curator fee: {}", curator_fee);
@@ -248,9 +248,9 @@ pub fn transfer_proceeds<'a, 'b>(
 
         let price_less_fees = total_proceeds
             .checked_sub(marketplace_fee)
-            .ok_or(GumballError::NumericalOverflowError)?
+            .ok_or(JellybeanError::NumericalOverflowError)?
             .checked_sub(curator_fee)
-            .ok_or(GumballError::NumericalOverflowError)?;
+            .ok_or(JellybeanError::NumericalOverflowError)?;
         msg!("Price less fees: {}", price_less_fees);
 
         let total_royalty = if royalty_info.is_primary_sale && !disable_primary_split {
@@ -285,7 +285,7 @@ pub fn transfer_proceeds<'a, 'b>(
 
         let seller_proceeds = price_less_fees
             .checked_sub(royalties_paid)
-            .ok_or(GumballError::NumericalOverflowError)?;
+            .ok_or(JellybeanError::NumericalOverflowError)?;
 
         msg!("Seller proceeds: {}", seller_proceeds);
         if seller_proceeds > 0 {
@@ -354,9 +354,9 @@ pub fn pay_creator_royalties<'a, 'b>(
     for creator in creators {
         let creator_fee = (creator.share as u128)
             .checked_mul(total_royalty as u128)
-            .ok_or(GumballError::NumericalOverflowError)?
+            .ok_or(JellybeanError::NumericalOverflowError)?
             .checked_div(100)
-            .ok_or(GumballError::NumericalOverflowError)? as u64;
+            .ok_or(JellybeanError::NumericalOverflowError)? as u64;
 
         let current_creator_info = next_account_info(remaining_accounts_clone)?;
         assert_keys_equal(

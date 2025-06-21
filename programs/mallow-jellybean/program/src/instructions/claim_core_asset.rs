@@ -1,6 +1,6 @@
 use crate::{
     assert_config_line, constants::AUTHORITY_SEED, events::ClaimItemEvent, processors,
-    state::JellybeanMachine, ConfigLine, GumballError, JellybeanState, 
+    state::JellybeanMachine, ConfigLine, JellybeanError, JellybeanState, 
 };
 use anchor_lang::prelude::*;
 
@@ -14,16 +14,16 @@ pub struct ClaimCoreAsset<'info> {
     /// Gumball machine account.
     #[account(
         mut,
-        constraint = gumball_machine.state == JellybeanState::SaleLive || gumball_machine.state == JellybeanState::SaleEnded @ GumballError::InvalidState
+        constraint = jellybean_machine.state == JellybeanState::SaleLive || jellybean_machine.state == JellybeanState::SaleEnded @ JellybeanError::InvalidState
     )]
-    gumball_machine: Box<Account<'info, JellybeanMachine>>,
+    jellybean_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// CHECK: Safe due to seeds constraint
     #[account(
         mut,
         seeds = [
             AUTHORITY_SEED.as_bytes(), 
-            gumball_machine.key().as_ref()
+            jellybean_machine.key().as_ref()
         ],
         bump
     )]
@@ -57,7 +57,7 @@ pub fn claim_core_asset<'info>(
     ctx: Context<'_, '_, '_, 'info, ClaimCoreAsset<'info>>,
     index: u32,
 ) -> Result<()> {
-    let gumball_machine = &mut ctx.accounts.gumball_machine;
+    let jellybean_machine = &mut ctx.accounts.jellybean_machine;
     let payer = &ctx.accounts.payer.to_account_info();
     let buyer = &ctx.accounts.buyer.to_account_info();
     let authority_pda = &mut ctx.accounts.authority_pda.to_account_info();
@@ -73,7 +73,7 @@ pub fn claim_core_asset<'info>(
     let collection = collection_info.as_ref();
 
     assert_config_line(
-        gumball_machine,
+        jellybean_machine,
         index,
         ConfigLine {
             mint: asset.key(),
@@ -86,12 +86,12 @@ pub fn claim_core_asset<'info>(
 
     let auth_seeds = [
         AUTHORITY_SEED.as_bytes(),
-        gumball_machine.to_account_info().key.as_ref(),
+        jellybean_machine.to_account_info().key.as_ref(),
         &[ctx.bumps.authority_pda],
     ];
 
     processors::claim_core_asset(
-        gumball_machine,
+        jellybean_machine,
         index,
         authority_pda,
         payer,
@@ -106,7 +106,7 @@ pub fn claim_core_asset<'info>(
 
     emit_cpi!(ClaimItemEvent {
         mint: asset.key(),
-        authority: gumball_machine.authority.key(),
+        authority: jellybean_machine.authority.key(),
         seller: seller.key(),
         buyer: buyer.key(),
         amount: 1,

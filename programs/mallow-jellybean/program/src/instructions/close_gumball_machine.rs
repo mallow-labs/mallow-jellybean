@@ -1,6 +1,6 @@
 use crate::{
     constants::AUTHORITY_SEED, get_config_count, transfer_and_close_if_empty, try_from,
-    GumballError, JellybeanMachine, Token,
+    JellybeanError, JellybeanMachine, Token,
 };
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
@@ -13,10 +13,10 @@ pub struct CloseJellybeanMachine<'info> {
     #[account(
         mut, 
         close = authority, 
-        has_one = authority @ GumballError::InvalidAuthority,
-        has_one = mint_authority @ GumballError::InvalidMintAuthority
+        has_one = authority @ JellybeanError::InvalidAuthority,
+        has_one = mint_authority @ JellybeanError::InvalidMintAuthority
     )]
-    gumball_machine: Account<'info, JellybeanMachine>,
+    jellybean_machine: Account<'info, JellybeanMachine>,
 
     /// Authority of the gumball machine.
     #[account(mut)]
@@ -31,7 +31,7 @@ pub struct CloseJellybeanMachine<'info> {
         mut,
         seeds = [
             AUTHORITY_SEED.as_bytes(), 
-            gumball_machine.key().as_ref()
+            jellybean_machine.key().as_ref()
         ],
         bump
     )]
@@ -48,17 +48,17 @@ pub struct CloseJellybeanMachine<'info> {
 pub fn close_gumball_machine<'info>(
     ctx: Context<'_, '_, '_, 'info, CloseJellybeanMachine<'info>>,
 ) -> Result<()> {
-    let account_info = ctx.accounts.gumball_machine.to_account_info();
+    let account_info = ctx.accounts.jellybean_machine.to_account_info();
     let account_data = account_info.data.borrow();
 
-    if ctx.accounts.gumball_machine.version >= 4 {
+    if ctx.accounts.jellybean_machine.version >= 4 {
         // Make sure user has withdrawn all buy back funds
         require!(
             ctx.accounts
-                .gumball_machine
+                .jellybean_machine
                 .get_buy_back_funds_available(&account_data)?
                 == 0,
-            GumballError::BuyBackFundsNotZero
+            JellybeanError::BuyBackFundsNotZero
         );
     }
 
@@ -70,18 +70,18 @@ pub fn close_gumball_machine<'info>(
 
     // Ensure all items have been settled/claimed
     require!(
-        config_count == ctx.accounts.gumball_machine.items_settled,
-        GumballError::NotAllSettled
+        config_count == ctx.accounts.jellybean_machine.items_settled,
+        JellybeanError::NotAllSettled
     );
 
     let token_program = &ctx.accounts.token_program.to_account_info();
     let authority = &ctx.accounts.authority.to_account_info();
     let authority_pda = &ctx.accounts.authority_pda.to_account_info();
-    let payment_mint = ctx.accounts.gumball_machine.settings.payment_mint;
+    let payment_mint = ctx.accounts.jellybean_machine.settings.payment_mint;
 
     let auth_seeds = [
         AUTHORITY_SEED.as_bytes(),
-        ctx.accounts.gumball_machine.to_account_info().key.as_ref(),
+        ctx.accounts.jellybean_machine.to_account_info().key.as_ref(),
         &[ctx.bumps.authority_pda],
     ];
 

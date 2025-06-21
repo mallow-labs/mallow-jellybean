@@ -1,4 +1,4 @@
-use crate::constants::{GUMBALL_MACHINE_SIZE, LOADED_ITEM_SIZE};
+use crate::constants::BASE_JELLYBEAN_MACHINE_SIZE;
 use anchor_lang::prelude::*;
 use mpl_core::types::Creator;
 
@@ -14,6 +14,8 @@ pub struct JellybeanMachine {
     pub mint_authority: Pubkey,
     /// Fee splits for proceeds of each draw
     pub fee_splits: [Creator; 5],
+    /// Total unique items loaded.
+    pub items_loaded: u16,
     /// Total supply_loaded of all items added.
     pub supply_loaded: u64,
     /// Number of times items have been redeemed.
@@ -35,7 +37,7 @@ impl JellybeanMachine {
 
     /// Gets the size of the gumball machine given the number of items.
     pub fn get_size(item_count: u64) -> usize {
-        GUMBALL_MACHINE_SIZE + (LOADED_ITEM_SIZE * item_count as usize) // loaded item lines
+        BASE_JELLYBEAN_MACHINE_SIZE + (size_of::<LoadedItem>() * item_count as usize)
     }
 
     pub fn can_edit_items(&self) -> bool {
@@ -61,9 +63,9 @@ pub struct LoadedItem {
     /// Mint account of the asset.
     pub mint: Pubkey,
     /// Total supply when loaded. Edition count for printable NFTs, number of token prizes for fungible assets.
-    pub supply_loaded: u64,
+    pub supply_loaded: u32,
     /// Number of times this item has been redeemed.
-    pub supply_redeemed: u64,
+    pub supply_redeemed: u32,
 }
 
 #[derive(Copy, AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug)]

@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum GumballError {
+pub enum JellybeanError {
     #[msg("Invalid public key")]
     PublicKeyMismatch,
     #[msg("Invalid owner")]

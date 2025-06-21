@@ -2,7 +2,7 @@ use crate::{
     constants::{AUTHORITY_SEED, SELLER_HISTORY_SEED},
     processors,
     state::JellybeanMachine,
-    thaw_and_revoke_core_asset, GumballError, SellerHistory,
+    thaw_and_revoke_core_asset, JellybeanError, SellerHistory,
 };
 use anchor_lang::prelude::*;
 
@@ -12,20 +12,20 @@ pub struct RemoveCoreAsset<'info> {
     /// Gumball Machine account.
     #[account(
         mut,
-        constraint = gumball_machine.can_edit_items() @ GumballError::InvalidState,
+        constraint = jellybean_machine.can_edit_items() @ JellybeanError::InvalidState,
     )]
-    gumball_machine: Account<'info, JellybeanMachine>,
+    jellybean_machine: Account<'info, JellybeanMachine>,
 
     /// Seller history account.
     #[account(
 		mut,
 		seeds = [
 			SELLER_HISTORY_SEED.as_bytes(),
-			gumball_machine.key().as_ref(),
+			jellybean_machine.key().as_ref(),
             seller.key().as_ref(),
 		],
 		bump,
-        has_one = gumball_machine,
+        has_one = jellybean_machine,
         has_one = seller,
 	)]
     seller_history: Box<Account<'info, SellerHistory>>,
@@ -35,7 +35,7 @@ pub struct RemoveCoreAsset<'info> {
         mut,
         seeds = [
             AUTHORITY_SEED.as_bytes(), 
-            gumball_machine.key().as_ref()
+            jellybean_machine.key().as_ref()
         ],
         bump
     )]
@@ -71,11 +71,11 @@ pub fn remove_core_asset(ctx: Context<RemoveCoreAsset>, index: u32) -> Result<()
     let system_program = &ctx.accounts.system_program.to_account_info();
     let authority_pda = &ctx.accounts.authority_pda.to_account_info();
     let seller = &ctx.accounts.seller.to_account_info();
-    let gumball_machine = &mut ctx.accounts.gumball_machine;
+    let jellybean_machine = &mut ctx.accounts.jellybean_machine;
     let seller_history = &mut ctx.accounts.seller_history;
 
     processors::remove_multiple_items_span(
-        gumball_machine,
+        jellybean_machine,
         authority.key(),
         asset_info.key(),
         seller.key(),
@@ -93,7 +93,7 @@ pub fn remove_core_asset(ctx: Context<RemoveCoreAsset>, index: u32) -> Result<()
 
     let auth_seeds = [
         AUTHORITY_SEED.as_bytes(),
-        ctx.accounts.gumball_machine.to_account_info().key.as_ref(),
+        ctx.accounts.jellybean_machine.to_account_info().key.as_ref(),
         &[ctx.bumps.authority_pda],
     ];
 

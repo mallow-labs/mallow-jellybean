@@ -52,7 +52,7 @@ This model ensures fair compensation for all participating sellers, regardless o
 The `JellybeanMachine` state is stored in a single account, which includes settings that
 control the behaviour of the gumball machine and metadata information for the NFTs sold through it.
 The account data is represented by the
-[`JellybeanMachine`](https://github.com/mallow-labs/mallow-jellybean/blob/febo/mallow-jellybean/mallow-jellybean/program/src/state/gumball_machine.rs)
+[`JellybeanMachine`](https://github.com/mallow-labs/mallow-jellybean/blob/febo/mallow-jellybean/mallow-jellybean/program/src/state/jellybean_machine.rs)
 struct, which include references to auxiliary structs
 `ConfigLineSettings` and `HiddenSettings`.
 
@@ -122,13 +122,13 @@ This instruction creates and initializes a new `JellybeanMachine` account with t
 <details>
   <summary>Accounts</summary>
 
-| Name              | Writable | Signer | Description                                                         |
-| ----------------- | :------: | :----: | ------------------------------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account (uninitialized).                     |
-| `authority`       |          |        | Public key of the gumball machine authority.                        |
-| `authority_pda`   |    ✅    |        | Authority PDA account (PDA, seeds: ["authority", gumball_machine]). |
-| `payer`           |    ✅    |   ✅   | Payer of the transaction.                                           |
-| `system_program`  |          |        | System program account.                                             |
+| Name                | Writable | Signer | Description                                                           |
+| ------------------- | :------: | :----: | --------------------------------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account (uninitialized).                       |
+| `authority`         |          |        | Public key of the gumball machine authority.                          |
+| `authority_pda`     |    ✅    |        | Authority PDA account (PDA, seeds: ["authority", jellybean_machine]). |
+| `payer`             |    ✅    |   ✅   | Payer of the transaction.                                             |
+| `system_program`    |          |        | System program account.                                               |
 
 </details>
 
@@ -150,10 +150,10 @@ This instruction updates the gumball machine settings.
 <details>
   <summary>Accounts</summary>
 
-| Name              | Writable | Signer | Description                                  |
-| ----------------- | :------: | :----: | -------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.              |
-| `authority`       |          |   ✅   | Public key of the gumball machine authority. |
+| Name                | Writable | Signer | Description                                  |
+| ------------------- | :------: | :----: | -------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.              |
+| `authority`         |          |   ✅   | Public key of the gumball machine authority. |
 
 </details>
 
@@ -173,23 +173,23 @@ This instruction adds a legacy NFT to the gumball machine.
 <details>
   <summary>Accounts</summary>
 
-| Name                     | Writable | Signer | Description                                                                       |
-| ------------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`        |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`         |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `authority_pda`          |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `seller`                 |    ✅    |   ✅   | Seller of the NFT.                                                                |
-| `mint`                   |          |        | Mint account of the NFT.                                                          |
-| `token_account`          |    ✅    |        | Seller's token account for the NFT.                                               |
-| `metadata`               |    ✅    |        | Metadata account of the NFT.                                                      |
-| `edition`                |          |        | Edition account of the NFT.                                                       |
-| `token_program`          |          |        | Token program account.                                                            |
-| `token_metadata_program` |          |        | Token Metadata program account.                                                   |
-| `system_program`         |          |        | System program account.                                                           |
-| `seller_token_record`    |    ✅    |        | Seller token record account (pNFT, optional).                                     |
-| `auth_rules`             |          |        | Auth rules account (pNFT, optional).                                              |
-| `sysvar_instructions`    |          |        | Instructions sysvar (pNFT, optional).                                             |
-| `auth_rules_program`     |          |        | Auth rules program (pNFT, optional).                                              |
+| Name                     | Writable | Signer | Description                                                                         |
+| ------------------------ | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine`      |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`         |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `authority_pda`          |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `seller`                 |    ✅    |   ✅   | Seller of the NFT.                                                                  |
+| `mint`                   |          |        | Mint account of the NFT.                                                            |
+| `token_account`          |    ✅    |        | Seller's token account for the NFT.                                                 |
+| `metadata`               |    ✅    |        | Metadata account of the NFT.                                                        |
+| `edition`                |          |        | Edition account of the NFT.                                                         |
+| `token_program`          |          |        | Token program account.                                                              |
+| `token_metadata_program` |          |        | Token Metadata program account.                                                     |
+| `system_program`         |          |        | System program account.                                                             |
+| `seller_token_record`    |    ✅    |        | Seller token record account (pNFT, optional).                                       |
+| `auth_rules`             |          |        | Auth rules account (pNFT, optional).                                                |
+| `sysvar_instructions`    |          |        | Instructions sysvar (pNFT, optional).                                               |
+| `auth_rules_program`     |          |        | Auth rules program (pNFT, optional).                                                |
 
 </details>
 
@@ -209,16 +209,16 @@ This instruction adds a Core asset to the gumball machine.
 <details>
   <summary>Accounts</summary>
 
-| Name               | Writable | Signer | Description                                                                       |
-| ------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `seller`           |    ✅    |   ✅   | Seller of the asset.                                                              |
-| `asset`            |    ✅    |        | Asset account.                                                                    |
-| `collection`       |    ✅    |        | Collection account if asset is part of one (optional).                            |
-| `mpl_core_program` |          |        | MPL Core program account.                                                         |
-| `system_program`   |          |        | System program account.                                                           |
+| Name                | Writable | Signer | Description                                                                         |
+| ------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`    |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `authority_pda`     |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `seller`            |    ✅    |   ✅   | Seller of the asset.                                                                |
+| `asset`             |    ✅    |        | Asset account.                                                                      |
+| `collection`        |    ✅    |        | Collection account if asset is part of one (optional).                              |
+| `mpl_core_program`  |          |        | MPL Core program account.                                                           |
+| `system_program`    |          |        | System program account.                                                             |
 
 </details>
 
@@ -238,19 +238,19 @@ This instruction adds fungible tokens to the gumball machine.
 <details>
   <summary>Accounts</summary>
 
-| Name                          | Writable | Signer | Description                                                                       |
-| ----------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `seller`                      |    ✅    |   ✅   | Seller of the tokens.                                                             |
-| `mint`                        |          |        | Mint account of the tokens.                                                       |
-| `token_account`               |    ✅    |        | Seller's token account for the mint.                                              |
-| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the mint.                                       |
-| `token_program`               |          |        | Token program account.                                                            |
-| `associated_token_program`    |          |        | Associated Token program account.                                                 |
-| `system_program`              |          |        | System program account.                                                           |
-| `rent`                        |          |        | Rent sysvar.                                                                      |
+| Name                          | Writable | Signer | Description                                                                         |
+| ----------------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine`           |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `seller`                      |    ✅    |   ✅   | Seller of the tokens.                                                               |
+| `mint`                        |          |        | Mint account of the tokens.                                                         |
+| `token_account`               |    ✅    |        | Seller's token account for the mint.                                                |
+| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the mint.                                         |
+| `token_program`               |          |        | Token program account.                                                              |
+| `associated_token_program`    |          |        | Associated Token program account.                                                   |
+| `system_program`              |          |        | System program account.                                                             |
+| `rent`                        |          |        | Rent sysvar.                                                                        |
 
 </details>
 
@@ -272,27 +272,27 @@ This instruction removes a legacy NFT from the gumball machine. It thaws and rev
 <details>
   <summary>Accounts</summary>
 
-| Name                          | Writable | Signer | Description                                                                       |
-| ----------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `authority`                   |          |   ✅   | Authority allowed to remove (gumball machine authority or item seller).           |
-| `seller`                      |    ✅    |        | Seller account (owner of the NFT).                                                |
-| `mint`                        |          |        | Mint account of the NFT.                                                          |
-| `token_account`               |    ✅    |        | Seller's token account for the NFT.                                               |
-| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the NFT.                                        |
-| `edition`                     |          |        | Edition account of the NFT.                                                       |
-| `token_program`               |          |        | Token program account.                                                            |
-| `associated_token_program`    |          |        | Associated Token program account.                                                 |
-| `token_metadata_program`      |          |        | Token Metadata program account.                                                   |
-| `system_program`              |          |        | System program account.                                                           |
-| `rent`                        |          |        | Rent sysvar.                                                                      |
-| `metadata`                    |    ✅    |        | Metadata account (pNFT, optional).                                                |
-| `seller_token_record`         |    ✅    |        | Seller token record account (pNFT, optional).                                     |
-| `auth_rules`                  |          |        | Auth rules account (pNFT, optional).                                              |
-| `sysvar_instructions`         |          |        | Instructions sysvar (pNFT, optional).                                             |
-| `auth_rules_program`          |          |        | Auth rules program (pNFT, optional).                                              |
+| Name                          | Writable | Signer | Description                                                                         |
+| ----------------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine`           |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `authority`                   |          |   ✅   | Authority allowed to remove (gumball machine authority or item seller).             |
+| `seller`                      |    ✅    |        | Seller account (owner of the NFT).                                                  |
+| `mint`                        |          |        | Mint account of the NFT.                                                            |
+| `token_account`               |    ✅    |        | Seller's token account for the NFT.                                                 |
+| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the NFT.                                          |
+| `edition`                     |          |        | Edition account of the NFT.                                                         |
+| `token_program`               |          |        | Token program account.                                                              |
+| `associated_token_program`    |          |        | Associated Token program account.                                                   |
+| `token_metadata_program`      |          |        | Token Metadata program account.                                                     |
+| `system_program`              |          |        | System program account.                                                             |
+| `rent`                        |          |        | Rent sysvar.                                                                        |
+| `metadata`                    |    ✅    |        | Metadata account (pNFT, optional).                                                  |
+| `seller_token_record`         |    ✅    |        | Seller token record account (pNFT, optional).                                       |
+| `auth_rules`                  |          |        | Auth rules account (pNFT, optional).                                                |
+| `sysvar_instructions`         |          |        | Instructions sysvar (pNFT, optional).                                               |
+| `auth_rules_program`          |          |        | Auth rules program (pNFT, optional).                                                |
 
 </details>
 
@@ -312,17 +312,17 @@ This instruction removes a Core asset from the gumball machine. It thaws and rev
 <details>
   <summary>Accounts</summary>
 
-| Name               | Writable | Signer | Description                                                                       |
-| ------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `authority`        |          |   ✅   | Authority allowed to remove (gumball machine authority or item seller).           |
-| `seller`           |    ✅    |        | Seller account (owner of the asset).                                              |
-| `asset`            |    ✅    |        | Asset account.                                                                    |
-| `collection`       |    ✅    |        | Collection account if asset is part of one (optional).                            |
-| `mpl_core_program` |          |        | MPL Core program account.                                                         |
-| `system_program`   |          |        | System program account.                                                           |
+| Name                | Writable | Signer | Description                                                                         |
+| ------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`    |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `authority_pda`     |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `authority`         |          |   ✅   | Authority allowed to remove (gumball machine authority or item seller).             |
+| `seller`            |    ✅    |        | Seller account (owner of the asset).                                                |
+| `asset`             |    ✅    |        | Asset account.                                                                      |
+| `collection`        |    ✅    |        | Collection account if asset is part of one (optional).                              |
+| `mpl_core_program`  |          |        | MPL Core program account.                                                           |
+| `system_program`    |          |        | System program account.                                                             |
 
 </details>
 
@@ -342,10 +342,10 @@ This instruction allows drawing from the gumball machine to begin by setting the
 <details>
   <summary>Accounts</summary>
 
-| Name              | Writable | Signer | Description                                                               |
-| ----------------- | :------: | :----: | ------------------------------------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.                                           |
-| `authority`       |          |   ✅   | Gumball Machine authority (can be `authority` or `mint_authority` field). |
+| Name                | Writable | Signer | Description                                                               |
+| ------------------- | :------: | :----: | ------------------------------------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.                                           |
+| `authority`         |          |   ✅   | Gumball Machine authority (can be `authority` or `mint_authority` field). |
 
 </details>
 
@@ -363,10 +363,10 @@ This instruction disables minting and allows sales to be settled.
 <details>
   <summary>Accounts</summary>
 
-| Name              | Writable | Signer | Description                                  |
-| ----------------- | :------: | :----: | -------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.              |
-| `authority`       |          |   ✅   | Public key of the gumball machine authority. |
+| Name                | Writable | Signer | Description                                  |
+| ------------------- | :------: | :----: | -------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.              |
+| `authority`         |          |   ✅   | Public key of the gumball machine authority. |
 
 </details>
 
@@ -386,7 +386,7 @@ This instruction pseudo-randomly selects an available item from the `JellybeanMa
 
 | Name                | Writable | Signer | Description                                       |
 | ------------------- | :------: | :----: | ------------------------------------------------- |
-| `gumball_machine`   |    ✅    |        | The `JellybeanMachine` account.                   |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.                   |
 | `mint_authority`    |          |   ✅   | Gumball Machine mint authority.                   |
 | `payer`             |    ✅    |   ✅   | Payer for the transaction.                        |
 | `buyer`             |          |        | Account that will receive the item (pubkey only). |
@@ -409,10 +409,10 @@ This instruction increments the total revenue earned by the gumball machine.
 <details>
   <summary>Accounts</summary>
 
-| Name              | Writable | Signer | Description                                       |
-| ----------------- | :------: | :----: | ------------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.                   |
-| `mint_authority`  |          |   ✅   | Public key of the gumball machine mint authority. |
+| Name                | Writable | Signer | Description                                       |
+| ------------------- | :------: | :----: | ------------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.                   |
+| `mint_authority`    |          |   ✅   | Public key of the gumball machine mint authority. |
 
 </details>
 
@@ -432,17 +432,17 @@ This instruction claims a Core asset from the gumball machine for a specific buy
 <details>
   <summary>Accounts</summary>
 
-| Name               | Writable | Signer | Description                                                          |
-| ------------------ | :------: | :----: | -------------------------------------------------------------------- |
-| `payer`            |    ✅    |   ✅   | Payer for the transaction (anyone can claim the item for the buyer). |
-| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account (must be `SaleLive` or `SaleEnded`).  |
-| `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).          |
-| `seller`           |    ✅    |        | Seller account (from config line).                                   |
-| `buyer`            |          |        | Buyer account (from config line).                                    |
-| `system_program`   |          |        | System program account.                                              |
-| `asset`            |    ✅    |        | Asset account (from config line).                                    |
-| `collection`       |    ✅    |        | Collection account if asset is part of one (optional).               |
-| `mpl_core_program` |          |        | MPL Core program account.                                            |
+| Name                | Writable | Signer | Description                                                          |
+| ------------------- | :------: | :----: | -------------------------------------------------------------------- |
+| `payer`             |    ✅    |   ✅   | Payer for the transaction (anyone can claim the item for the buyer). |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account (must be `SaleLive` or `SaleEnded`).  |
+| `authority_pda`     |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).        |
+| `seller`            |    ✅    |        | Seller account (from config line).                                   |
+| `buyer`             |          |        | Buyer account (from config line).                                    |
+| `system_program`    |          |        | System program account.                                              |
+| `asset`             |    ✅    |        | Asset account (from config line).                                    |
+| `collection`        |    ✅    |        | Collection account if asset is part of one (optional).               |
+| `mpl_core_program`  |          |        | MPL Core program account.                                            |
 
 </details>
 
@@ -465,8 +465,8 @@ This instruction claims a legacy NFT from the gumball machine for a specific buy
 | Name                          | Writable | Signer | Description                                                          |
 | ----------------------------- | :------: | :----: | -------------------------------------------------------------------- |
 | `payer`                       |    ✅    |   ✅   | Payer for the transaction (anyone can claim the item for the buyer). |
-| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account (must be `SaleLive` or `SaleEnded`).  |
-| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).          |
+| `jellybean_machine`           |    ✅    |        | The `JellybeanMachine` account (must be `SaleLive` or `SaleEnded`).  |
+| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).        |
 | `seller`                      |    ✅    |        | Seller account (from config line).                                   |
 | `buyer`                       |          |        | Buyer account (from config line).                                    |
 | `token_program`               |          |        | Token program account.                                               |
@@ -504,29 +504,29 @@ This instruction settles a Core asset sale. If the item hasn't been claimed yet,
 <details>
   <summary>Accounts</summary>
 
-| Name                            | Writable | Signer | Description                                                                       |
-| ------------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                           |
-| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                             |
-| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).   |
-| `authority`                     |    ✅    |        | Gumball machine authority account (checked via `gumball_machine`).                |
-| `authority_payment_account`     |    ✅    |        | Authority's payment token account (optional, required for non-native mint).       |
-| `seller`                        |    ✅    |        | Seller account (from config line).                                                |
-| `seller_payment_account`        |    ✅    |        | Seller's payment token account (optional, required for non-native mint).          |
-| `seller_history`                |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `buyer`                         |          |        | Buyer account (from config line).                                                 |
-| `fee_account`                   |    ✅    |        | Fee account (optional, from `gumball_machine.marketplace_fee_config`).            |
-| `fee_payment_account`           |    ✅    |        | Fee's payment token account (optional, required for non-native mint).             |
-| `payment_mint`                  |          |        | Payment mint (optional, required for non-native mint).                            |
-| `token_program`                 |          |        | Token program account.                                                            |
-| `associated_token_program`      |          |        | Associated Token program account.                                                 |
-| `system_program`                |          |        | System program account.                                                           |
-| `rent`                          |          |        | Rent sysvar.                                                                      |
-| `asset`                         |    ✅    |        | Asset account (from config line).                                                 |
-| `collection`                    |    ✅    |        | Collection account if asset is part of one (optional).                            |
-| `mpl_core_program`              |          |        | MPL Core program account.                                                         |
-| _Remaining accounts_            |    ✅    |        | Royalty recipients' main accounts, followed by their payment accounts if needed.  |
+| Name                            | Writable | Signer | Description                                                                         |
+| ------------------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                             |
+| `jellybean_machine`             |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                               |
+| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).     |
+| `authority`                     |    ✅    |        | Gumball machine authority account (checked via `jellybean_machine`).                |
+| `authority_payment_account`     |    ✅    |        | Authority's payment token account (optional, required for non-native mint).         |
+| `seller`                        |    ✅    |        | Seller account (from config line).                                                  |
+| `seller_payment_account`        |    ✅    |        | Seller's payment token account (optional, required for non-native mint).            |
+| `seller_history`                |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `buyer`                         |          |        | Buyer account (from config line).                                                   |
+| `fee_account`                   |    ✅    |        | Fee account (optional, from `jellybean_machine.marketplace_fee_config`).            |
+| `fee_payment_account`           |    ✅    |        | Fee's payment token account (optional, required for non-native mint).               |
+| `payment_mint`                  |          |        | Payment mint (optional, required for non-native mint).                              |
+| `token_program`                 |          |        | Token program account.                                                              |
+| `associated_token_program`      |          |        | Associated Token program account.                                                   |
+| `system_program`                |          |        | System program account.                                                             |
+| `rent`                          |          |        | Rent sysvar.                                                                        |
+| `asset`                         |    ✅    |        | Asset account (from config line).                                                   |
+| `collection`                    |    ✅    |        | Collection account if asset is part of one (optional).                              |
+| `mpl_core_program`              |          |        | MPL Core program account.                                                           |
+| _Remaining accounts_            |    ✅    |        | Royalty recipients' main accounts, followed by their payment accounts if needed.    |
 
 </details>
 
@@ -546,38 +546,38 @@ This instruction settles a legacy NFT sale. If the item hasn't been claimed yet,
 <details>
   <summary>Accounts</summary>
 
-| Name                            | Writable | Signer | Description                                                                       |
-| ------------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                           |
-| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                             |
-| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).   |
-| `authority`                     |    ✅    |        | Gumball machine authority account (checked via `gumball_machine`).                |
-| `authority_payment_account`     |    ✅    |        | Authority's payment token account (optional, required for non-native mint).       |
-| `seller`                        |    ✅    |        | Seller account (from config line).                                                |
-| `seller_payment_account`        |    ✅    |        | Seller's payment token account (optional, required for non-native mint).          |
-| `seller_history`                |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `buyer`                         |          |        | Buyer account (from config line).                                                 |
-| `fee_account`                   |    ✅    |        | Fee account (optional, from `gumball_machine.marketplace_fee_config`).            |
-| `fee_payment_account`           |    ✅    |        | Fee's payment token account (optional, required for non-native mint).             |
-| `payment_mint`                  |          |        | Payment mint (optional, required for non-native mint).                            |
-| `token_program`                 |          |        | Token program account.                                                            |
-| `associated_token_program`      |          |        | Associated Token program account.                                                 |
-| `system_program`                |          |        | System program account.                                                           |
-| `rent`                          |          |        | Rent sysvar.                                                                      |
-| `mint`                          |          |        | Mint account (from config line).                                                  |
-| `buyer_token_account`           |    ✅    |        | Buyer's token account (must match mint and buyer).                                |
-| `authority_pda_token_account`   |    ✅    |        | Authority PDA's token account (must match mint and authority PDA).                |
-| `metadata`                      |    ✅    |        | Metadata account of the NFT.                                                      |
-| `edition`                       |    ✅    |        | Edition account of the NFT.                                                       |
-| `token_metadata_program`        |          |        | Token Metadata program account.                                                   |
-| `seller_token_record`           |    ✅    |        | Seller token record account (pNFT, optional).                                     |
-| `authority_pda_token_record`    |    ✅    |        | Authority PDA token record account (pNFT, optional).                              |
-| `buyer_token_record`            |    ✅    |        | Buyer token record account (pNFT, optional).                                      |
-| `auth_rules`                    |          |        | Auth rules account (pNFT, optional).                                              |
-| `instructions`                  |          |        | Instructions sysvar (pNFT, optional).                                             |
-| `auth_rules_program`            |          |        | Auth rules program (pNFT, optional).                                              |
-| _Remaining accounts_            |    ✅    |        | Royalty recipients' main accounts, followed by their payment accounts if needed.  |
+| Name                            | Writable | Signer | Description                                                                         |
+| ------------------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                             |
+| `jellybean_machine`             |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                               |
+| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).     |
+| `authority`                     |    ✅    |        | Gumball machine authority account (checked via `jellybean_machine`).                |
+| `authority_payment_account`     |    ✅    |        | Authority's payment token account (optional, required for non-native mint).         |
+| `seller`                        |    ✅    |        | Seller account (from config line).                                                  |
+| `seller_payment_account`        |    ✅    |        | Seller's payment token account (optional, required for non-native mint).            |
+| `seller_history`                |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `buyer`                         |          |        | Buyer account (from config line).                                                   |
+| `fee_account`                   |    ✅    |        | Fee account (optional, from `jellybean_machine.marketplace_fee_config`).            |
+| `fee_payment_account`           |    ✅    |        | Fee's payment token account (optional, required for non-native mint).               |
+| `payment_mint`                  |          |        | Payment mint (optional, required for non-native mint).                              |
+| `token_program`                 |          |        | Token program account.                                                              |
+| `associated_token_program`      |          |        | Associated Token program account.                                                   |
+| `system_program`                |          |        | System program account.                                                             |
+| `rent`                          |          |        | Rent sysvar.                                                                        |
+| `mint`                          |          |        | Mint account (from config line).                                                    |
+| `buyer_token_account`           |    ✅    |        | Buyer's token account (must match mint and buyer).                                  |
+| `authority_pda_token_account`   |    ✅    |        | Authority PDA's token account (must match mint and authority PDA).                  |
+| `metadata`                      |    ✅    |        | Metadata account of the NFT.                                                        |
+| `edition`                       |    ✅    |        | Edition account of the NFT.                                                         |
+| `token_metadata_program`        |          |        | Token Metadata program account.                                                     |
+| `seller_token_record`           |    ✅    |        | Seller token record account (pNFT, optional).                                       |
+| `authority_pda_token_record`    |    ✅    |        | Authority PDA token record account (pNFT, optional).                                |
+| `buyer_token_record`            |    ✅    |        | Buyer token record account (pNFT, optional).                                        |
+| `auth_rules`                    |          |        | Auth rules account (pNFT, optional).                                                |
+| `instructions`                  |          |        | Instructions sysvar (pNFT, optional).                                               |
+| `auth_rules_program`            |          |        | Auth rules program (pNFT, optional).                                                |
+| _Remaining accounts_            |    ✅    |        | Royalty recipients' main accounts, followed by their payment accounts if needed.    |
 
 </details>
 
@@ -597,26 +597,26 @@ This instruction settles a range of fungible token sales (`start_index` to `end_
 <details>
   <summary>Accounts</summary>
 
-| Name                            | Writable | Signer | Description                                                                       |
-| ------------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                           |
-| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                             |
-| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).   |
-| `authority`                     |    ✅    |        | Gumball machine authority account (checked via `gumball_machine`).                |
-| `authority_payment_account`     |    ✅    |        | Authority's payment token account (optional, required for non-native mint).       |
-| `seller`                        |    ✅    |        | Seller account (from config line).                                                |
-| `seller_payment_account`        |    ✅    |        | Seller's payment token account (optional, required for non-native mint).          |
-| `seller_history`                |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `payment_mint`                  |          |        | Payment mint (optional, required for non-native mint).                            |
-| `token_program`                 |          |        | Token program account.                                                            |
-| `associated_token_program`      |          |        | Associated Token program account.                                                 |
-| `system_program`                |          |        | System program account.                                                           |
-| `rent`                          |          |        | Rent sysvar.                                                                      |
-| `mint`                          |          |        | Mint account (from config lines in range).                                        |
-| `seller_token_account`          |    ✅    |        | Seller's token account (for receiving unsold tokens).                             |
-| `authority_pda_token_account`   |    ✅    |        | Authority PDA's token account for the mint.                                       |
-| _Remaining accounts_            |    ✅    |        | Fee recipients' main accounts, followed by their payment accounts if needed.      |
+| Name                            | Writable | Signer | Description                                                                         |
+| ------------------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `payer`                         |    ✅    |   ✅   | Payer for the transaction (anyone can settle the sale).                             |
+| `jellybean_machine`             |    ✅    |        | The `JellybeanMachine` account (must be `SaleEnded`).                               |
+| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, required for non-native mint).     |
+| `authority`                     |    ✅    |        | Gumball machine authority account (checked via `jellybean_machine`).                |
+| `authority_payment_account`     |    ✅    |        | Authority's payment token account (optional, required for non-native mint).         |
+| `seller`                        |    ✅    |        | Seller account (from config line).                                                  |
+| `seller_payment_account`        |    ✅    |        | Seller's payment token account (optional, required for non-native mint).            |
+| `seller_history`                |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `payment_mint`                  |          |        | Payment mint (optional, required for non-native mint).                              |
+| `token_program`                 |          |        | Token program account.                                                              |
+| `associated_token_program`      |          |        | Associated Token program account.                                                   |
+| `system_program`                |          |        | System program account.                                                             |
+| `rent`                          |          |        | Rent sysvar.                                                                        |
+| `mint`                          |          |        | Mint account (from config lines in range).                                          |
+| `seller_token_account`          |    ✅    |        | Seller's token account (for receiving unsold tokens).                               |
+| `authority_pda_token_account`   |    ✅    |        | Authority PDA's token account for the mint.                                         |
+| _Remaining accounts_            |    ✅    |        | Fee recipients' main accounts, followed by their payment accounts if needed.        |
 
 </details>
 
@@ -637,10 +637,10 @@ This instruction sets a new authority for the gumball machine.
 <details>
   <summary>Accounts</summary>
 
-| Name              | Writable | Signer | Description                                  |
-| ----------------- | :------: | :----: | -------------------------------------------- |
-| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.              |
-| `authority`       |          |   ✅   | Public key of the gumball machine authority. |
+| Name                | Writable | Signer | Description                                  |
+| ------------------- | :------: | :----: | -------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.              |
+| `authority`         |          |   ✅   | Public key of the gumball machine authority. |
 
 </details>
 
@@ -660,11 +660,11 @@ This instruction sets a new mint authority for the gumball machine. Requires the
 <details>
   <summary>Accounts</summary>
 
-| Name              | Writable | Signer | Description                         |
-| ----------------- | :------: | :----: | ----------------------------------- |
-| `gumball_machine` |    ✅    |        | The `JellybeanMachine` account.     |
-| `authority`       |          |   ✅   | Current gumball machine authority.  |
-| `mint_authority`  |          |   ✅   | New gumball machine mint authority. |
+| Name                | Writable | Signer | Description                         |
+| ------------------- | :------: | :----: | ----------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.     |
+| `authority`         |          |   ✅   | Current gumball machine authority.  |
+| `mint_authority`    |          |   ✅   | New gumball machine mint authority. |
 
 </details>
 
@@ -684,10 +684,10 @@ This instruction closes the `JellybeanMachine` account and sends its rent lampor
 
 | Name                            | Writable | Signer | Description                                                                   |
 | ------------------------------- | :------: | :----: | ----------------------------------------------------------------------------- |
-| `gumball_machine`               |    ✅    |        | The `JellybeanMachine` account (will be closed).                              |
+| `jellybean_machine`             |    ✅    |        | The `JellybeanMachine` account (will be closed).                              |
 | `authority`                     |    ✅    |   ✅   | Gumball machine authority (receiver of rent lamports).                        |
 | `mint_authority`                |    ✅    |   ✅   | Gumball machine mint authority.                                               |
-| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                   |
+| `authority_pda`                 |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                 |
 | `authority_pda_payment_account` |    ✅    |        | Authority PDA's payment token account (optional, needed for non-native mint). |
 | `token_program`                 |          |        | Token program account.                                                        |
 | _Remaining accounts (optional)_ |          |        |                                                                               |
@@ -713,24 +713,24 @@ This instruction requests to add a legacy NFT to the gumball machine. It freezes
 <details>
   <summary>Accounts</summary>
 
-| Name                     | Writable | Signer | Description                                                                       |
-| ------------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`        |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`         |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `add_item_request`       |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", mint]).                |
-| `authority_pda`          |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `seller`                 |    ✅    |   ✅   | Seller of the NFT.                                                                |
-| `mint`                   |          |        | Mint account of the NFT.                                                          |
-| `token_account`          |    ✅    |        | Seller's token account for the NFT.                                               |
-| `metadata`               |    ✅    |        | Metadata account of the NFT.                                                      |
-| `edition`                |          |        | Edition account of the NFT.                                                       |
-| `token_program`          |          |        | Token program account.                                                            |
-| `token_metadata_program` |          |        | Token Metadata program account.                                                   |
-| `system_program`         |          |        | System program account.                                                           |
-| `seller_token_record`    |    ✅    |        | Seller token record account (pNFT, optional).                                     |
-| `auth_rules`             |          |        | Auth rules account (pNFT, optional).                                              |
-| `sysvar_instructions`    |          |        | Instructions sysvar (pNFT, optional).                                             |
-| `auth_rules_program`     |          |        | Auth rules program (pNFT, optional).                                              |
+| Name                     | Writable | Signer | Description                                                                         |
+| ------------------------ | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine`      |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`         |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `add_item_request`       |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", mint]).                  |
+| `authority_pda`          |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `seller`                 |    ✅    |   ✅   | Seller of the NFT.                                                                  |
+| `mint`                   |          |        | Mint account of the NFT.                                                            |
+| `token_account`          |    ✅    |        | Seller's token account for the NFT.                                                 |
+| `metadata`               |    ✅    |        | Metadata account of the NFT.                                                        |
+| `edition`                |          |        | Edition account of the NFT.                                                         |
+| `token_program`          |          |        | Token program account.                                                              |
+| `token_metadata_program` |          |        | Token Metadata program account.                                                     |
+| `system_program`         |          |        | System program account.                                                             |
+| `seller_token_record`    |    ✅    |        | Seller token record account (pNFT, optional).                                       |
+| `auth_rules`             |          |        | Auth rules account (pNFT, optional).                                                |
+| `sysvar_instructions`    |          |        | Instructions sysvar (pNFT, optional).                                               |
+| `auth_rules_program`     |          |        | Auth rules program (pNFT, optional).                                                |
 
 </details>
 
@@ -748,17 +748,17 @@ This instruction requests to add a Core asset to the gumball machine. It freezes
 <details>
   <summary>Accounts</summary>
 
-| Name               | Writable | Signer | Description                                                                       |
-| ------------------ | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `add_item_request` |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset]).               |
-| `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `seller`           |    ✅    |   ✅   | Seller of the asset.                                                              |
-| `asset`            |    ✅    |        | Asset account.                                                                    |
-| `collection`       |    ✅    |        | Collection account if asset is part of one (optional).                            |
-| `mpl_core_program` |          |        | MPL Core program account.                                                         |
-| `system_program`   |          |        | System program account.                                                           |
+| Name                | Writable | Signer | Description                                                                         |
+| ------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`    |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `add_item_request`  |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset]).                 |
+| `authority_pda`     |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `seller`            |    ✅    |   ✅   | Seller of the asset.                                                                |
+| `asset`             |    ✅    |        | Asset account.                                                                      |
+| `collection`        |    ✅    |        | Collection account if asset is part of one (optional).                              |
+| `mpl_core_program`  |          |        | MPL Core program account.                                                           |
+| `system_program`    |          |        | System program account.                                                             |
 
 </details>
 
@@ -776,26 +776,26 @@ This instruction cancels a request to add a legacy NFT to the gumball machine. I
 <details>
   <summary>Accounts</summary>
 
-| Name                          | Writable | Signer | Description                                                                        |
-| ----------------------------- | :------: | :----: | ---------------------------------------------------------------------------------- |
-| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]).  |
-| `add_item_request`            |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", mint]). Will be closed. |
-| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                        |
-| `seller`                      |    ✅    |   ✅   | Seller of the NFT.                                                                 |
-| `mint`                        |          |        | Mint account of the NFT.                                                           |
-| `seller_token_account`        |    ✅    |        | Seller's token account for the NFT.                                                |
-| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the NFT.                                         |
-| `edition`                     |          |        | Edition account of the NFT.                                                        |
-| `token_program`               |          |        | Token program account.                                                             |
-| `associated_token_program`    |          |        | Associated Token program account.                                                  |
-| `token_metadata_program`      |          |        | Token Metadata program account.                                                    |
-| `system_program`              |          |        | System program account.                                                            |
-| `rent`                        |          |        | Rent sysvar.                                                                       |
-| `metadata`                    |    ✅    |        | Metadata account (pNFT, optional).                                                 |
-| `seller_token_record`         |    ✅    |        | Seller token record account (pNFT, optional).                                      |
-| `auth_rules`                  |          |        | Auth rules account (pNFT, optional).                                               |
-| `sysvar_instructions`         |          |        | Instructions sysvar (pNFT, optional).                                              |
-| `auth_rules_program`          |          |        | Auth rules program (pNFT, optional).                                               |
+| Name                          | Writable | Signer | Description                                                                         |
+| ----------------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `add_item_request`            |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", mint]). Will be closed.  |
+| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `seller`                      |    ✅    |   ✅   | Seller of the NFT.                                                                  |
+| `mint`                        |          |        | Mint account of the NFT.                                                            |
+| `seller_token_account`        |    ✅    |        | Seller's token account for the NFT.                                                 |
+| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the NFT.                                          |
+| `edition`                     |          |        | Edition account of the NFT.                                                         |
+| `token_program`               |          |        | Token program account.                                                              |
+| `associated_token_program`    |          |        | Associated Token program account.                                                   |
+| `token_metadata_program`      |          |        | Token Metadata program account.                                                     |
+| `system_program`              |          |        | System program account.                                                             |
+| `rent`                        |          |        | Rent sysvar.                                                                        |
+| `metadata`                    |    ✅    |        | Metadata account (pNFT, optional).                                                  |
+| `seller_token_record`         |    ✅    |        | Seller token record account (pNFT, optional).                                       |
+| `auth_rules`                  |          |        | Auth rules account (pNFT, optional).                                                |
+| `sysvar_instructions`         |          |        | Instructions sysvar (pNFT, optional).                                               |
+| `auth_rules_program`          |          |        | Auth rules program (pNFT, optional).                                                |
 
 </details>
 
@@ -813,16 +813,16 @@ This instruction cancels a request to add a Core asset to the gumball machine. I
 <details>
   <summary>Accounts</summary>
 
-| Name               | Writable | Signer | Description                                                                                        |
-| ------------------ | :------: | :----: | -------------------------------------------------------------------------------------------------- |
-| `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", add_item_request.gumball_machine, seller]). |
-| `add_item_request` |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset]). Will be closed.                |
-| `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", add_item_request.gumball_machine]).                       |
-| `seller`           |    ✅    |   ✅   | Seller of the asset.                                                                               |
-| `asset`            |    ✅    |        | Asset account.                                                                                     |
-| `collection`       |    ✅    |        | Collection account if asset is part of one (optional).                                             |
-| `mpl_core_program` |          |        | MPL Core program account.                                                                          |
-| `system_program`   |          |        | System program account.                                                                            |
+| Name               | Writable | Signer | Description                                                                                          |
+| ------------------ | :------: | :----: | ---------------------------------------------------------------------------------------------------- |
+| `seller_history`   |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", add_item_request.jellybean_machine, seller]). |
+| `add_item_request` |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset]). Will be closed.                  |
+| `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", add_item_request.jellybean_machine]).                       |
+| `seller`           |    ✅    |   ✅   | Seller of the asset.                                                                                 |
+| `asset`            |    ✅    |        | Asset account.                                                                                       |
+| `collection`       |    ✅    |        | Collection account if asset is part of one (optional).                                               |
+| `mpl_core_program` |          |        | MPL Core program account.                                                                            |
+| `system_program`   |          |        | System program account.                                                                              |
 
 </details>
 
@@ -840,15 +840,15 @@ This instruction approves a request to add an item (NFT or Core asset) to the gu
 <details>
   <summary>Accounts</summary>
 
-| Name               | Writable | Signer | Description                                                                                 |
-| ------------------ | :------: | :----: | ------------------------------------------------------------------------------------------- |
-| `gumball_machine`  |    ✅    |        | The `JellybeanMachine` account.                                                             |
-| `add_item_request` |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset_or_mint]). Will be closed. |
-| `authority_pda`    |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                                 |
-| `authority`        |          |   ✅   | Authority of the gumball machine.                                                           |
-| `seller`           |    ✅    |        | Seller account (receiver of closed request account rent).                                   |
-| `asset`            |          |        | Asset/Mint account pubkey (checked via add_item_request constraint).                        |
-| `system_program`   |          |        | System program account.                                                                     |
+| Name                | Writable | Signer | Description                                                                                 |
+| ------------------- | :------: | :----: | ------------------------------------------------------------------------------------------- |
+| `jellybean_machine` |    ✅    |        | The `JellybeanMachine` account.                                                             |
+| `add_item_request`  |    ✅    |        | Add item request account (PDA, seeds: ["add_item_request", asset_or_mint]). Will be closed. |
+| `authority_pda`     |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                               |
+| `authority`         |          |   ✅   | Authority of the gumball machine.                                                           |
+| `seller`            |    ✅    |        | Seller account (receiver of closed request account rent).                                   |
+| `asset`             |          |        | Asset/Mint account pubkey (checked via add_item_request constraint).                        |
+| `system_program`    |          |        | System program account.                                                                     |
 
 </details>
 
@@ -866,20 +866,20 @@ This instruction removes fungible token items from the gumball machine within a 
 <details>
   <summary>Accounts</summary>
 
-| Name                          | Writable | Signer | Description                                                                       |
-| ----------------------------- | :------: | :----: | --------------------------------------------------------------------------------- |
-| `gumball_machine`             |    ✅    |        | The `JellybeanMachine` account.                                                   |
-| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]). |
-| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", gumball_machine]).                       |
-| `authority`                   |    ✅    |   ✅   | Authority allowed to remove (gumball machine authority or item seller).           |
-| `seller`                      |    ✅    |        | Seller account (owner of the tokens).                                             |
-| `mint`                        |          |        | Mint account of the tokens.                                                       |
-| `token_account`               |    ✅    |        | Seller's token account for the mint.                                              |
-| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the mint.                                       |
-| `token_program`               |          |        | Token program account.                                                            |
-| `associated_token_program`    |          |        | Associated Token program account.                                                 |
-| `system_program`              |          |        | System program account.                                                           |
-| `rent`                        |          |        | Rent sysvar.                                                                      |
+| Name                          | Writable | Signer | Description                                                                         |
+| ----------------------------- | :------: | :----: | ----------------------------------------------------------------------------------- |
+| `jellybean_machine`           |    ✅    |        | The `JellybeanMachine` account.                                                     |
+| `seller_history`              |    ✅    |        | Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]). |
+| `authority_pda`               |    ✅    |        | Authority PDA (PDA, seeds: ["authority", jellybean_machine]).                       |
+| `authority`                   |    ✅    |   ✅   | Authority allowed to remove (gumball machine authority or item seller).             |
+| `seller`                      |    ✅    |        | Seller account (owner of the tokens).                                               |
+| `mint`                        |          |        | Mint account of the tokens.                                                         |
+| `token_account`               |    ✅    |        | Seller's token account for the mint.                                                |
+| `authority_pda_token_account` |    ✅    |        | Authority PDA's token account for the mint.                                         |
+| `token_program`               |          |        | Token program account.                                                              |
+| `associated_token_program`    |          |        | Associated Token program account.                                                   |
+| `system_program`              |          |        | System program account.                                                             |
+| `rent`                        |          |        | Rent sysvar.                                                                        |
 
 </details>
 

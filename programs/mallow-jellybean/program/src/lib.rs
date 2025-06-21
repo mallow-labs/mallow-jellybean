@@ -2,7 +2,7 @@
 
 use anchor_lang::prelude::*;
 
-pub use errors::GumballError;
+pub use errors::JellybeanError;
 use instructions::*;
 pub use state::*;
 pub use utils::*;
@@ -27,7 +27,7 @@ pub mod mallow_jellybean {
     ///
     ///   0. `[writable]` Gumball Machine account (must be pre-allocated but zero content)
     ///   1. `[]` Gumball Machine authority
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine])
+    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
     ///   3. `[signer, writable]` Payer
     ///   4. `[]` System program
     pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> {
@@ -49,8 +49,8 @@ pub mod mallow_jellybean {
     /// # Accounts
     ///
     ///   0. `[writable]` Gumball Machine account
-    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller])
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine])
+    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller])
+    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
     ///   3. `[signer, writable]` Seller
     ///   4. `[writable]` Asset account
     ///   5. `[writable, optional]` Collection account
@@ -65,8 +65,8 @@ pub mod mallow_jellybean {
     /// # Accounts
     ///
     ///   0. `[writable]` Gumball Machine account
-    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller])
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine])
+    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller])
+    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
     ///   3. `[signer, writable]` Seller
     ///   4. `[writable]` Asset account
     ///   5. `[writable, optional]` Collection account
@@ -83,8 +83,8 @@ pub mod mallow_jellybean {
     /// # Accounts
     ///
     ///   0. `[writable]` Gumball Machine account.
-    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]).
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine]).
+    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]).
+    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine]).
     ///   3. `[signer]` Authority allowed to remove (gumball machine authority or item seller).
     ///   4. `[writable]` Seller account (owner of the asset).
     ///   5. `[writable]` Asset account.
@@ -102,8 +102,8 @@ pub mod mallow_jellybean {
     /// # Accounts
     ///
     ///   0. `[writable]` Gumball Machine account.
-    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", gumball_machine, seller]).
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine]).
+    ///   1. `[writable]` Seller history account (PDA, seeds: ["seller_history", jellybean_machine, seller]).
+    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine]).
     ///   3. `[signer]` Authority allowed to remove (gumball machine authority or item seller).
     ///   4. `[writable]` Seller account (owner of the asset).
     ///   5. `[writable]` Asset account.
@@ -156,7 +156,7 @@ pub mod mallow_jellybean {
     ///
     ///   0. `[signer, writable]` Payer (anyone can claim the item)
     ///   1. `[writable]` Gumball Machine account (must be in SaleLive or SaleEnded state)
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine])
+    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
     ///   3. `[writable]` Seller account
     ///   4. `[]` Buyer account
     ///   5. `[]` System program
@@ -177,7 +177,7 @@ pub mod mallow_jellybean {
     ///
     ///   0. `[signer, writable]` Payer (anyone can claim the item)
     ///   1. `[writable]` Gumball Machine account (must be in SaleLive or SaleEnded state)
-    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine])
+    ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
     ///   3. `[writable]` Seller account
     ///   4. `[]` Buyer account
     ///   5. `[]` System program
@@ -211,7 +211,7 @@ pub mod mallow_jellybean {
     ///   0. `[writable]` Gumball Machine account (will be closed)
     ///   1. `[signer, writable]` Gumball Machine authority
     ///   2. `[signer, writable]` Gumball Machine mint authority
-    ///   3. `[writable]` Authority PDA (PDA, seeds: ["authority", gumball_machine])
+    ///   3. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
     ///   4. `[writable, optional]` Authority PDA payment account
     ///   5. `[]` Token program
     ///   Remaining accounts (if closing non-native payment account):

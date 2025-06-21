@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{state::JellybeanMachine, GumballError, JellybeanState};
+use crate::{state::JellybeanMachine, JellybeanError, JellybeanState};
 
 /// Disables minting and allows sales to be settled
 #[derive(Accounts)]
@@ -9,9 +9,9 @@ pub struct EndSale<'info> {
     #[account(
         mut, 
         has_one = authority,
-        constraint = gumball_machine.state != JellybeanState::SaleEnded @ GumballError::InvalidState
+        constraint = jellybean_machine.state != JellybeanState::SaleEnded @ JellybeanError::InvalidState
     )]
-    gumball_machine: Box<Account<'info, JellybeanMachine>>,
+    jellybean_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// Gumball Machine authority. This is the address that controls the upate of the gumball machine.
     #[account(mut)]
@@ -19,7 +19,7 @@ pub struct EndSale<'info> {
 }
 
 pub fn end_sale(ctx: Context<EndSale>) -> Result<()> {
-    ctx.accounts.gumball_machine.state = JellybeanState::SaleEnded;
+    ctx.accounts.jellybean_machine.state = JellybeanState::SaleEnded;
 
     Ok(())
 }

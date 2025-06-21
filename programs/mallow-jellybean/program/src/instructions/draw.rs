@@ -1,6 +1,7 @@
+use std::cell::RefMut;
+
 use crate::{
-    constants::GUMBALL_MACHINE_SIZE, events::DrawItemEvent, utils::*, GumballError, JellybeanMachine,
-    JellybeanState,
+    constants::BASE_JELLYBEAN_MACHINE_SIZE, events::DrawItemEvent, utils::*, JellybeanError, JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedDraws
 };
 use anchor_lang::prelude::*;
 use arrayref::array_ref;
@@ -14,9 +15,9 @@ pub struct Draw<'info> {
     #[account(
         mut, 
         has_one = mint_authority,
-        constraint = gumball_machine.state == JellybeanState::SaleLive @ GumballError::InvalidState
+        constraint = jellybean_machine.state == JellybeanState::SaleLive @ JellybeanError::InvalidState
     )]
-    gumball_machine: Box<Account<'info, JellybeanMachine>>,
+    jellybean_machine: Box<Account<'info, JellybeanMachine>>,
 
     /// Gumball machine mint authority (mint only allowed for the mint_authority).
     mint_authority: Signer<'info>,
@@ -29,6 +30,20 @@ pub struct Draw<'info> {
     ///
     /// CHECK: account not written or read from
     buyer: UncheckedAccount<'info>,
+
+    /// Buyer unclaimed draws account.
+    #[account(
+        init_if_needed,
+        seeds = [
+            UnclaimedDraws::SEED_PREFIX.as_bytes(),
+            jellybean_machine.key().as_ref(),
+            buyer.key().as_ref(),
+        ],
+        bump,
+        space = UnclaimedDraws::INIT_SIZE,
+        payer = payer
+    )]
+    unclaimed_draws: Box<Account<'info, UnclaimedDraws>>,
 
     /// System program.
     system_program: Program<'info, System>,
@@ -47,19 +62,60 @@ pub(crate) struct DrawAccounts<'info> {
 }
 
 pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
+    let unclaimed_draws = &mut ctx.accounts.unclaimed_draws;
+    
+    if unclaimed_draws.version == 0 {
+        unclaimed_draws.version = UnclaimedDraws::CURRENT_VERSION;
+        unclaimed_draws.jellybean_machine = ctx.accounts.jellybean_machine.key();
+        unclaimed_draws.buyer = ctx.accounts.buyer.key();
+    }
+
+    // Calculate space needed for one more prize
+    let current_len = unclaimed_draws.prize_drawn.len();
+    let new_space = UnclaimedDraws::space(current_len + 1);
+    let current_space = unclaimed_draws.to_account_info().data_len();
+
+    // Reallocate if needed
+    if new_space > current_space {
+        let rent = Rent::get()?;
+        let new_rent_minimum = rent.minimum_balance(new_space);
+        let current_lamports = unclaimed_draws.to_account_info().lamports();
+        
+        if new_rent_minimum > current_lamports {
+            let additional_lamports = new_rent_minimum - current_lamports;
+            
+            // Transfer additional lamports from payer
+            anchor_lang::system_program::transfer(
+                anchor_lang::context::CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    anchor_lang::system_program::Transfer {
+                        from: ctx.accounts.payer.to_account_info(),
+                        to: unclaimed_draws.to_account_info(),
+                    },
+                ),
+                additional_lamports,
+            )?;
+        }
+        
+        // Reallocate the account
+        unclaimed_draws.to_account_info().realloc(new_space, false)?;
+    }
+
     let accounts = DrawAccounts {
         buyer: ctx.accounts.buyer.to_account_info(),
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
     };
 
-    let index = process_draw(&mut ctx.accounts.gumball_machine, accounts)?;
+    let prize = process_draw(&mut ctx.accounts.jellybean_machine, accounts)?;
 
-    msg!("Drew item at index: {}", index);
+    msg!("Drew item at index: {} edition: {}", prize.item_index, prize.edition_number);
+    // Append prize to unclaimed_draws - this should now have enough space
+    unclaimed_draws.prize_drawn.push(prize);
 
     emit_cpi!(DrawItemEvent {
-        authority: ctx.accounts.gumball_machine.authority.key(),
+        authority: ctx.accounts.jellybean_machine.authority.key(),
         buyer: ctx.accounts.buyer.key(),
-        index,
+        index: prize.item_index as u32,
     });
 
     Ok(())
@@ -71,17 +127,17 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
 /// a psuedo-randomly selected one or sequential. In both cases, after minted a
 /// specific index, the gumball machine does not allow to mint the same index again.
 pub(crate) fn process_draw(
-    gumball_machine: &mut Box<Account<'_, JellybeanMachine>>,
+    jellybean_machine: &mut Box<Account<'_, JellybeanMachine>>,
     accounts: DrawAccounts,
-) -> Result<u32> {
-    let account_info = gumball_machine.to_account_info();
-    let account_data = account_info.data.borrow();
-    let config_count = get_config_count(&account_data)? as u64;
-    drop(account_data);
+) -> Result<Prize> {
+    let account_info = jellybean_machine.to_account_info();
+    let mut account_data = account_info.data.borrow_mut();
+    let supply_loaded = jellybean_machine.supply_loaded;
+    
 
     // are there items to be minted?
-    if gumball_machine.items_redeemed >= config_count {
-        return err!(GumballError::JellybeanMachineEmpty);
+    if jellybean_machine.supply_redeemed >= supply_loaded {
+        return err!(JellybeanError::JellybeanMachineEmpty);
     }
 
     // (2) selecting an item to mint
@@ -93,72 +149,66 @@ pub(crate) fn process_draw(
     // seed for the random number is a combination of the slot_hash - timestamp
     let seed = u64::from_le_bytes(*most_recent).saturating_sub(clock.unix_timestamp as u64);
 
-    let index: usize = seed
-        .checked_rem(config_count - gumball_machine.items_redeemed)
-        .ok_or(GumballError::NumericalOverflowError)? as usize;
+    let target_supply_index: usize = seed
+        .checked_rem(supply_loaded - jellybean_machine.supply_redeemed)
+        .ok_or(JellybeanError::NumericalOverflowError)? as usize;
 
-    let mint_index = set_config_line_buyer(
-        gumball_machine,
-        accounts.buyer.key(),
-        index,
-        gumball_machine.items_redeemed,
-    )?;
+    let prize = get_prize_and_update_supply_redeemed(account_data, jellybean_machine.items_loaded, target_supply_index)?;
 
-    gumball_machine.items_redeemed = gumball_machine
-        .items_redeemed
+    jellybean_machine.supply_redeemed = jellybean_machine
+        .supply_redeemed
         .checked_add(1)
-        .ok_or(GumballError::NumericalOverflowError)?;
+        .ok_or(JellybeanError::NumericalOverflowError)?;
 
     // Sale has ended if this is the last item to be redeemed
-    if gumball_machine.items_redeemed == config_count {
-        gumball_machine.state = JellybeanState::SaleEnded;
+    if jellybean_machine.supply_redeemed == supply_loaded {
+        jellybean_machine.state = JellybeanState::SaleEnded;
     }
 
     // release the data borrow
     drop(data);
+    drop(account_data);
 
-    Ok(mint_index)
+    Ok(prize)
 }
 
-/// Selects and returns the information of a config line.
-///
-/// The selection could be either sequential or random.
-pub fn set_config_line_buyer(
-    gumball_machine: &Account<'_, JellybeanMachine>,
-    buyer: Pubkey,
-    index: usize,
-    mint_number: u64,
-) -> Result<u32> {
-    let account_info = gumball_machine.to_account_info();
-    let mut account_data = account_info.data.borrow_mut();
-    let config_count = get_config_count(&account_data)? as u64;
+/// Get the prize for a given target supply index.
+/// The target supply index is the index of the item in the remaining supply across all items.
+fn get_prize_and_update_supply_redeemed(mut account_data: RefMut<'_, &mut [u8]>, items_loaded: u16, target_supply_index: usize) -> Result<Prize> {
+    // Iterate the loaded items section of the account data
+    let loaded_item_size = size_of::<LoadedItem>();
+    let mut remaining_supply_covered = 0;
 
-    // (1) determine the mint index (index is a random index on the available indices array)
-    let indices_start = gumball_machine.get_mint_indices_position()?;
-    // calculates the mint index and retrieves the value at that position
-    let mint_byte_position = indices_start + index * 4;
-    let mint_index = u32::from_le_bytes(*array_ref![account_data, mint_byte_position, 4]) as usize;
-    // calculates the last available index and retrieves the value at that position
-    let last_index = indices_start + ((config_count - mint_number - 1) * 4) as usize;
-    let last_value = u32::from_le_bytes(*array_ref![account_data, last_index, 4]);
-    // swap-remove: this guarantees that we remove the used mint index from the available array
-    // in a constant time O(1) no matter how big the indices array is
-    account_data[mint_byte_position..mint_byte_position + 4]
-        .copy_from_slice(&u32::to_le_bytes(last_value));
+    for i in 0..items_loaded {
+        let item_position = BASE_JELLYBEAN_MACHINE_SIZE + i as usize * loaded_item_size;
+        let item_data = &account_data[item_position..item_position + loaded_item_size];
+        let item = LoadedItem::try_from_slice(item_data)?;
+        let remaining_supply = item.supply_loaded - item.supply_redeemed;
+        
+        // Skip items with no remaining supply
+        if remaining_supply == 0 {
+            continue;
+        }
+        
+        // Check if the target index falls within this item's remaining supply
+        if target_supply_index < remaining_supply_covered + remaining_supply as usize {
+            // Update the supply_redeemed count for the item
+            item.supply_redeemed = item.supply_redeemed
+                .checked_add(1)
+                .ok_or(JellybeanError::NumericalOverflowError)?;
 
-    // (2) retrieve the config line at the mint_index position
-    let buyer_position = GUMBALL_MACHINE_SIZE + 4 + mint_index * gumball_machine.get_config_line_size() 
-        + 32 // mint
-        + 32; // seller
+            // 36 is the offset of the supply_redeemed field in the LoadedItem struct
+            let supply_redeemed_slice: &mut [u8] = &mut account_data[item_position + 36..item_position + 40];
+            supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(item.supply_redeemed));
+            
+            return Ok(Prize {
+                item_index: i,
+                edition_number: item.supply_redeemed + 1,
+            });
+        }
 
-    // Set the buyer on the config line
-    let current_buyer =
-        Pubkey::try_from(&account_data[buyer_position..buyer_position + 32]).unwrap();
-    require!(
-        current_buyer == Pubkey::default(),
-        GumballError::ItemAlreadyDrawn
-    );
-    account_data[buyer_position..buyer_position + 32].copy_from_slice(&buyer.to_bytes());
-
-    Ok(mint_index as u32)
+        remaining_supply_covered += remaining_supply as usize;
+    }
+    
+    err!(JellybeanError::ItemNotFound)
 }

@@ -1,18 +1,18 @@
 use crate::{
-    constants::{CONFIG_LINE_SIZE, GUMBALL_MACHINE_SIZE},
-    get_bit_byte_info, GumballError, JellybeanMachine,
+    constants::{BASE_JELLYBEAN_MACHINE_SIZE, CONFIG_LINE_SIZE},
+    get_bit_byte_info, JellybeanError, JellybeanMachine,
 };
 use anchor_lang::prelude::*;
 
 pub fn is_item_claimed(
-    gumball_machine: &Box<Account<JellybeanMachine>>,
+    jellybean_machine: &Box<Account<JellybeanMachine>>,
     index: u32,
 ) -> Result<bool> {
-    let account_info = gumball_machine.to_account_info();
+    let account_info = jellybean_machine.to_account_info();
     let data = account_info.data.borrow();
 
     // bit-mask
-    let bit_mask_start = gumball_machine.get_claimed_items_bit_mask_position();
+    let bit_mask_start = jellybean_machine.get_claimed_items_bit_mask_position();
     let (byte_position, bit, mask) = get_bit_byte_info(bit_mask_start, index as usize)?;
     let current_value = data[byte_position];
     let is_claimed = current_value & mask == mask;
@@ -31,16 +31,19 @@ pub fn is_item_claimed(
     Ok(is_claimed)
 }
 
-pub fn claim_item(gumball_machine: &mut Box<Account<JellybeanMachine>>, index: u32) -> Result<u64> {
-    let account_info = gumball_machine.to_account_info();
+pub fn claim_item(
+    jellybean_machine: &mut Box<Account<JellybeanMachine>>,
+    index: u32,
+) -> Result<u64> {
+    let account_info = jellybean_machine.to_account_info();
     let mut data = account_info.data.borrow_mut();
 
     // bit-mask
-    let bit_mask_start = gumball_machine.get_claimed_items_bit_mask_position();
+    let bit_mask_start = jellybean_machine.get_claimed_items_bit_mask_position();
     let (byte_position, bit, mask) = get_bit_byte_info(bit_mask_start, index as usize)?;
     let current_value = data[byte_position];
     let is_claimed = current_value & mask == mask;
-    require!(!is_claimed, GumballError::ItemAlreadyClaimed);
+    require!(!is_claimed, JellybeanError::ItemAlreadyClaimed);
 
     data[byte_position] |= mask;
 
@@ -53,9 +56,10 @@ pub fn claim_item(gumball_machine: &mut Box<Account<JellybeanMachine>>, index: u
         bit
     );
 
-    let item_amount = if gumball_machine.version >= 2 {
-        let config_line_size = gumball_machine.get_config_line_size();
-        let config_line_position = GUMBALL_MACHINE_SIZE + 4 + (index as usize) * config_line_size;
+    let item_amount = if jellybean_machine.version >= 2 {
+        let config_line_size = jellybean_machine.get_config_line_size();
+        let config_line_position =
+            BASE_JELLYBEAN_MACHINE_SIZE + 4 + (index as usize) * config_line_size;
         u64::from_le_bytes(
             data[config_line_position + CONFIG_LINE_SIZE
                 ..config_line_position + CONFIG_LINE_SIZE + 8]

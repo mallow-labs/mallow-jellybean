@@ -5,7 +5,7 @@ pub use checks::*;
 pub use math::*;
 
 use crate::{
-    constants::GUMBALL_MACHINE_SIZE, instructions::AddItemArgs, GumballError, JellybeanMachine,
+    constants::BASE_JELLYBEAN_MACHINE_SIZE, instructions::AddItemArgs, JellybeanError, JellybeanMachine,
     JellybeanState, LoadedItem,
 };
 use anchor_lang::prelude::*;
@@ -65,7 +65,7 @@ impl anchor_lang::Id for AssociatedToken {
 }
 
 pub fn assert_can_add_item(
-    gumball_machine: &mut Box<Account<JellybeanMachine>>,
+    jellybean_machine: &mut Box<Account<JellybeanMachine>>,
     seller_history: &mut Box<Account<SellerHistory>>,
     quantity: u16,
     args: &AddItemArgs,
@@ -78,94 +78,94 @@ pub fn assert_can_add_item(
     // Having an index means we're re-adding an item
     if index.is_some() {
         // Can only add item back to a live solo gumball
-        require!(!gumball_machine.is_collab(), GumballError::NotASoloGumball);
+        require!(!jellybean_machine.is_collab(), JellybeanError::NotASoloGumball);
         require!(
-            gumball_machine.state == JellybeanState::SaleLive,
-            GumballError::InvalidState
+            jellybean_machine.state == JellybeanState::SaleLive,
+            JellybeanError::InvalidState
         );
     }
 
     let seller = seller_history.seller;
 
-    if seller == gumball_machine.authority {
+    if seller == jellybean_machine.authority {
         return Ok(());
     }
 
     if seller_history.item_count + quantity as u64
-        > gumball_machine.settings.items_per_seller as u64
+        > jellybean_machine.settings.items_per_seller as u64
     {
-        return err!(GumballError::SellerTooManyItems);
+        return err!(JellybeanError::SellerTooManyItems);
     }
 
-    if seller_proof_path.is_none() || gumball_machine.settings.sellers_merkle_root.is_none() {
-        return err!(GumballError::InvalidProofPath);
+    if seller_proof_path.is_none() || jellybean_machine.settings.sellers_merkle_root.is_none() {
+        return err!(JellybeanError::InvalidProofPath);
     }
 
     let leaf = solana_program::keccak::hashv(&[seller.to_string().as_bytes()]);
     require!(
         verify_proof(
             &seller_proof_path.as_ref().unwrap()[..],
-            &gumball_machine.settings.sellers_merkle_root.unwrap(),
+            &jellybean_machine.settings.sellers_merkle_root.unwrap(),
             &leaf.0,
         ),
-        GumballError::InvalidProofPath
+        JellybeanError::InvalidProofPath
     );
 
     Ok(())
 }
 
 pub fn assert_can_request_add_item(
-    gumball_machine: &mut Box<Account<JellybeanMachine>>,
+    jellybean_machine: &mut Box<Account<JellybeanMachine>>,
     seller_history: &mut Box<Account<SellerHistory>>,
 ) -> Result<()> {
     let seller = seller_history.seller;
 
-    if seller == gumball_machine.authority {
-        return err!(GumballError::SellerCannotBeAuthority);
+    if seller == jellybean_machine.authority {
+        return err!(JellybeanError::SellerCannotBeAuthority);
     }
 
-    if seller_history.item_count >= gumball_machine.settings.items_per_seller as u64 {
-        return err!(GumballError::SellerTooManyItems);
+    if seller_history.item_count >= jellybean_machine.settings.items_per_seller as u64 {
+        return err!(JellybeanError::SellerTooManyItems);
     }
 
     Ok(())
 }
 
 pub fn assert_config_line(
-    gumball_machine: &Box<Account<JellybeanMachine>>,
+    jellybean_machine: &Box<Account<JellybeanMachine>>,
     index: u32,
     config_line: ConfigLine,
     is_burnt: bool,
 ) -> Result<()> {
-    let account_info = gumball_machine.to_account_info();
+    let account_info = jellybean_machine.to_account_info();
     let data = account_info.data.borrow();
     let count = get_config_count(&data)?;
 
     if index >= count as u32 {
-        return err!(GumballError::IndexGreaterThanLength);
+        return err!(JellybeanError::IndexGreaterThanLength);
     }
 
     let config_line_position =
-        GUMBALL_MACHINE_SIZE + 4 + (index as usize) * gumball_machine.get_config_line_size();
+        BASE_JELLYBEAN_MACHINE_SIZE + 4 + (index as usize) * jellybean_machine.get_config_line_size();
 
     let mint = Pubkey::try_from(&data[config_line_position..config_line_position + 32]).unwrap();
-    require!(config_line.mint == mint, GumballError::InvalidMint);
+    require!(config_line.mint == mint, JellybeanError::InvalidMint);
 
     let seller =
         Pubkey::try_from(&data[config_line_position + 32..config_line_position + 64]).unwrap();
     // Only the gumball machine authority or the seller can remove a config line
-    require!(config_line.seller == seller, GumballError::InvalidSeller);
+    require!(config_line.seller == seller, JellybeanError::InvalidSeller);
 
     let buyer =
         Pubkey::try_from(&data[config_line_position + 64..config_line_position + 96]).unwrap();
-    require!(config_line.buyer == buyer, GumballError::InvalidBuyer);
+    require!(config_line.buyer == buyer, JellybeanError::InvalidBuyer);
 
     // No need to verify the token standard for burnt assets
     if !is_burnt {
         let token_standard = u8::from_le_bytes(*array_ref![data, config_line_position + 96, 1]);
         require!(
             config_line.token_standard as u8 == token_standard,
-            GumballError::InvalidTokenStandard
+            JellybeanError::InvalidTokenStandard
         );
     }
 
@@ -175,33 +175,23 @@ pub fn assert_config_line(
 }
 
 pub fn assert_config_line_values(
-    gumball_machine_data: &[u8],
-    config_line_position: usize,
+    jellybean_machine_data: &[u8],
+    loaded_items_position: usize,
     index: u32,
+    items_loaded: u16,
     mint: Pubkey,
-    seller: Pubkey,
-    buyer: Pubkey,
 ) -> Result<LoadedItem> {
-    let count = get_config_count(gumball_machine_data)?;
-
-    if index >= count as u32 {
-        return err!(GumballError::IndexGreaterThanLength);
+    if index >= items_loaded as u32 {
+        return err!(JellybeanError::IndexGreaterThanLength);
     }
 
     let config_line = LoadedItem::try_from_slice(
-        &gumball_machine_data[config_line_position..config_line_position + LoadedItem::INIT_SPACE],
+        &jellybean_machine_data[loaded_items_position..loaded_items_position + size_of::<LoadedItem>()],
     )?;
 
-    require!(mint == config_line.mint, GumballError::InvalidMint);
-    require!(seller == config_line.seller, GumballError::InvalidSeller);
-    require!(buyer == config_line.buyer, GumballError::InvalidBuyer);
+    require!(mint == config_line.mint, JellybeanError::InvalidMint);
 
     Ok(config_line)
-}
-
-/// Return the current number of lines written to the account.
-pub fn get_config_count(data: &[u8]) -> Result<usize> {
-    Ok(u32::from_le_bytes(*array_ref![data, GUMBALL_MACHINE_SIZE, 4]) as usize)
 }
 
 pub fn cmp_pubkeys(a: &Pubkey, b: &Pubkey) -> bool {
@@ -239,11 +229,11 @@ pub fn get_bit_byte_info(base_position: usize, position: usize) -> Result<(usize
     let byte_position = base_position
         + position
             .checked_div(8)
-            .ok_or(GumballError::NumericalOverflowError)?;
+            .ok_or(JellybeanError::NumericalOverflowError)?;
     // bit index corresponding to the position of the line
     let bit = 7 - position
         .checked_rem(8)
-        .ok_or(GumballError::NumericalOverflowError)?;
+        .ok_or(JellybeanError::NumericalOverflowError)?;
     let mask = u8::pow(2, bit as u32);
 
     return Ok((byte_position, bit, mask));
