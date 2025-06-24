@@ -124,7 +124,7 @@ export function getCounterGpaBuilder(
 ) {
   const programId = context.programs.getPublicKey(
     'mallowJellybean',
-    'DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw'
+    'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq'
   );
   return gpaBuilder(context, programId)
     .registerFields<{

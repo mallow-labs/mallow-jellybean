@@ -19,7 +19,7 @@ import {
 } from '../instructions';
 
 export const MALLOW_JELLYBEAN_PROGRAM_ADDRESS =
-  'DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw' as Address<'DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw'>;
+  'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq' as Address<'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq'>;
 
 export enum MallowJellybeanAccount {
   Counter,
@@ -82,7 +82,7 @@ export function identifyMallowJellybeanInstruction(
 }
 
 export type ParsedMallowJellybeanInstruction<
-  TProgram extends string = 'DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw',
+  TProgram extends string = 'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq',
 > =
   | ({
       instructionType: MallowJellybeanInstruction.Create;

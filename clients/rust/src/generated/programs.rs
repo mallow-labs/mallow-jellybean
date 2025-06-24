@@ -8,4 +8,4 @@
 use solana_program::{pubkey, pubkey::Pubkey};
 
 /// `mallow_jellybean` program ID.
-pub const MALLOW_JELLYBEAN_ID: Pubkey = pubkey!("DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw");
+pub const MALLOW_JELLYBEAN_ID: Pubkey = pubkey!("J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq");

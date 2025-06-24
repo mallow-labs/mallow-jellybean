@@ -18,7 +18,7 @@ import {
 } from '../errors';
 
 export const MALLOW_JELLYBEAN_PROGRAM_ID =
-  'DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw' as PublicKey<'DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw'>;
+  'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq' as PublicKey<'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq'>;
 
 export function createMallowJellybeanProgram(): Program {
   return {
