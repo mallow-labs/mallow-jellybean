@@ -27,39 +27,44 @@ import {
 } from '../shared';
 
 // Accounts.
-export type IncrementInstructionAccounts = {
-  counter: PublicKey | Pda;
+export type WithdrawInstructionAccounts = {
+  /** Gumball Machine acccount. */
+  jellybeanMachine: PublicKey | Pda;
+  /** Authority of the jellybean machine. */
   authority?: Signer;
+  /** Mint authority of the jellybean machine. */
+  mintAuthority: Signer;
+  tokenProgram?: PublicKey | Pda;
 };
 
 // Data.
-export type IncrementInstructionData = { discriminator: Uint8Array };
+export type WithdrawInstructionData = { discriminator: Uint8Array };
 
-export type IncrementInstructionDataArgs = {};
+export type WithdrawInstructionDataArgs = {};
 
-export function getIncrementInstructionDataSerializer(): Serializer<
-  IncrementInstructionDataArgs,
-  IncrementInstructionData
+export function getWithdrawInstructionDataSerializer(): Serializer<
+  WithdrawInstructionDataArgs,
+  WithdrawInstructionData
 > {
   return mapSerializer<
-    IncrementInstructionDataArgs,
+    WithdrawInstructionDataArgs,
     any,
-    IncrementInstructionData
+    WithdrawInstructionData
   >(
-    struct<IncrementInstructionData>([['discriminator', bytes({ size: 8 })]], {
-      description: 'IncrementInstructionData',
+    struct<WithdrawInstructionData>([['discriminator', bytes({ size: 8 })]], {
+      description: 'WithdrawInstructionData',
     }),
     (value) => ({
       ...value,
-      discriminator: new Uint8Array([11, 18, 104, 9, 104, 174, 59, 33]),
+      discriminator: new Uint8Array([183, 18, 70, 156, 148, 109, 161, 34]),
     })
-  ) as Serializer<IncrementInstructionDataArgs, IncrementInstructionData>;
+  ) as Serializer<WithdrawInstructionDataArgs, WithdrawInstructionData>;
 }
 
 // Instruction.
-export function increment(
+export function withdraw(
   context: Pick<Context, 'identity' | 'programs'>,
-  input: IncrementInstructionAccounts
+  input: WithdrawInstructionAccounts
 ): TransactionBuilder {
   // Program ID.
   const programId = context.programs.getPublicKey(
@@ -69,21 +74,38 @@ export function increment(
 
   // Accounts.
   const resolvedAccounts = {
-    counter: {
+    jellybeanMachine: {
       index: 0,
       isWritable: true as boolean,
-      value: input.counter ?? null,
+      value: input.jellybeanMachine ?? null,
     },
     authority: {
       index: 1,
-      isWritable: false as boolean,
+      isWritable: true as boolean,
       value: input.authority ?? null,
+    },
+    mintAuthority: {
+      index: 2,
+      isWritable: true as boolean,
+      value: input.mintAuthority ?? null,
+    },
+    tokenProgram: {
+      index: 3,
+      isWritable: false as boolean,
+      value: input.tokenProgram ?? null,
     },
   } satisfies ResolvedAccountsWithIndices;
 
   // Default values.
   if (!resolvedAccounts.authority.value) {
     resolvedAccounts.authority.value = context.identity;
+  }
+  if (!resolvedAccounts.tokenProgram.value) {
+    resolvedAccounts.tokenProgram.value = context.programs.getPublicKey(
+      'splToken',
+      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
+    );
+    resolvedAccounts.tokenProgram.isWritable = false;
   }
 
   // Accounts in order.
@@ -99,7 +121,7 @@ export function increment(
   );
 
   // Data.
-  const data = getIncrementInstructionDataSerializer().serialize({});
+  const data = getWithdrawInstructionDataSerializer().serialize({});
 
   // Bytes Created On Chain.
   const bytesCreatedOnChain = 0;

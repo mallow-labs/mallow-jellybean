@@ -10,13 +10,14 @@ use borsh::BorshSerialize;
 
 /// Accounts.
 #[derive(Debug)]
-pub struct Increment {
-    pub counter: solana_program::pubkey::Pubkey,
-
+pub struct EndSale {
+    /// Gumball machine account.
+    pub jellybean_machine: solana_program::pubkey::Pubkey,
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
     pub authority: solana_program::pubkey::Pubkey,
 }
 
-impl Increment {
+impl EndSale {
     pub fn instruction(&self) -> solana_program::instruction::Instruction {
         self.instruction_with_remaining_accounts(&[])
     }
@@ -28,15 +29,15 @@ impl Increment {
     ) -> solana_program::instruction::Instruction {
         let mut accounts = Vec::with_capacity(2 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
-            self.counter,
+            self.jellybean_machine,
             false,
         ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+        accounts.push(solana_program::instruction::AccountMeta::new(
             self.authority,
             true,
         ));
         accounts.extend_from_slice(remaining_accounts);
-        let data = borsh::to_vec(&IncrementInstructionData::new()).unwrap();
+        let data = borsh::to_vec(&EndSaleInstructionData::new()).unwrap();
 
         solana_program::instruction::Instruction {
             program_id: crate::MALLOW_JELLYBEAN_ID,
@@ -48,46 +49,51 @@ impl Increment {
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct IncrementInstructionData {
+pub struct EndSaleInstructionData {
     discriminator: [u8; 8],
 }
 
-impl IncrementInstructionData {
+impl EndSaleInstructionData {
     pub fn new() -> Self {
         Self {
-            discriminator: [11, 18, 104, 9, 104, 174, 59, 33],
+            discriminator: [37, 239, 52, 17, 120, 44, 213, 125],
         }
     }
 }
 
-impl Default for IncrementInstructionData {
+impl Default for EndSaleInstructionData {
     fn default() -> Self {
         Self::new()
     }
 }
 
-/// Instruction builder for `Increment`.
+/// Instruction builder for `EndSale`.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` counter
-///   1. `[signer]` authority
+///   0. `[writable]` jellybean_machine
+///   1. `[writable, signer]` authority
 #[derive(Clone, Debug, Default)]
-pub struct IncrementBuilder {
-    counter: Option<solana_program::pubkey::Pubkey>,
+pub struct EndSaleBuilder {
+    jellybean_machine: Option<solana_program::pubkey::Pubkey>,
     authority: Option<solana_program::pubkey::Pubkey>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
-impl IncrementBuilder {
+impl EndSaleBuilder {
     pub fn new() -> Self {
         Self::default()
     }
+    /// Gumball machine account.
     #[inline(always)]
-    pub fn counter(&mut self, counter: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.counter = Some(counter);
+    pub fn jellybean_machine(
+        &mut self,
+        jellybean_machine: solana_program::pubkey::Pubkey,
+    ) -> &mut Self {
+        self.jellybean_machine = Some(jellybean_machine);
         self
     }
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
     #[inline(always)]
     pub fn authority(&mut self, authority: solana_program::pubkey::Pubkey) -> &mut Self {
         self.authority = Some(authority);
@@ -113,8 +119,10 @@ impl IncrementBuilder {
     }
     #[allow(clippy::clone_on_copy)]
     pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        let accounts = Increment {
-            counter: self.counter.expect("counter is not set"),
+        let accounts = EndSale {
+            jellybean_machine: self
+                .jellybean_machine
+                .expect("jellybean_machine is not set"),
             authority: self.authority.expect("authority is not set"),
         };
 
@@ -122,31 +130,32 @@ impl IncrementBuilder {
     }
 }
 
-/// `increment` CPI accounts.
-pub struct IncrementCpiAccounts<'a, 'b> {
-    pub counter: &'b solana_program::account_info::AccountInfo<'a>,
-
+/// `end_sale` CPI accounts.
+pub struct EndSaleCpiAccounts<'a, 'b> {
+    /// Gumball machine account.
+    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
     pub authority: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
-/// `increment` CPI instruction.
-pub struct IncrementCpi<'a, 'b> {
+/// `end_sale` CPI instruction.
+pub struct EndSaleCpi<'a, 'b> {
     /// The program to invoke.
     pub __program: &'b solana_program::account_info::AccountInfo<'a>,
-
-    pub counter: &'b solana_program::account_info::AccountInfo<'a>,
-
+    /// Gumball machine account.
+    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
     pub authority: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
-impl<'a, 'b> IncrementCpi<'a, 'b> {
+impl<'a, 'b> EndSaleCpi<'a, 'b> {
     pub fn new(
         program: &'b solana_program::account_info::AccountInfo<'a>,
-        accounts: IncrementCpiAccounts<'a, 'b>,
+        accounts: EndSaleCpiAccounts<'a, 'b>,
     ) -> Self {
         Self {
             __program: program,
-            counter: accounts.counter,
+            jellybean_machine: accounts.jellybean_machine,
             authority: accounts.authority,
         }
     }
@@ -186,10 +195,10 @@ impl<'a, 'b> IncrementCpi<'a, 'b> {
     ) -> solana_program::entrypoint::ProgramResult {
         let mut accounts = Vec::with_capacity(2 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
-            *self.counter.key,
+            *self.jellybean_machine.key,
             false,
         ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+        accounts.push(solana_program::instruction::AccountMeta::new(
             *self.authority.key,
             true,
         ));
@@ -200,7 +209,7 @@ impl<'a, 'b> IncrementCpi<'a, 'b> {
                 is_writable: remaining_account.2,
             })
         });
-        let data = borsh::to_vec(&IncrementInstructionData::new()).unwrap();
+        let data = borsh::to_vec(&EndSaleInstructionData::new()).unwrap();
 
         let instruction = solana_program::instruction::Instruction {
             program_id: crate::MALLOW_JELLYBEAN_ID,
@@ -209,7 +218,7 @@ impl<'a, 'b> IncrementCpi<'a, 'b> {
         };
         let mut account_infos = Vec::with_capacity(3 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
-        account_infos.push(self.counter.clone());
+        account_infos.push(self.jellybean_machine.clone());
         account_infos.push(self.authority.clone());
         remaining_accounts
             .iter()
@@ -223,35 +232,37 @@ impl<'a, 'b> IncrementCpi<'a, 'b> {
     }
 }
 
-/// Instruction builder for `Increment` via CPI.
+/// Instruction builder for `EndSale` via CPI.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` counter
-///   1. `[signer]` authority
+///   0. `[writable]` jellybean_machine
+///   1. `[writable, signer]` authority
 #[derive(Clone, Debug)]
-pub struct IncrementCpiBuilder<'a, 'b> {
-    instruction: Box<IncrementCpiBuilderInstruction<'a, 'b>>,
+pub struct EndSaleCpiBuilder<'a, 'b> {
+    instruction: Box<EndSaleCpiBuilderInstruction<'a, 'b>>,
 }
 
-impl<'a, 'b> IncrementCpiBuilder<'a, 'b> {
+impl<'a, 'b> EndSaleCpiBuilder<'a, 'b> {
     pub fn new(program: &'b solana_program::account_info::AccountInfo<'a>) -> Self {
-        let instruction = Box::new(IncrementCpiBuilderInstruction {
+        let instruction = Box::new(EndSaleCpiBuilderInstruction {
             __program: program,
-            counter: None,
+            jellybean_machine: None,
             authority: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
     }
+    /// Gumball machine account.
     #[inline(always)]
-    pub fn counter(
+    pub fn jellybean_machine(
         &mut self,
-        counter: &'b solana_program::account_info::AccountInfo<'a>,
+        jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
-        self.instruction.counter = Some(counter);
+        self.instruction.jellybean_machine = Some(jellybean_machine);
         self
     }
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
     #[inline(always)]
     pub fn authority(
         &mut self,
@@ -301,10 +312,13 @@ impl<'a, 'b> IncrementCpiBuilder<'a, 'b> {
         &self,
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
-        let instruction = IncrementCpi {
+        let instruction = EndSaleCpi {
             __program: self.instruction.__program,
 
-            counter: self.instruction.counter.expect("counter is not set"),
+            jellybean_machine: self
+                .instruction
+                .jellybean_machine
+                .expect("jellybean_machine is not set"),
 
             authority: self.instruction.authority.expect("authority is not set"),
         };
@@ -316,9 +330,9 @@ impl<'a, 'b> IncrementCpiBuilder<'a, 'b> {
 }
 
 #[derive(Clone, Debug)]
-struct IncrementCpiBuilderInstruction<'a, 'b> {
+struct EndSaleCpiBuilderInstruction<'a, 'b> {
     __program: &'b solana_program::account_info::AccountInfo<'a>,
-    counter: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    jellybean_machine: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(

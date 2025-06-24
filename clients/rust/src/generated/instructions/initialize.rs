@@ -5,24 +5,31 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
+use crate::generated::types::FeeAccount;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
-use solana_program::pubkey::Pubkey;
 
 /// Accounts.
 #[derive(Debug)]
-pub struct Create {
-    pub counter: solana_program::pubkey::Pubkey,
+pub struct Initialize {
+    /// Jellybean machine account.
+    ///
+    pub jellybean_machine: solana_program::pubkey::Pubkey,
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+    ///
+    pub authority: solana_program::pubkey::Pubkey,
 
+    pub authority_pda: solana_program::pubkey::Pubkey,
+    /// Payer of the transaction.
     pub payer: solana_program::pubkey::Pubkey,
 
     pub system_program: solana_program::pubkey::Pubkey,
 }
 
-impl Create {
+impl Initialize {
     pub fn instruction(
         &self,
-        args: CreateInstructionArgs,
+        args: InitializeInstructionArgs,
     ) -> solana_program::instruction::Instruction {
         self.instruction_with_remaining_accounts(args, &[])
     }
@@ -30,13 +37,21 @@ impl Create {
     #[allow(clippy::vec_init_then_push)]
     pub fn instruction_with_remaining_accounts(
         &self,
-        args: CreateInstructionArgs,
+        args: InitializeInstructionArgs,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
-            self.counter,
-            true,
+            self.jellybean_machine,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            self.authority,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new(
+            self.authority_pda,
+            false,
         ));
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.payer, true,
@@ -46,7 +61,7 @@ impl Create {
             false,
         ));
         accounts.extend_from_slice(remaining_accounts);
-        let mut data = borsh::to_vec(&CreateInstructionData::new()).unwrap();
+        let mut data = borsh::to_vec(&InitializeInstructionData::new()).unwrap();
         let mut args = borsh::to_vec(&args).unwrap();
         data.append(&mut args);
 
@@ -60,19 +75,19 @@ impl Create {
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct CreateInstructionData {
+pub struct InitializeInstructionData {
     discriminator: [u8; 8],
 }
 
-impl CreateInstructionData {
+impl InitializeInstructionData {
     pub fn new() -> Self {
         Self {
-            discriminator: [24, 30, 200, 40, 5, 28, 7, 119],
+            discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
         }
     }
 }
 
-impl Default for CreateInstructionData {
+impl Default for InitializeInstructionData {
     fn default() -> Self {
         Self::new()
     }
@@ -80,35 +95,59 @@ impl Default for CreateInstructionData {
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct CreateInstructionArgs {
-    pub authority: Pubkey,
+pub struct InitializeInstructionArgs {
+    pub fee_accounts: Vec<Option<FeeAccount>>,
+    pub uri: String,
 }
 
-/// Instruction builder for `Create`.
+/// Instruction builder for `Initialize`.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable, signer]` counter
-///   1. `[writable, signer]` payer
-///   2. `[optional]` system_program (default to `11111111111111111111111111111111`)
+///   0. `[writable]` jellybean_machine
+///   1. `[]` authority
+///   2. `[writable]` authority_pda
+///   3. `[writable, signer]` payer
+///   4. `[optional]` system_program (default to `11111111111111111111111111111111`)
 #[derive(Clone, Debug, Default)]
-pub struct CreateBuilder {
-    counter: Option<solana_program::pubkey::Pubkey>,
+pub struct InitializeBuilder {
+    jellybean_machine: Option<solana_program::pubkey::Pubkey>,
+    authority: Option<solana_program::pubkey::Pubkey>,
+    authority_pda: Option<solana_program::pubkey::Pubkey>,
     payer: Option<solana_program::pubkey::Pubkey>,
     system_program: Option<solana_program::pubkey::Pubkey>,
-    authority: Option<Pubkey>,
+    fee_accounts: Option<Vec<Option<FeeAccount>>>,
+    uri: Option<String>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
-impl CreateBuilder {
+impl InitializeBuilder {
     pub fn new() -> Self {
         Self::default()
     }
+    /// Jellybean machine account.
+    ///
     #[inline(always)]
-    pub fn counter(&mut self, counter: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.counter = Some(counter);
+    pub fn jellybean_machine(
+        &mut self,
+        jellybean_machine: solana_program::pubkey::Pubkey,
+    ) -> &mut Self {
+        self.jellybean_machine = Some(jellybean_machine);
         self
     }
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+    ///
+    #[inline(always)]
+    pub fn authority(&mut self, authority: solana_program::pubkey::Pubkey) -> &mut Self {
+        self.authority = Some(authority);
+        self
+    }
+    #[inline(always)]
+    pub fn authority_pda(&mut self, authority_pda: solana_program::pubkey::Pubkey) -> &mut Self {
+        self.authority_pda = Some(authority_pda);
+        self
+    }
+    /// Payer of the transaction.
     #[inline(always)]
     pub fn payer(&mut self, payer: solana_program::pubkey::Pubkey) -> &mut Self {
         self.payer = Some(payer);
@@ -121,8 +160,13 @@ impl CreateBuilder {
         self
     }
     #[inline(always)]
-    pub fn authority(&mut self, authority: Pubkey) -> &mut Self {
-        self.authority = Some(authority);
+    pub fn fee_accounts(&mut self, fee_accounts: Vec<Option<FeeAccount>>) -> &mut Self {
+        self.fee_accounts = Some(fee_accounts);
+        self
+    }
+    #[inline(always)]
+    pub fn uri(&mut self, uri: String) -> &mut Self {
+        self.uri = Some(uri);
         self
     }
     /// Add an additional account to the instruction.
@@ -145,53 +189,73 @@ impl CreateBuilder {
     }
     #[allow(clippy::clone_on_copy)]
     pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        let accounts = Create {
-            counter: self.counter.expect("counter is not set"),
+        let accounts = Initialize {
+            jellybean_machine: self
+                .jellybean_machine
+                .expect("jellybean_machine is not set"),
+            authority: self.authority.expect("authority is not set"),
+            authority_pda: self.authority_pda.expect("authority_pda is not set"),
             payer: self.payer.expect("payer is not set"),
             system_program: self
                 .system_program
                 .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
         };
-        let args = CreateInstructionArgs {
-            authority: self.authority.clone().expect("authority is not set"),
+        let args = InitializeInstructionArgs {
+            fee_accounts: self.fee_accounts.clone().expect("fee_accounts is not set"),
+            uri: self.uri.clone().expect("uri is not set"),
         };
 
         accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
     }
 }
 
-/// `create` CPI accounts.
-pub struct CreateCpiAccounts<'a, 'b> {
-    pub counter: &'b solana_program::account_info::AccountInfo<'a>,
+/// `initialize` CPI accounts.
+pub struct InitializeCpiAccounts<'a, 'b> {
+    /// Jellybean machine account.
+    ///
+    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+    ///
+    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
 
+    pub authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Payer of the transaction.
     pub payer: &'b solana_program::account_info::AccountInfo<'a>,
 
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
-/// `create` CPI instruction.
-pub struct CreateCpi<'a, 'b> {
+/// `initialize` CPI instruction.
+pub struct InitializeCpi<'a, 'b> {
     /// The program to invoke.
     pub __program: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Jellybean machine account.
+    ///
+    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+    ///
+    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
 
-    pub counter: &'b solana_program::account_info::AccountInfo<'a>,
-
+    pub authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Payer of the transaction.
     pub payer: &'b solana_program::account_info::AccountInfo<'a>,
 
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
     /// The arguments for the instruction.
-    pub __args: CreateInstructionArgs,
+    pub __args: InitializeInstructionArgs,
 }
 
-impl<'a, 'b> CreateCpi<'a, 'b> {
+impl<'a, 'b> InitializeCpi<'a, 'b> {
     pub fn new(
         program: &'b solana_program::account_info::AccountInfo<'a>,
-        accounts: CreateCpiAccounts<'a, 'b>,
-        args: CreateInstructionArgs,
+        accounts: InitializeCpiAccounts<'a, 'b>,
+        args: InitializeInstructionArgs,
     ) -> Self {
         Self {
             __program: program,
-            counter: accounts.counter,
+            jellybean_machine: accounts.jellybean_machine,
+            authority: accounts.authority,
+            authority_pda: accounts.authority_pda,
             payer: accounts.payer,
             system_program: accounts.system_program,
             __args: args,
@@ -231,10 +295,18 @@ impl<'a, 'b> CreateCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
-            *self.counter.key,
-            true,
+            *self.jellybean_machine.key,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            *self.authority.key,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new(
+            *self.authority_pda.key,
+            false,
         ));
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.payer.key,
@@ -251,7 +323,7 @@ impl<'a, 'b> CreateCpi<'a, 'b> {
                 is_writable: remaining_account.2,
             })
         });
-        let mut data = borsh::to_vec(&CreateInstructionData::new()).unwrap();
+        let mut data = borsh::to_vec(&InitializeInstructionData::new()).unwrap();
         let mut args = borsh::to_vec(&self.__args).unwrap();
         data.append(&mut args);
 
@@ -260,9 +332,11 @@ impl<'a, 'b> CreateCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(4 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(6 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
-        account_infos.push(self.counter.clone());
+        account_infos.push(self.jellybean_machine.clone());
+        account_infos.push(self.authority.clone());
+        account_infos.push(self.authority_pda.clone());
         account_infos.push(self.payer.clone());
         account_infos.push(self.system_program.clone());
         remaining_accounts
@@ -277,38 +351,64 @@ impl<'a, 'b> CreateCpi<'a, 'b> {
     }
 }
 
-/// Instruction builder for `Create` via CPI.
+/// Instruction builder for `Initialize` via CPI.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable, signer]` counter
-///   1. `[writable, signer]` payer
-///   2. `[]` system_program
+///   0. `[writable]` jellybean_machine
+///   1. `[]` authority
+///   2. `[writable]` authority_pda
+///   3. `[writable, signer]` payer
+///   4. `[]` system_program
 #[derive(Clone, Debug)]
-pub struct CreateCpiBuilder<'a, 'b> {
-    instruction: Box<CreateCpiBuilderInstruction<'a, 'b>>,
+pub struct InitializeCpiBuilder<'a, 'b> {
+    instruction: Box<InitializeCpiBuilderInstruction<'a, 'b>>,
 }
 
-impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
+impl<'a, 'b> InitializeCpiBuilder<'a, 'b> {
     pub fn new(program: &'b solana_program::account_info::AccountInfo<'a>) -> Self {
-        let instruction = Box::new(CreateCpiBuilderInstruction {
+        let instruction = Box::new(InitializeCpiBuilderInstruction {
             __program: program,
-            counter: None,
+            jellybean_machine: None,
+            authority: None,
+            authority_pda: None,
             payer: None,
             system_program: None,
-            authority: None,
+            fee_accounts: None,
+            uri: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
     }
+    /// Jellybean machine account.
+    ///
     #[inline(always)]
-    pub fn counter(
+    pub fn jellybean_machine(
         &mut self,
-        counter: &'b solana_program::account_info::AccountInfo<'a>,
+        jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
-        self.instruction.counter = Some(counter);
+        self.instruction.jellybean_machine = Some(jellybean_machine);
         self
     }
+    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+    ///
+    #[inline(always)]
+    pub fn authority(
+        &mut self,
+        authority: &'b solana_program::account_info::AccountInfo<'a>,
+    ) -> &mut Self {
+        self.instruction.authority = Some(authority);
+        self
+    }
+    #[inline(always)]
+    pub fn authority_pda(
+        &mut self,
+        authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
+    ) -> &mut Self {
+        self.instruction.authority_pda = Some(authority_pda);
+        self
+    }
+    /// Payer of the transaction.
     #[inline(always)]
     pub fn payer(&mut self, payer: &'b solana_program::account_info::AccountInfo<'a>) -> &mut Self {
         self.instruction.payer = Some(payer);
@@ -323,8 +423,13 @@ impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn authority(&mut self, authority: Pubkey) -> &mut Self {
-        self.instruction.authority = Some(authority);
+    pub fn fee_accounts(&mut self, fee_accounts: Vec<Option<FeeAccount>>) -> &mut Self {
+        self.instruction.fee_accounts = Some(fee_accounts);
+        self
+    }
+    #[inline(always)]
+    pub fn uri(&mut self, uri: String) -> &mut Self {
+        self.instruction.uri = Some(uri);
         self
     }
     /// Add an additional account to the instruction.
@@ -368,17 +473,28 @@ impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
         &self,
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
-        let args = CreateInstructionArgs {
-            authority: self
+        let args = InitializeInstructionArgs {
+            fee_accounts: self
                 .instruction
-                .authority
+                .fee_accounts
                 .clone()
-                .expect("authority is not set"),
+                .expect("fee_accounts is not set"),
+            uri: self.instruction.uri.clone().expect("uri is not set"),
         };
-        let instruction = CreateCpi {
+        let instruction = InitializeCpi {
             __program: self.instruction.__program,
 
-            counter: self.instruction.counter.expect("counter is not set"),
+            jellybean_machine: self
+                .instruction
+                .jellybean_machine
+                .expect("jellybean_machine is not set"),
+
+            authority: self.instruction.authority.expect("authority is not set"),
+
+            authority_pda: self
+                .instruction
+                .authority_pda
+                .expect("authority_pda is not set"),
 
             payer: self.instruction.payer.expect("payer is not set"),
 
@@ -396,12 +512,15 @@ impl<'a, 'b> CreateCpiBuilder<'a, 'b> {
 }
 
 #[derive(Clone, Debug)]
-struct CreateCpiBuilderInstruction<'a, 'b> {
+struct InitializeCpiBuilderInstruction<'a, 'b> {
     __program: &'b solana_program::account_info::AccountInfo<'a>,
-    counter: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    jellybean_machine: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    authority_pda: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     payer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    authority: Option<Pubkey>,
+    fee_accounts: Option<Vec<Option<FeeAccount>>>,
+    uri: Option<String>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

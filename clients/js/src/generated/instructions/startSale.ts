@@ -32,26 +32,26 @@ import {
 import { MALLOW_JELLYBEAN_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
-export const INCREMENT_DISCRIMINATOR = new Uint8Array([
-  11, 18, 104, 9, 104, 174, 59, 33,
+export const START_SALE_DISCRIMINATOR = new Uint8Array([
+  130, 69, 235, 113, 173, 219, 48, 228,
 ]);
 
-export function getIncrementDiscriminatorBytes() {
-  return fixEncoderSize(getBytesEncoder(), 8).encode(INCREMENT_DISCRIMINATOR);
+export function getStartSaleDiscriminatorBytes() {
+  return fixEncoderSize(getBytesEncoder(), 8).encode(START_SALE_DISCRIMINATOR);
 }
 
-export type IncrementInstruction<
+export type StartSaleInstruction<
   TProgram extends string = typeof MALLOW_JELLYBEAN_PROGRAM_ADDRESS,
-  TAccountCounter extends string | IAccountMeta<string> = string,
+  TAccountJellybeanMachine extends string | IAccountMeta<string> = string,
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
 > = IInstruction<TProgram> &
   IInstructionWithData<Uint8Array> &
   IInstructionWithAccounts<
     [
-      TAccountCounter extends string
-        ? WritableAccount<TAccountCounter>
-        : TAccountCounter,
+      TAccountJellybeanMachine extends string
+        ? WritableAccount<TAccountJellybeanMachine>
+        : TAccountJellybeanMachine,
       TAccountAuthority extends string
         ? ReadonlySignerAccount<TAccountAuthority> &
             IAccountSignerMeta<TAccountAuthority>
@@ -60,56 +60,65 @@ export type IncrementInstruction<
     ]
   >;
 
-export type IncrementInstructionData = { discriminator: ReadonlyUint8Array };
+export type StartSaleInstructionData = { discriminator: ReadonlyUint8Array };
 
-export type IncrementInstructionDataArgs = {};
+export type StartSaleInstructionDataArgs = {};
 
-export function getIncrementInstructionDataEncoder(): Encoder<IncrementInstructionDataArgs> {
+export function getStartSaleInstructionDataEncoder(): Encoder<StartSaleInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([['discriminator', fixEncoderSize(getBytesEncoder(), 8)]]),
-    (value) => ({ ...value, discriminator: INCREMENT_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: START_SALE_DISCRIMINATOR })
   );
 }
 
-export function getIncrementInstructionDataDecoder(): Decoder<IncrementInstructionData> {
+export function getStartSaleInstructionDataDecoder(): Decoder<StartSaleInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
   ]);
 }
 
-export function getIncrementInstructionDataCodec(): Codec<
-  IncrementInstructionDataArgs,
-  IncrementInstructionData
+export function getStartSaleInstructionDataCodec(): Codec<
+  StartSaleInstructionDataArgs,
+  StartSaleInstructionData
 > {
   return combineCodec(
-    getIncrementInstructionDataEncoder(),
-    getIncrementInstructionDataDecoder()
+    getStartSaleInstructionDataEncoder(),
+    getStartSaleInstructionDataDecoder()
   );
 }
 
-export type IncrementInput<
-  TAccountCounter extends string = string,
+export type StartSaleInput<
+  TAccountJellybeanMachine extends string = string,
   TAccountAuthority extends string = string,
 > = {
-  counter: Address<TAccountCounter>;
+  /** Jellybean machine account. */
+  jellybeanMachine: Address<TAccountJellybeanMachine>;
+  /** Jellybean Machine authority. This can be the mint authority or the authority. */
   authority: TransactionSigner<TAccountAuthority>;
 };
 
-export function getIncrementInstruction<
-  TAccountCounter extends string,
+export function getStartSaleInstruction<
+  TAccountJellybeanMachine extends string,
   TAccountAuthority extends string,
   TProgramAddress extends Address = typeof MALLOW_JELLYBEAN_PROGRAM_ADDRESS,
 >(
-  input: IncrementInput<TAccountCounter, TAccountAuthority>,
+  input: StartSaleInput<TAccountJellybeanMachine, TAccountAuthority>,
   config?: { programAddress?: TProgramAddress }
-): IncrementInstruction<TProgramAddress, TAccountCounter, TAccountAuthority> {
+): StartSaleInstruction<
+  TProgramAddress,
+  TAccountJellybeanMachine,
+  TAccountAuthority
+> {
   // Program address.
   const programAddress =
     config?.programAddress ?? MALLOW_JELLYBEAN_PROGRAM_ADDRESS;
 
   // Original accounts.
   const originalAccounts = {
-    counter: { value: input.counter ?? null, isWritable: true },
+    jellybeanMachine: {
+      value: input.jellybeanMachine ?? null,
+      isWritable: true,
+    },
     authority: { value: input.authority ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -120,40 +129,42 @@ export function getIncrementInstruction<
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   const instruction = {
     accounts: [
-      getAccountMeta(accounts.counter),
+      getAccountMeta(accounts.jellybeanMachine),
       getAccountMeta(accounts.authority),
     ],
     programAddress,
-    data: getIncrementInstructionDataEncoder().encode({}),
-  } as IncrementInstruction<
+    data: getStartSaleInstructionDataEncoder().encode({}),
+  } as StartSaleInstruction<
     TProgramAddress,
-    TAccountCounter,
+    TAccountJellybeanMachine,
     TAccountAuthority
   >;
 
   return instruction;
 }
 
-export type ParsedIncrementInstruction<
+export type ParsedStartSaleInstruction<
   TProgram extends string = typeof MALLOW_JELLYBEAN_PROGRAM_ADDRESS,
   TAccountMetas extends readonly IAccountMeta[] = readonly IAccountMeta[],
 > = {
   programAddress: Address<TProgram>;
   accounts: {
-    counter: TAccountMetas[0];
+    /** Jellybean machine account. */
+    jellybeanMachine: TAccountMetas[0];
+    /** Jellybean Machine authority. This can be the mint authority or the authority. */
     authority: TAccountMetas[1];
   };
-  data: IncrementInstructionData;
+  data: StartSaleInstructionData;
 };
 
-export function parseIncrementInstruction<
+export function parseStartSaleInstruction<
   TProgram extends string,
   TAccountMetas extends readonly IAccountMeta[],
 >(
   instruction: IInstruction<TProgram> &
     IInstructionWithAccounts<TAccountMetas> &
     IInstructionWithData<Uint8Array>
-): ParsedIncrementInstruction<TProgram, TAccountMetas> {
+): ParsedStartSaleInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 2) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
@@ -167,9 +178,9 @@ export function parseIncrementInstruction<
   return {
     programAddress: instruction.programAddress,
     accounts: {
-      counter: getNextAccount(),
+      jellybeanMachine: getNextAccount(),
       authority: getNextAccount(),
     },
-    data: getIncrementInstructionDataDecoder().decode(instruction.data),
+    data: getStartSaleInstructionDataDecoder().decode(instruction.data),
   };
 }

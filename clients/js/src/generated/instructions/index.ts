@@ -6,5 +6,13 @@
  * @see https://github.com/codama-idl/codama
  */
 
-export * from './create';
-export * from './increment';
+export * from './addCoreItem';
+export * from './claimCoreItem';
+export * from './draw';
+export * from './endSale';
+export * from './initialize';
+export * from './removeCoreItem';
+export * from './setMintAuthority';
+export * from './startSale';
+export * from './updateSettings';
+export * from './withdraw';

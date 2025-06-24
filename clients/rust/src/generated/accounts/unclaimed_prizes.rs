@@ -5,24 +5,74 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
+use crate::generated::types::Prize;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use solana_program::pubkey::Pubkey;
 
+/// Jellybean machine state and config data.
+
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct Counter {
+pub struct UnclaimedPrizes {
     pub discriminator: [u8; 8],
+    /// Version of the account.
+    pub version: u8,
+    /// Pubkey of the JellybeanMachine account.
     #[cfg_attr(
         feature = "serde",
         serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
     )]
-    pub authority: Pubkey,
-    pub count: u64,
+    pub jellybean_machine: Pubkey,
+    /// Pubkey of the buyer who drew items
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
+    )]
+    pub buyer: Pubkey,
+    /// Indices of prizes drawn by the buyer
+    pub prizes: Vec<Prize>,
 }
 
-impl Counter {
-    pub const LEN: usize = 48;
+impl UnclaimedPrizes {
+    /// Prefix values used to generate a PDA for this account.
+    ///
+    /// Values are positional and appear in the following order:
+    ///
+    ///   0. `UnclaimedPrizes::PREFIX`
+    ///   1. jellybean_machine (`Pubkey`)
+    ///   2. buyer (`Pubkey`)
+    pub const PREFIX: &'static [u8] = "unclaimed_prizes".as_bytes();
+
+    pub fn create_pda(
+        jellybean_machine: Pubkey,
+        buyer: Pubkey,
+        bump: u8,
+    ) -> Result<solana_program::pubkey::Pubkey, solana_program::pubkey::PubkeyError> {
+        solana_program::pubkey::Pubkey::create_program_address(
+            &[
+                "unclaimed_prizes".as_bytes(),
+                jellybean_machine.as_ref(),
+                buyer.as_ref(),
+                &[bump],
+            ],
+            &crate::MALLOW_JELLYBEAN_ID,
+        )
+    }
+
+    pub fn find_pda(
+        jellybean_machine: &Pubkey,
+        buyer: &Pubkey,
+    ) -> (solana_program::pubkey::Pubkey, u8) {
+        solana_program::pubkey::Pubkey::find_program_address(
+            &[
+                "unclaimed_prizes".as_bytes(),
+                jellybean_machine.as_ref(),
+                buyer.as_ref(),
+            ],
+            &crate::MALLOW_JELLYBEAN_ID,
+        )
+    }
 
     #[inline(always)]
     pub fn from_bytes(data: &[u8]) -> Result<Self, std::io::Error> {
@@ -31,7 +81,7 @@ impl Counter {
     }
 }
 
-impl<'a> TryFrom<&solana_program::account_info::AccountInfo<'a>> for Counter {
+impl<'a> TryFrom<&solana_program::account_info::AccountInfo<'a>> for UnclaimedPrizes {
     type Error = std::io::Error;
 
     fn try_from(
@@ -43,30 +93,30 @@ impl<'a> TryFrom<&solana_program::account_info::AccountInfo<'a>> for Counter {
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_counter(
+pub fn fetch_unclaimed_prizes(
     rpc: &solana_client::rpc_client::RpcClient,
     address: &solana_program::pubkey::Pubkey,
-) -> Result<crate::shared::DecodedAccount<Counter>, std::io::Error> {
-    let accounts = fetch_all_counter(rpc, &[*address])?;
+) -> Result<crate::shared::DecodedAccount<UnclaimedPrizes>, std::io::Error> {
+    let accounts = fetch_all_unclaimed_prizes(rpc, &[*address])?;
     Ok(accounts[0].clone())
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_all_counter(
+pub fn fetch_all_unclaimed_prizes(
     rpc: &solana_client::rpc_client::RpcClient,
     addresses: &[solana_program::pubkey::Pubkey],
-) -> Result<Vec<crate::shared::DecodedAccount<Counter>>, std::io::Error> {
+) -> Result<Vec<crate::shared::DecodedAccount<UnclaimedPrizes>>, std::io::Error> {
     let accounts = rpc
         .get_multiple_accounts(addresses)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-    let mut decoded_accounts: Vec<crate::shared::DecodedAccount<Counter>> = Vec::new();
+    let mut decoded_accounts: Vec<crate::shared::DecodedAccount<UnclaimedPrizes>> = Vec::new();
     for i in 0..addresses.len() {
         let address = addresses[i];
         let account = accounts[i].as_ref().ok_or(std::io::Error::new(
             std::io::ErrorKind::Other,
             format!("Account not found: {}", address),
         ))?;
-        let data = Counter::from_bytes(&account.data)?;
+        let data = UnclaimedPrizes::from_bytes(&account.data)?;
         decoded_accounts.push(crate::shared::DecodedAccount {
             address,
             account: account.clone(),
@@ -77,27 +127,27 @@ pub fn fetch_all_counter(
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_maybe_counter(
+pub fn fetch_maybe_unclaimed_prizes(
     rpc: &solana_client::rpc_client::RpcClient,
     address: &solana_program::pubkey::Pubkey,
-) -> Result<crate::shared::MaybeAccount<Counter>, std::io::Error> {
-    let accounts = fetch_all_maybe_counter(rpc, &[*address])?;
+) -> Result<crate::shared::MaybeAccount<UnclaimedPrizes>, std::io::Error> {
+    let accounts = fetch_all_maybe_unclaimed_prizes(rpc, &[*address])?;
     Ok(accounts[0].clone())
 }
 
 #[cfg(feature = "fetch")]
-pub fn fetch_all_maybe_counter(
+pub fn fetch_all_maybe_unclaimed_prizes(
     rpc: &solana_client::rpc_client::RpcClient,
     addresses: &[solana_program::pubkey::Pubkey],
-) -> Result<Vec<crate::shared::MaybeAccount<Counter>>, std::io::Error> {
+) -> Result<Vec<crate::shared::MaybeAccount<UnclaimedPrizes>>, std::io::Error> {
     let accounts = rpc
         .get_multiple_accounts(addresses)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
-    let mut decoded_accounts: Vec<crate::shared::MaybeAccount<Counter>> = Vec::new();
+    let mut decoded_accounts: Vec<crate::shared::MaybeAccount<UnclaimedPrizes>> = Vec::new();
     for i in 0..addresses.len() {
         let address = addresses[i];
         if let Some(account) = accounts[i].as_ref() {
-            let data = Counter::from_bytes(&account.data)?;
+            let data = UnclaimedPrizes::from_bytes(&account.data)?;
             decoded_accounts.push(crate::shared::MaybeAccount::Exists(
                 crate::shared::DecodedAccount {
                     address,
@@ -113,26 +163,26 @@ pub fn fetch_all_maybe_counter(
 }
 
 #[cfg(feature = "anchor")]
-impl anchor_lang::AccountDeserialize for Counter {
+impl anchor_lang::AccountDeserialize for UnclaimedPrizes {
     fn try_deserialize_unchecked(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
         Ok(Self::deserialize(buf)?)
     }
 }
 
 #[cfg(feature = "anchor")]
-impl anchor_lang::AccountSerialize for Counter {}
+impl anchor_lang::AccountSerialize for UnclaimedPrizes {}
 
 #[cfg(feature = "anchor")]
-impl anchor_lang::Owner for Counter {
+impl anchor_lang::Owner for UnclaimedPrizes {
     fn owner() -> Pubkey {
         crate::MALLOW_JELLYBEAN_ID
     }
 }
 
 #[cfg(feature = "anchor-idl-build")]
-impl anchor_lang::IdlBuild for Counter {}
+impl anchor_lang::IdlBuild for UnclaimedPrizes {}
 
 #[cfg(feature = "anchor-idl-build")]
-impl anchor_lang::Discriminator for Counter {
+impl anchor_lang::Discriminator for UnclaimedPrizes {
     const DISCRIMINATOR: [u8; 8] = [0; 8];
 }

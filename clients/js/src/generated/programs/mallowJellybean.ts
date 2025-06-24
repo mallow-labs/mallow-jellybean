@@ -14,15 +14,24 @@ import {
   type ReadonlyUint8Array,
 } from '@solana/kit';
 import {
-  type ParsedCreateInstruction,
-  type ParsedIncrementInstruction,
+  type ParsedAddCoreItemInstruction,
+  type ParsedClaimCoreItemInstruction,
+  type ParsedDrawInstruction,
+  type ParsedEndSaleInstruction,
+  type ParsedInitializeInstruction,
+  type ParsedRemoveCoreItemInstruction,
+  type ParsedSetMintAuthorityInstruction,
+  type ParsedStartSaleInstruction,
+  type ParsedUpdateSettingsInstruction,
+  type ParsedWithdrawInstruction,
 } from '../instructions';
 
 export const MALLOW_JELLYBEAN_PROGRAM_ADDRESS =
   'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq' as Address<'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq'>;
 
 export enum MallowJellybeanAccount {
-  Counter,
+  JellybeanMachine,
+  UnclaimedPrizes,
 }
 
 export function identifyMallowJellybeanAccount(
@@ -33,12 +42,23 @@ export function identifyMallowJellybeanAccount(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([255, 176, 4, 245, 188, 253, 124, 25])
+        new Uint8Array([240, 170, 43, 148, 110, 172, 77, 89])
       ),
       0
     )
   ) {
-    return MallowJellybeanAccount.Counter;
+    return MallowJellybeanAccount.JellybeanMachine;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([171, 187, 169, 217, 28, 112, 80, 133])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanAccount.UnclaimedPrizes;
   }
   throw new Error(
     'The provided account could not be identified as a mallowJellybean account.'
@@ -46,8 +66,16 @@ export function identifyMallowJellybeanAccount(
 }
 
 export enum MallowJellybeanInstruction {
-  Create,
-  Increment,
+  Initialize,
+  UpdateSettings,
+  AddCoreItem,
+  RemoveCoreItem,
+  StartSale,
+  EndSale,
+  Draw,
+  ClaimCoreItem,
+  SetMintAuthority,
+  Withdraw,
 }
 
 export function identifyMallowJellybeanInstruction(
@@ -58,23 +86,111 @@ export function identifyMallowJellybeanInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([24, 30, 200, 40, 5, 28, 7, 119])
+        new Uint8Array([175, 175, 109, 31, 13, 152, 155, 237])
       ),
       0
     )
   ) {
-    return MallowJellybeanInstruction.Create;
+    return MallowJellybeanInstruction.Initialize;
   }
   if (
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([11, 18, 104, 9, 104, 174, 59, 33])
+        new Uint8Array([81, 166, 51, 213, 158, 84, 157, 108])
       ),
       0
     )
   ) {
-    return MallowJellybeanInstruction.Increment;
+    return MallowJellybeanInstruction.UpdateSettings;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([138, 200, 152, 167, 252, 149, 240, 114])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.AddCoreItem;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([146, 20, 197, 215, 49, 62, 130, 92])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.RemoveCoreItem;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([130, 69, 235, 113, 173, 219, 48, 228])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.StartSale;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([37, 239, 52, 17, 120, 44, 213, 125])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.EndSale;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([61, 40, 62, 184, 31, 176, 24, 130])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.Draw;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([128, 125, 241, 133, 118, 242, 177, 175])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.ClaimCoreItem;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([67, 127, 155, 187, 100, 174, 103, 121])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.SetMintAuthority;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([183, 18, 70, 156, 148, 109, 161, 34])
+      ),
+      0
+    )
+  ) {
+    return MallowJellybeanInstruction.Withdraw;
   }
   throw new Error(
     'The provided instruction could not be identified as a mallowJellybean instruction.'
@@ -85,8 +201,32 @@ export type ParsedMallowJellybeanInstruction<
   TProgram extends string = 'J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq',
 > =
   | ({
-      instructionType: MallowJellybeanInstruction.Create;
-    } & ParsedCreateInstruction<TProgram>)
+      instructionType: MallowJellybeanInstruction.Initialize;
+    } & ParsedInitializeInstruction<TProgram>)
   | ({
-      instructionType: MallowJellybeanInstruction.Increment;
-    } & ParsedIncrementInstruction<TProgram>);
+      instructionType: MallowJellybeanInstruction.UpdateSettings;
+    } & ParsedUpdateSettingsInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.AddCoreItem;
+    } & ParsedAddCoreItemInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.RemoveCoreItem;
+    } & ParsedRemoveCoreItemInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.StartSale;
+    } & ParsedStartSaleInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.EndSale;
+    } & ParsedEndSaleInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.Draw;
+    } & ParsedDrawInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.ClaimCoreItem;
+    } & ParsedClaimCoreItemInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.SetMintAuthority;
+    } & ParsedSetMintAuthorityInstruction<TProgram>)
+  | ({
+      instructionType: MallowJellybeanInstruction.Withdraw;
+    } & ParsedWithdrawInstruction<TProgram>);

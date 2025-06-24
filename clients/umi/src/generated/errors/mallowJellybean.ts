@@ -15,22 +15,268 @@ type ProgramErrorConstructor = new (
 const codeToErrorMap: Map<number, ProgramErrorConstructor> = new Map();
 const nameToErrorMap: Map<string, ProgramErrorConstructor> = new Map();
 
-/** InvalidAuthority: The provided authority doesn't match the counter account's authority */
-export class InvalidAuthorityError extends ProgramError {
-  override readonly name: string = 'InvalidAuthority';
+/** PublicKeyMismatch: Invalid public key */
+export class PublicKeyMismatchError extends ProgramError {
+  override readonly name: string = 'PublicKeyMismatch';
 
   readonly code: number = 0x1770; // 6000
 
   constructor(program: Program, cause?: Error) {
-    super(
-      "The provided authority doesn't match the counter account's authority",
-      program,
-      cause
-    );
+    super('Invalid public key', program, cause);
   }
 }
-codeToErrorMap.set(0x1770, InvalidAuthorityError);
+codeToErrorMap.set(0x1770, PublicKeyMismatchError);
+nameToErrorMap.set('PublicKeyMismatch', PublicKeyMismatchError);
+
+/** InvalidOwner: Invalid owner */
+export class InvalidOwnerError extends ProgramError {
+  override readonly name: string = 'InvalidOwner';
+
+  readonly code: number = 0x1771; // 6001
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid owner', program, cause);
+  }
+}
+codeToErrorMap.set(0x1771, InvalidOwnerError);
+nameToErrorMap.set('InvalidOwner', InvalidOwnerError);
+
+/** UninitializedAccount: Account not initialized */
+export class UninitializedAccountError extends ProgramError {
+  override readonly name: string = 'UninitializedAccount';
+
+  readonly code: number = 0x1772; // 6002
+
+  constructor(program: Program, cause?: Error) {
+    super('Account not initialized', program, cause);
+  }
+}
+codeToErrorMap.set(0x1772, UninitializedAccountError);
+nameToErrorMap.set('UninitializedAccount', UninitializedAccountError);
+
+/** IndexGreaterThanLength: Index greater than length */
+export class IndexGreaterThanLengthError extends ProgramError {
+  override readonly name: string = 'IndexGreaterThanLength';
+
+  readonly code: number = 0x1773; // 6003
+
+  constructor(program: Program, cause?: Error) {
+    super('Index greater than length', program, cause);
+  }
+}
+codeToErrorMap.set(0x1773, IndexGreaterThanLengthError);
+nameToErrorMap.set('IndexGreaterThanLength', IndexGreaterThanLengthError);
+
+/** NumericalOverflowError: Numerical overflow error */
+export class NumericalOverflowErrorError extends ProgramError {
+  override readonly name: string = 'NumericalOverflowError';
+
+  readonly code: number = 0x1774; // 6004
+
+  constructor(program: Program, cause?: Error) {
+    super('Numerical overflow error', program, cause);
+  }
+}
+codeToErrorMap.set(0x1774, NumericalOverflowErrorError);
+nameToErrorMap.set('NumericalOverflowError', NumericalOverflowErrorError);
+
+/** JellybeanMachineEmpty: Jellybean machine is empty */
+export class JellybeanMachineEmptyError extends ProgramError {
+  override readonly name: string = 'JellybeanMachineEmpty';
+
+  readonly code: number = 0x1775; // 6005
+
+  constructor(program: Program, cause?: Error) {
+    super('Jellybean machine is empty', program, cause);
+  }
+}
+codeToErrorMap.set(0x1775, JellybeanMachineEmptyError);
+nameToErrorMap.set('JellybeanMachineEmpty', JellybeanMachineEmptyError);
+
+/** InvalidState: Invalid state */
+export class InvalidStateError extends ProgramError {
+  override readonly name: string = 'InvalidState';
+
+  readonly code: number = 0x1776; // 6006
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid state', program, cause);
+  }
+}
+codeToErrorMap.set(0x1776, InvalidStateError);
+nameToErrorMap.set('InvalidState', InvalidStateError);
+
+/** InvalidAuthority: Invalid authority */
+export class InvalidAuthorityError extends ProgramError {
+  override readonly name: string = 'InvalidAuthority';
+
+  readonly code: number = 0x1777; // 6007
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid authority', program, cause);
+  }
+}
+codeToErrorMap.set(0x1777, InvalidAuthorityError);
 nameToErrorMap.set('InvalidAuthority', InvalidAuthorityError);
+
+/** InvalidMintAuthority: Invalid mint authority */
+export class InvalidMintAuthorityError extends ProgramError {
+  override readonly name: string = 'InvalidMintAuthority';
+
+  readonly code: number = 0x1778; // 6008
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid mint authority', program, cause);
+  }
+}
+codeToErrorMap.set(0x1778, InvalidMintAuthorityError);
+nameToErrorMap.set('InvalidMintAuthority', InvalidMintAuthorityError);
+
+/** InvalidBuyer: Invalid buyer */
+export class InvalidBuyerError extends ProgramError {
+  override readonly name: string = 'InvalidBuyer';
+
+  readonly code: number = 0x1779; // 6009
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid buyer', program, cause);
+  }
+}
+codeToErrorMap.set(0x1779, InvalidBuyerError);
+nameToErrorMap.set('InvalidBuyer', InvalidBuyerError);
+
+/** UriTooLong: URI too long */
+export class UriTooLongError extends ProgramError {
+  override readonly name: string = 'UriTooLong';
+
+  readonly code: number = 0x177a; // 6010
+
+  constructor(program: Program, cause?: Error) {
+    super('URI too long', program, cause);
+  }
+}
+codeToErrorMap.set(0x177a, UriTooLongError);
+nameToErrorMap.set('UriTooLong', UriTooLongError);
+
+/** NotAllSettled: Not all items have been settled */
+export class NotAllSettledError extends ProgramError {
+  override readonly name: string = 'NotAllSettled';
+
+  readonly code: number = 0x177b; // 6011
+
+  constructor(program: Program, cause?: Error) {
+    super('Not all items have been settled', program, cause);
+  }
+}
+codeToErrorMap.set(0x177b, NotAllSettledError);
+nameToErrorMap.set('NotAllSettled', NotAllSettledError);
+
+/** InvalidJellybeanMachine: Invalid jellybean machine */
+export class InvalidJellybeanMachineError extends ProgramError {
+  override readonly name: string = 'InvalidJellybeanMachine';
+
+  readonly code: number = 0x177c; // 6012
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid jellybean machine', program, cause);
+  }
+}
+codeToErrorMap.set(0x177c, InvalidJellybeanMachineError);
+nameToErrorMap.set('InvalidJellybeanMachine', InvalidJellybeanMachineError);
+
+/** InvalidAsset: Invalid asset */
+export class InvalidAssetError extends ProgramError {
+  override readonly name: string = 'InvalidAsset';
+
+  readonly code: number = 0x177d; // 6013
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid asset', program, cause);
+  }
+}
+codeToErrorMap.set(0x177d, InvalidAssetError);
+nameToErrorMap.set('InvalidAsset', InvalidAssetError);
+
+/** MasterEditionNotEmpty: Master edition not empty */
+export class MasterEditionNotEmptyError extends ProgramError {
+  override readonly name: string = 'MasterEditionNotEmpty';
+
+  readonly code: number = 0x177e; // 6014
+
+  constructor(program: Program, cause?: Error) {
+    super('Master edition not empty', program, cause);
+  }
+}
+codeToErrorMap.set(0x177e, MasterEditionNotEmptyError);
+nameToErrorMap.set('MasterEditionNotEmpty', MasterEditionNotEmptyError);
+
+/** InvalidMasterEditionSupply: Invalid master edition supply */
+export class InvalidMasterEditionSupplyError extends ProgramError {
+  override readonly name: string = 'InvalidMasterEditionSupply';
+
+  readonly code: number = 0x177f; // 6015
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid master edition supply', program, cause);
+  }
+}
+codeToErrorMap.set(0x177f, InvalidMasterEditionSupplyError);
+nameToErrorMap.set(
+  'InvalidMasterEditionSupply',
+  InvalidMasterEditionSupplyError
+);
+
+/** MissingMasterEdition: Missing master edition */
+export class MissingMasterEditionError extends ProgramError {
+  override readonly name: string = 'MissingMasterEdition';
+
+  readonly code: number = 0x1780; // 6016
+
+  constructor(program: Program, cause?: Error) {
+    super('Missing master edition', program, cause);
+  }
+}
+codeToErrorMap.set(0x1780, MissingMasterEditionError);
+nameToErrorMap.set('MissingMasterEdition', MissingMasterEditionError);
+
+/** MissingPrintAsset: Missing print asset */
+export class MissingPrintAssetError extends ProgramError {
+  override readonly name: string = 'MissingPrintAsset';
+
+  readonly code: number = 0x1781; // 6017
+
+  constructor(program: Program, cause?: Error) {
+    super('Missing print asset', program, cause);
+  }
+}
+codeToErrorMap.set(0x1781, MissingPrintAssetError);
+nameToErrorMap.set('MissingPrintAsset', MissingPrintAssetError);
+
+/** InvalidInputLength: Invalid input length */
+export class InvalidInputLengthError extends ProgramError {
+  override readonly name: string = 'InvalidInputLength';
+
+  readonly code: number = 0x1782; // 6018
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid input length', program, cause);
+  }
+}
+codeToErrorMap.set(0x1782, InvalidInputLengthError);
+nameToErrorMap.set('InvalidInputLength', InvalidInputLengthError);
+
+/** InvalidItemIndex: Invalid item index */
+export class InvalidItemIndexError extends ProgramError {
+  override readonly name: string = 'InvalidItemIndex';
+
+  readonly code: number = 0x1783; // 6019
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid item index', program, cause);
+  }
+}
+codeToErrorMap.set(0x1783, InvalidItemIndexError);
+nameToErrorMap.set('InvalidItemIndex', InvalidItemIndexError);
 
 /**
  * Attempts to resolve a custom program error from the provided error code.

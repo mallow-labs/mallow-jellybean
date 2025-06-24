@@ -20,6 +20,55 @@ codama.update(
   })
 );
 
+// Update accounts.
+codama.update(
+  c.updateAccountsVisitor({
+    unclaimedPrizes: {
+      seeds: [
+        c.constantPdaSeedNodeFromString('utf8', 'unclaimed_prizes'),
+        c.variablePdaSeedNode('jellybeanMachine', c.publicKeyTypeNode()),
+        c.variablePdaSeedNode('buyer', c.publicKeyTypeNode()),
+      ],
+    },
+  })
+);
+
+codama.update(
+  c.setInstructionAccountDefaultValuesVisitor([
+    {
+      account: 'authority',
+      defaultValue: c.identityValueNode(),
+    },
+    {
+      account: 'payer',
+      defaultValue: c.payerValueNode(),
+    },
+    {
+      account: 'unclaimedPrizes',
+      defaultValue: c.pdaValueNode('unclaimedPrizes'),
+    },
+    {
+      account: 'authorityPda',
+      defaultValue: c.resolverValueNode('resolveAuthorityPda'),
+    },
+  ])
+);
+
+// Update instructions.
+codama.update(
+  c.updateInstructionsVisitor({
+    addCoreItem: {
+      arguments: {
+        unused: {
+          type: c.optionTypeNode(c.booleanTypeNode()),
+          defaultValue: c.booleanValueNode(false),
+          docs: 'Forcing AddCoreItemInstructionExtraArgs to be rendered to fix a bug where resolvedArgs is using an undefined type',
+        },
+      },
+    },
+  })
+);
+
 // Render JavaScript.
 const jsClient = path.join(__dirname, '..', 'clients', 'js');
 codama.accept(

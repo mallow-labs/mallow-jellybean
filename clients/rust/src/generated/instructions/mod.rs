@@ -5,8 +5,24 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-pub(crate) mod r#create;
-pub(crate) mod r#increment;
+pub(crate) mod r#add_core_item;
+pub(crate) mod r#claim_core_item;
+pub(crate) mod r#draw;
+pub(crate) mod r#end_sale;
+pub(crate) mod r#initialize;
+pub(crate) mod r#remove_core_item;
+pub(crate) mod r#set_mint_authority;
+pub(crate) mod r#start_sale;
+pub(crate) mod r#update_settings;
+pub(crate) mod r#withdraw;
 
-pub use self::r#create::*;
-pub use self::r#increment::*;
+pub use self::r#add_core_item::*;
+pub use self::r#claim_core_item::*;
+pub use self::r#draw::*;
+pub use self::r#end_sale::*;
+pub use self::r#initialize::*;
+pub use self::r#remove_core_item::*;
+pub use self::r#set_mint_authority::*;
+pub use self::r#start_sale::*;
+pub use self::r#update_settings::*;
+pub use self::r#withdraw::*;

@@ -10,9 +10,66 @@ use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
 pub enum MallowJellybeanError {
-    /// 6000 - The provided authority doesn't match the counter account's authority
-    #[error("The provided authority doesn't match the counter account's authority")]
-    InvalidAuthority = 0x1770,
+    /// 6000 - Invalid public key
+    #[error("Invalid public key")]
+    PublicKeyMismatch = 0x1770,
+    /// 6001 - Invalid owner
+    #[error("Invalid owner")]
+    InvalidOwner = 0x1771,
+    /// 6002 - Account not initialized
+    #[error("Account not initialized")]
+    UninitializedAccount = 0x1772,
+    /// 6003 - Index greater than length
+    #[error("Index greater than length")]
+    IndexGreaterThanLength = 0x1773,
+    /// 6004 - Numerical overflow error
+    #[error("Numerical overflow error")]
+    NumericalOverflowError = 0x1774,
+    /// 6005 - Jellybean machine is empty
+    #[error("Jellybean machine is empty")]
+    JellybeanMachineEmpty = 0x1775,
+    /// 6006 - Invalid state
+    #[error("Invalid state")]
+    InvalidState = 0x1776,
+    /// 6007 - Invalid authority
+    #[error("Invalid authority")]
+    InvalidAuthority = 0x1777,
+    /// 6008 - Invalid mint authority
+    #[error("Invalid mint authority")]
+    InvalidMintAuthority = 0x1778,
+    /// 6009 - Invalid buyer
+    #[error("Invalid buyer")]
+    InvalidBuyer = 0x1779,
+    /// 6010 - URI too long
+    #[error("URI too long")]
+    UriTooLong = 0x177A,
+    /// 6011 - Not all items have been settled
+    #[error("Not all items have been settled")]
+    NotAllSettled = 0x177B,
+    /// 6012 - Invalid jellybean machine
+    #[error("Invalid jellybean machine")]
+    InvalidJellybeanMachine = 0x177C,
+    /// 6013 - Invalid asset
+    #[error("Invalid asset")]
+    InvalidAsset = 0x177D,
+    /// 6014 - Master edition not empty
+    #[error("Master edition not empty")]
+    MasterEditionNotEmpty = 0x177E,
+    /// 6015 - Invalid master edition supply
+    #[error("Invalid master edition supply")]
+    InvalidMasterEditionSupply = 0x177F,
+    /// 6016 - Missing master edition
+    #[error("Missing master edition")]
+    MissingMasterEdition = 0x1780,
+    /// 6017 - Missing print asset
+    #[error("Missing print asset")]
+    MissingPrintAsset = 0x1781,
+    /// 6018 - Invalid input length
+    #[error("Invalid input length")]
+    InvalidInputLength = 0x1782,
+    /// 6019 - Invalid item index
+    #[error("Invalid item index")]
+    InvalidItemIndex = 0x1783,
 }
 
 impl solana_program::program_error::PrintProgramError for MallowJellybeanError {

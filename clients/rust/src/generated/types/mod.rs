@@ -5,11 +5,10 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-pub mod accounts;
-pub mod errors;
-pub mod instructions;
-pub mod programs;
-pub mod shared;
-pub mod types;
+pub(crate) mod r#fee_account;
+pub(crate) mod r#jellybean_state;
+pub(crate) mod r#prize;
 
-pub(crate) use programs::*;
+pub use self::r#fee_account::*;
+pub use self::r#jellybean_state::*;
+pub use self::r#prize::*;

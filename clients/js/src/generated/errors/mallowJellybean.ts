@@ -14,18 +14,94 @@ import {
 } from '@solana/kit';
 import { MALLOW_JELLYBEAN_PROGRAM_ADDRESS } from '../programs';
 
-/** InvalidAuthority: The provided authority doesn't match the counter account's authority */
-export const MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY = 0x1770; // 6000
+/** PublicKeyMismatch: Invalid public key */
+export const MALLOW_JELLYBEAN_ERROR__PUBLIC_KEY_MISMATCH = 0x1770; // 6000
+/** InvalidOwner: Invalid owner */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_OWNER = 0x1771; // 6001
+/** UninitializedAccount: Account not initialized */
+export const MALLOW_JELLYBEAN_ERROR__UNINITIALIZED_ACCOUNT = 0x1772; // 6002
+/** IndexGreaterThanLength: Index greater than length */
+export const MALLOW_JELLYBEAN_ERROR__INDEX_GREATER_THAN_LENGTH = 0x1773; // 6003
+/** NumericalOverflowError: Numerical overflow error */
+export const MALLOW_JELLYBEAN_ERROR__NUMERICAL_OVERFLOW_ERROR = 0x1774; // 6004
+/** JellybeanMachineEmpty: Jellybean machine is empty */
+export const MALLOW_JELLYBEAN_ERROR__JELLYBEAN_MACHINE_EMPTY = 0x1775; // 6005
+/** InvalidState: Invalid state */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_STATE = 0x1776; // 6006
+/** InvalidAuthority: Invalid authority */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY = 0x1777; // 6007
+/** InvalidMintAuthority: Invalid mint authority */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_MINT_AUTHORITY = 0x1778; // 6008
+/** InvalidBuyer: Invalid buyer */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_BUYER = 0x1779; // 6009
+/** UriTooLong: URI too long */
+export const MALLOW_JELLYBEAN_ERROR__URI_TOO_LONG = 0x177a; // 6010
+/** NotAllSettled: Not all items have been settled */
+export const MALLOW_JELLYBEAN_ERROR__NOT_ALL_SETTLED = 0x177b; // 6011
+/** InvalidJellybeanMachine: Invalid jellybean machine */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_JELLYBEAN_MACHINE = 0x177c; // 6012
+/** InvalidAsset: Invalid asset */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_ASSET = 0x177d; // 6013
+/** MasterEditionNotEmpty: Master edition not empty */
+export const MALLOW_JELLYBEAN_ERROR__MASTER_EDITION_NOT_EMPTY = 0x177e; // 6014
+/** InvalidMasterEditionSupply: Invalid master edition supply */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_MASTER_EDITION_SUPPLY = 0x177f; // 6015
+/** MissingMasterEdition: Missing master edition */
+export const MALLOW_JELLYBEAN_ERROR__MISSING_MASTER_EDITION = 0x1780; // 6016
+/** MissingPrintAsset: Missing print asset */
+export const MALLOW_JELLYBEAN_ERROR__MISSING_PRINT_ASSET = 0x1781; // 6017
+/** InvalidInputLength: Invalid input length */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_INPUT_LENGTH = 0x1782; // 6018
+/** InvalidItemIndex: Invalid item index */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_ITEM_INDEX = 0x1783; // 6019
 
 export type MallowJellybeanError =
-  typeof MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY;
+  | typeof MALLOW_JELLYBEAN_ERROR__INDEX_GREATER_THAN_LENGTH
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_ASSET
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_BUYER
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_INPUT_LENGTH
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_ITEM_INDEX
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_JELLYBEAN_MACHINE
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_MASTER_EDITION_SUPPLY
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_MINT_AUTHORITY
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_OWNER
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_STATE
+  | typeof MALLOW_JELLYBEAN_ERROR__JELLYBEAN_MACHINE_EMPTY
+  | typeof MALLOW_JELLYBEAN_ERROR__MASTER_EDITION_NOT_EMPTY
+  | typeof MALLOW_JELLYBEAN_ERROR__MISSING_MASTER_EDITION
+  | typeof MALLOW_JELLYBEAN_ERROR__MISSING_PRINT_ASSET
+  | typeof MALLOW_JELLYBEAN_ERROR__NOT_ALL_SETTLED
+  | typeof MALLOW_JELLYBEAN_ERROR__NUMERICAL_OVERFLOW_ERROR
+  | typeof MALLOW_JELLYBEAN_ERROR__PUBLIC_KEY_MISMATCH
+  | typeof MALLOW_JELLYBEAN_ERROR__UNINITIALIZED_ACCOUNT
+  | typeof MALLOW_JELLYBEAN_ERROR__URI_TOO_LONG;
 
 let mallowJellybeanErrorMessages:
   | Record<MallowJellybeanError, string>
   | undefined;
 if (process.env.NODE_ENV !== 'production') {
   mallowJellybeanErrorMessages = {
-    [MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY]: `The provided authority doesn't match the counter account's authority`,
+    [MALLOW_JELLYBEAN_ERROR__INDEX_GREATER_THAN_LENGTH]: `Index greater than length`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_ASSET]: `Invalid asset`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY]: `Invalid authority`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_BUYER]: `Invalid buyer`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_INPUT_LENGTH]: `Invalid input length`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_ITEM_INDEX]: `Invalid item index`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_JELLYBEAN_MACHINE]: `Invalid jellybean machine`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_MASTER_EDITION_SUPPLY]: `Invalid master edition supply`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_MINT_AUTHORITY]: `Invalid mint authority`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_OWNER]: `Invalid owner`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_STATE]: `Invalid state`,
+    [MALLOW_JELLYBEAN_ERROR__JELLYBEAN_MACHINE_EMPTY]: `Jellybean machine is empty`,
+    [MALLOW_JELLYBEAN_ERROR__MASTER_EDITION_NOT_EMPTY]: `Master edition not empty`,
+    [MALLOW_JELLYBEAN_ERROR__MISSING_MASTER_EDITION]: `Missing master edition`,
+    [MALLOW_JELLYBEAN_ERROR__MISSING_PRINT_ASSET]: `Missing print asset`,
+    [MALLOW_JELLYBEAN_ERROR__NOT_ALL_SETTLED]: `Not all items have been settled`,
+    [MALLOW_JELLYBEAN_ERROR__NUMERICAL_OVERFLOW_ERROR]: `Numerical overflow error`,
+    [MALLOW_JELLYBEAN_ERROR__PUBLIC_KEY_MISMATCH]: `Invalid public key`,
+    [MALLOW_JELLYBEAN_ERROR__UNINITIALIZED_ACCOUNT]: `Account not initialized`,
+    [MALLOW_JELLYBEAN_ERROR__URI_TOO_LONG]: `URI too long`,
   };
 }
 
