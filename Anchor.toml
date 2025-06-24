@@ -1,0 +1,6 @@
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[programs.localnet]
+mallow_jellybean = "DNdkMr221bX2kviVo3kzQfuoqSR9uxqipfK2yHa9WHJw"
