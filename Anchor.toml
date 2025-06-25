@@ -4,3 +4,8 @@ wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
 mallow_jellybean = "J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq"
+
+[toolchain]
+anchor_version = "0.29.0"
+solana_version = "1.18.26"
+rustc_version = "1.85.0"

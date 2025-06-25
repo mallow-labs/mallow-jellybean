@@ -8,6 +8,7 @@ overflow-checks = true
 [workspace.metadata.cli]
 anchor = "0.29.0"
 solana = "1.18.26"
+rustc = "1.85.0"
 
 # Specify Rust toolchains for rustfmt, clippy, and build.
 # Any unprovided toolchains default to stable.

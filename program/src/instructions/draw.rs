@@ -1,5 +1,5 @@
 use crate::{
-    constants::AUTHORITY_SEED, events::DrawItemEvent, pay_fee_accounts, JellybeanError,
+    constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError,
     JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedPrizes,
     BASE_JELLYBEAN_MACHINE_SIZE, LOADED_ITEM_SIZE,
 };
@@ -57,18 +57,6 @@ pub struct Draw<'info> {
     )]
     unclaimed_prizes: Box<Account<'info, UnclaimedPrizes>>,
 
-    /// Payment mint.
-    #[account(mut)]
-    payment_mint: Option<UncheckedAccount<'info>>,
-
-    /// Token program.
-    #[account(address = anchor_spl::token::ID)]
-    token_program: Program<'info, anchor_spl::token::Token>,
-
-    /// Associated token program.
-    #[account(address = anchor_spl::associated_token::ID)]
-    associated_token_program: Program<'info, anchor_spl::associated_token::AssociatedToken>,
-
     /// System program.
     system_program: Program<'info, System>,
 
@@ -90,8 +78,7 @@ pub(crate) struct DrawAccounts<'info> {
 }
 
 pub fn draw<'info>(
-    ctx: Context<'_, '_, '_, 'info, Draw<'info>>,
-    payment_amount: u64,
+    ctx: Context<'_, '_, '_, 'info, Draw<'info>>
 ) -> Result<()> {
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
     let unclaimed_prizes = &mut ctx.accounts.unclaimed_prizes;
@@ -148,27 +135,6 @@ pub fn draw<'info>(
     );
     // Append prize to unclaimed_prizes - this should now have enough space
     unclaimed_prizes.prizes.push(prize);
-
-    let payment_mint_info = ctx
-        .accounts
-        .payment_mint
-        .as_ref()
-        .map(|mint| mint.to_account_info());
-    let payment_mint = payment_mint_info.as_ref();
-    let remaining_accounts = &mut ctx.remaining_accounts.iter();
-    pay_fee_accounts(
-        &mut ctx.accounts.payer.to_account_info(),
-        &mut ctx.accounts.authority_pda.to_account_info(),
-        payment_mint,
-        &jellybean_machine.fee_accounts,
-        remaining_accounts,
-        &ctx.accounts.associated_token_program.to_account_info(),
-        &ctx.accounts.token_program.to_account_info(),
-        &ctx.accounts.system_program.to_account_info(),
-        &ctx.accounts.rent.to_account_info(),
-        &[],
-        payment_amount,
-    )?;
 
     emit_cpi!(DrawItemEvent {
         authority: ctx.accounts.jellybean_machine.authority.key(),

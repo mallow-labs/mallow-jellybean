@@ -1,10 +1,8 @@
 pub mod checks;
 pub mod math;
-pub mod transfer;
 
 pub use checks::*;
 pub use math::*;
-pub use transfer::*;
 
 #[macro_export]
 macro_rules! try_from {

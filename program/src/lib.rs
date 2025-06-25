@@ -107,11 +107,8 @@ pub mod mallow_jellybean {
     ///   3. `[]` Buyer account
     ///   4. `[]` System program
     ///   5. `[]` SlotHashes sysvar cluster data
-    pub fn draw<'info>(
-        ctx: Context<'_, '_, '_, 'info, Draw<'info>>,
-        payment_amount: u64,
-    ) -> Result<()> {
-        instructions::draw(ctx, payment_amount)
+    pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
+        instructions::draw(ctx)
     }
 
     /// Claims a Core asset from the jellybean machine for a specific buyer.
