@@ -3,7 +3,6 @@ import {
   generateSigner,
   keypairIdentity,
   KeypairSigner,
-  sol,
   some,
   Umi,
 } from '@metaplex-foundation/umi';
@@ -18,6 +17,7 @@ import {
 } from '../src';
 import {
   create,
+  createCoreAsset,
   createMasterEdition,
   createUmi,
   DEFAULT_MAX_SUPPLY,
@@ -42,11 +42,6 @@ test('it can claim an edition', async (t) => {
       },
     ],
     startSale: true,
-    guards: {
-      solPayment: {
-        lamports: sol(0.1),
-      },
-    },
   });
 
   const buyer = await generateSignerWithSol(sellerUmi);
@@ -95,6 +90,68 @@ test('it can claim an edition', async (t) => {
         index: 0,
         mint: collectionSigner.publicKey,
         supplyLoaded: DEFAULT_MAX_SUPPLY,
+        supplyRedeemed: 1,
+      },
+    ],
+  });
+});
+
+test('it can claim a one of one asset', async (t) => {
+  const assetSigner = await createCoreAsset(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  const printAsset = generateSigner(buyerUmi);
+  await claimCoreItem(buyerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+    asset: assetSigner.publicKey,
+    index: 0,
+    printAsset,
+  }).sendAndConfirm(buyerUmi);
+
+  const updatedUnclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(
+    sellerUmi,
+    {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    }
+  );
+  t.is(updatedUnclaimedPrizes.prizes.length, 0);
+
+  const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
+    sellerUmi,
+    jellybeanMachine
+  );
+  t.like(jellybeanMachineAccount, <JellybeanMachineAccountWithItemsData>{
+    itemsLoaded: 1,
+    supplyLoaded: 1n,
+    supplyRedeemed: 1n,
+    state: JellybeanState.SaleEnded,
+    items: [
+      {
+        index: 0,
+        mint: assetSigner.publicKey,
+        supplyLoaded: 1,
         supplyRedeemed: 1,
       },
     ],

@@ -2,6 +2,7 @@ import {
   createGumballGuard as baseCreateGumballGuard,
   CreateGumballGuardInstructionDataArgs,
   DefaultGuardSetArgs,
+  drawJellybean,
   findGumballGuardPda,
   GuardSetArgs,
   GumballGuardDataArgs,
@@ -30,6 +31,7 @@ import {
   PublicKeyInput,
   Signer,
   signerIdentity,
+  sol,
   transactionBuilder,
   TransactionSignature,
   Umi,
@@ -39,16 +41,17 @@ import { Assertions } from 'ava';
 import {
   addCoreItem,
   createJellybeanMachine,
-  draw,
   FeeAccount,
-  fetchJellybeanMachine,
+  fetchUnclaimedPrizesFromSeeds,
   initialize,
   mallowJellybean,
+  Prize,
   startSale,
 } from '../src';
 
 export const DEFAULT_MAX_SUPPLY = 100;
 export const DEFAULT_MARKETPLACE_FEE_BASIS_POINTS = 500;
+export const DEFAULT_SOL_PAYMENT_LAMPORTS = sol(0.1);
 
 export const getDefaultFeeAccounts = (
   authority: PublicKey,
@@ -215,7 +218,13 @@ export const create = async <DA extends GuardSetArgs = DefaultGuardSetArgs>(
     })
   );
 
-  if (input.guards !== undefined || input.groups !== undefined) {
+  const guards = input.guards ?? {
+    solPayment: {
+      lamports: DEFAULT_SOL_PAYMENT_LAMPORTS,
+    },
+  };
+
+  if (Object.keys(guards).length > 0 || input.groups !== undefined) {
     const gumballGuard = findGumballGuardPda(umi, {
       base: jellybeanMachine,
     });
@@ -282,27 +291,6 @@ export const createGumballGuard = async <
   return findGumballGuardPda(umi, { base: base.publicKey });
 };
 
-export const assertItemBought = async (
-  t: Assertions,
-  umi: Umi,
-  input: {
-    jellybeanMachine: PublicKey;
-    buyer?: PublicKey;
-    count?: number;
-  }
-) => {
-  const jellybeanMachineAccount = await fetchJellybeanMachine(
-    umi,
-    input.jellybeanMachine
-  );
-
-  const buyerCount = jellybeanMachineAccount.items.filter(
-    (item) => item.buyer === (input.buyer ?? umi.identity.publicKey)
-  ).length;
-
-  t.is(buyerCount, input.count ?? 1);
-};
-
 export const assertBotTax = async (
   t: Assertions,
   umi: Umi,
@@ -325,7 +313,7 @@ export const drawRemainingItems = async (
   available: number,
   batchSizeSetting: number = 10
 ) => {
-  const indices: number[] = [];
+  const prizes: Prize[] = [];
   for (let i = 0; i < available; i += batchSizeSetting) {
     const buyer = generateSigner(umi);
     const batchSize = Math.min(batchSizeSetting, available - i);
@@ -337,9 +325,8 @@ export const drawRemainingItems = async (
     // Add all draws to the same transaction
     for (let j = 0; j < batchSize; j += 1) {
       builder = builder.add(
-        draw(umi, {
+        drawJellybean(umi, {
           jellybeanMachine,
-          buyer,
         })
       );
     }
@@ -347,15 +334,12 @@ export const drawRemainingItems = async (
     await builder.sendAndConfirm(umi);
 
     // Fetch the machine once after the batch completes
-    const jellybeanMachineAccount = await fetchJellybeanMachine(
-      umi,
-      jellybeanMachine
-    );
-    const buyerItems = jellybeanMachineAccount.items.filter(
-      (item) => item.buyer === buyer.publicKey
-    );
-    indices.push(...buyerItems.map((item) => item.index));
+    const unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(umi, {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    });
+    prizes.push(...unclaimedPrizes.prizes);
   }
 
-  return indices;
+  return prizes;
 };
