@@ -24,12 +24,6 @@ pub struct Draw {
     pub buyer: solana_program::pubkey::Pubkey,
     /// Buyer unclaimed draws account.
     pub unclaimed_prizes: solana_program::pubkey::Pubkey,
-    /// Payment mint.
-    pub payment_mint: Option<solana_program::pubkey::Pubkey>,
-    /// Token program.
-    pub token_program: solana_program::pubkey::Pubkey,
-    /// Associated token program.
-    pub associated_token_program: solana_program::pubkey::Pubkey,
     /// System program.
     pub system_program: solana_program::pubkey::Pubkey,
     /// Rent.
@@ -44,20 +38,16 @@ pub struct Draw {
 }
 
 impl Draw {
-    pub fn instruction(
-        &self,
-        args: DrawInstructionArgs,
-    ) -> solana_program::instruction::Instruction {
-        self.instruction_with_remaining_accounts(args, &[])
+    pub fn instruction(&self) -> solana_program::instruction::Instruction {
+        self.instruction_with_remaining_accounts(&[])
     }
     #[allow(clippy::arithmetic_side_effects)]
     #[allow(clippy::vec_init_then_push)]
     pub fn instruction_with_remaining_accounts(
         &self,
-        args: DrawInstructionArgs,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(14 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.jellybean_machine,
             false,
@@ -80,25 +70,6 @@ impl Draw {
             self.unclaimed_prizes,
             false,
         ));
-        if let Some(payment_mint) = self.payment_mint {
-            accounts.push(solana_program::instruction::AccountMeta::new(
-                payment_mint,
-                false,
-            ));
-        } else {
-            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-                crate::MALLOW_JELLYBEAN_ID,
-                false,
-            ));
-        }
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            self.token_program,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            self.associated_token_program,
-            false,
-        ));
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
             self.system_program,
             false,
@@ -119,9 +90,7 @@ impl Draw {
             false,
         ));
         accounts.extend_from_slice(remaining_accounts);
-        let mut data = borsh::to_vec(&DrawInstructionData::new()).unwrap();
-        let mut args = borsh::to_vec(&args).unwrap();
-        data.append(&mut args);
+        let data = borsh::to_vec(&DrawInstructionData::new()).unwrap();
 
         solana_program::instruction::Instruction {
             program_id: crate::MALLOW_JELLYBEAN_ID,
@@ -151,12 +120,6 @@ impl Default for DrawInstructionData {
     }
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct DrawInstructionArgs {
-    pub payment_amount: u64,
-}
-
 /// Instruction builder for `Draw`.
 ///
 /// ### Accounts:
@@ -167,14 +130,11 @@ pub struct DrawInstructionArgs {
 ///   3. `[writable, signer]` payer
 ///   4. `[]` buyer
 ///   5. `[writable]` unclaimed_prizes
-///   6. `[writable, optional]` payment_mint
-///   7. `[optional]` token_program (default to `TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA`)
-///   8. `[]` associated_token_program
-///   9. `[optional]` system_program (default to `11111111111111111111111111111111`)
-///   10. `[optional]` rent (default to `SysvarRent111111111111111111111111111111111`)
-///   11. `[]` recent_slothashes
-///   12. `[]` event_authority
-///   13. `[]` program
+///   6. `[optional]` system_program (default to `11111111111111111111111111111111`)
+///   7. `[optional]` rent (default to `SysvarRent111111111111111111111111111111111`)
+///   8. `[optional]` recent_slothashes (default to `SysvarS1otHashes111111111111111111111111111`)
+///   9. `[]` event_authority
+///   10. `[]` program
 #[derive(Clone, Debug, Default)]
 pub struct DrawBuilder {
     jellybean_machine: Option<solana_program::pubkey::Pubkey>,
@@ -183,15 +143,11 @@ pub struct DrawBuilder {
     payer: Option<solana_program::pubkey::Pubkey>,
     buyer: Option<solana_program::pubkey::Pubkey>,
     unclaimed_prizes: Option<solana_program::pubkey::Pubkey>,
-    payment_mint: Option<solana_program::pubkey::Pubkey>,
-    token_program: Option<solana_program::pubkey::Pubkey>,
-    associated_token_program: Option<solana_program::pubkey::Pubkey>,
     system_program: Option<solana_program::pubkey::Pubkey>,
     rent: Option<solana_program::pubkey::Pubkey>,
     recent_slothashes: Option<solana_program::pubkey::Pubkey>,
     event_authority: Option<solana_program::pubkey::Pubkey>,
     program: Option<solana_program::pubkey::Pubkey>,
-    payment_amount: Option<u64>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -241,32 +197,6 @@ impl DrawBuilder {
         self.unclaimed_prizes = Some(unclaimed_prizes);
         self
     }
-    /// `[optional account]`
-    /// Payment mint.
-    #[inline(always)]
-    pub fn payment_mint(
-        &mut self,
-        payment_mint: Option<solana_program::pubkey::Pubkey>,
-    ) -> &mut Self {
-        self.payment_mint = payment_mint;
-        self
-    }
-    /// `[optional account, default to 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA']`
-    /// Token program.
-    #[inline(always)]
-    pub fn token_program(&mut self, token_program: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.token_program = Some(token_program);
-        self
-    }
-    /// Associated token program.
-    #[inline(always)]
-    pub fn associated_token_program(
-        &mut self,
-        associated_token_program: solana_program::pubkey::Pubkey,
-    ) -> &mut Self {
-        self.associated_token_program = Some(associated_token_program);
-        self
-    }
     /// `[optional account, default to '11111111111111111111111111111111']`
     /// System program.
     #[inline(always)]
@@ -281,6 +211,7 @@ impl DrawBuilder {
         self.rent = Some(rent);
         self
     }
+    /// `[optional account, default to 'SysvarS1otHashes111111111111111111111111111']`
     /// SlotHashes sysvar cluster data.
     ///
     #[inline(always)]
@@ -302,11 +233,6 @@ impl DrawBuilder {
     #[inline(always)]
     pub fn program(&mut self, program: solana_program::pubkey::Pubkey) -> &mut Self {
         self.program = Some(program);
-        self
-    }
-    #[inline(always)]
-    pub fn payment_amount(&mut self, payment_amount: u64) -> &mut Self {
-        self.payment_amount = Some(payment_amount);
         self
     }
     /// Add an additional account to the instruction.
@@ -338,33 +264,20 @@ impl DrawBuilder {
             payer: self.payer.expect("payer is not set"),
             buyer: self.buyer.expect("buyer is not set"),
             unclaimed_prizes: self.unclaimed_prizes.expect("unclaimed_prizes is not set"),
-            payment_mint: self.payment_mint,
-            token_program: self.token_program.unwrap_or(solana_program::pubkey!(
-                "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-            )),
-            associated_token_program: self
-                .associated_token_program
-                .expect("associated_token_program is not set"),
             system_program: self
                 .system_program
                 .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
             rent: self.rent.unwrap_or(solana_program::pubkey!(
                 "SysvarRent111111111111111111111111111111111"
             )),
-            recent_slothashes: self
-                .recent_slothashes
-                .expect("recent_slothashes is not set"),
+            recent_slothashes: self.recent_slothashes.unwrap_or(solana_program::pubkey!(
+                "SysvarS1otHashes111111111111111111111111111"
+            )),
             event_authority: self.event_authority.expect("event_authority is not set"),
             program: self.program.expect("program is not set"),
         };
-        let args = DrawInstructionArgs {
-            payment_amount: self
-                .payment_amount
-                .clone()
-                .expect("payment_amount is not set"),
-        };
 
-        accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
+        accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
     }
 }
 
@@ -383,12 +296,6 @@ pub struct DrawCpiAccounts<'a, 'b> {
     pub buyer: &'b solana_program::account_info::AccountInfo<'a>,
     /// Buyer unclaimed draws account.
     pub unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Payment mint.
-    pub payment_mint: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    /// Token program.
-    pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Associated token program.
-    pub associated_token_program: &'b solana_program::account_info::AccountInfo<'a>,
     /// System program.
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
     /// Rent.
@@ -419,12 +326,6 @@ pub struct DrawCpi<'a, 'b> {
     pub buyer: &'b solana_program::account_info::AccountInfo<'a>,
     /// Buyer unclaimed draws account.
     pub unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Payment mint.
-    pub payment_mint: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    /// Token program.
-    pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Associated token program.
-    pub associated_token_program: &'b solana_program::account_info::AccountInfo<'a>,
     /// System program.
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
     /// Rent.
@@ -436,15 +337,12 @@ pub struct DrawCpi<'a, 'b> {
     pub event_authority: &'b solana_program::account_info::AccountInfo<'a>,
 
     pub program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// The arguments for the instruction.
-    pub __args: DrawInstructionArgs,
 }
 
 impl<'a, 'b> DrawCpi<'a, 'b> {
     pub fn new(
         program: &'b solana_program::account_info::AccountInfo<'a>,
         accounts: DrawCpiAccounts<'a, 'b>,
-        args: DrawInstructionArgs,
     ) -> Self {
         Self {
             __program: program,
@@ -454,15 +352,11 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
             payer: accounts.payer,
             buyer: accounts.buyer,
             unclaimed_prizes: accounts.unclaimed_prizes,
-            payment_mint: accounts.payment_mint,
-            token_program: accounts.token_program,
-            associated_token_program: accounts.associated_token_program,
             system_program: accounts.system_program,
             rent: accounts.rent,
             recent_slothashes: accounts.recent_slothashes,
             event_authority: accounts.event_authority,
             program: accounts.program,
-            __args: args,
         }
     }
     #[inline(always)]
@@ -499,7 +393,7 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(14 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.jellybean_machine.key,
             false,
@@ -522,25 +416,6 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
         ));
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.unclaimed_prizes.key,
-            false,
-        ));
-        if let Some(payment_mint) = self.payment_mint {
-            accounts.push(solana_program::instruction::AccountMeta::new(
-                *payment_mint.key,
-                false,
-            ));
-        } else {
-            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-                crate::MALLOW_JELLYBEAN_ID,
-                false,
-            ));
-        }
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            *self.token_program.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            *self.associated_token_program.key,
             false,
         ));
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
@@ -570,16 +445,14 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
                 is_writable: remaining_account.2,
             })
         });
-        let mut data = borsh::to_vec(&DrawInstructionData::new()).unwrap();
-        let mut args = borsh::to_vec(&self.__args).unwrap();
-        data.append(&mut args);
+        let data = borsh::to_vec(&DrawInstructionData::new()).unwrap();
 
         let instruction = solana_program::instruction::Instruction {
             program_id: crate::MALLOW_JELLYBEAN_ID,
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(15 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(12 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.jellybean_machine.clone());
         account_infos.push(self.authority_pda.clone());
@@ -587,11 +460,6 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
         account_infos.push(self.payer.clone());
         account_infos.push(self.buyer.clone());
         account_infos.push(self.unclaimed_prizes.clone());
-        if let Some(payment_mint) = self.payment_mint {
-            account_infos.push(payment_mint.clone());
-        }
-        account_infos.push(self.token_program.clone());
-        account_infos.push(self.associated_token_program.clone());
         account_infos.push(self.system_program.clone());
         account_infos.push(self.rent.clone());
         account_infos.push(self.recent_slothashes.clone());
@@ -619,14 +487,11 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
 ///   3. `[writable, signer]` payer
 ///   4. `[]` buyer
 ///   5. `[writable]` unclaimed_prizes
-///   6. `[writable, optional]` payment_mint
-///   7. `[]` token_program
-///   8. `[]` associated_token_program
-///   9. `[]` system_program
-///   10. `[]` rent
-///   11. `[]` recent_slothashes
-///   12. `[]` event_authority
-///   13. `[]` program
+///   6. `[]` system_program
+///   7. `[]` rent
+///   8. `[]` recent_slothashes
+///   9. `[]` event_authority
+///   10. `[]` program
 #[derive(Clone, Debug)]
 pub struct DrawCpiBuilder<'a, 'b> {
     instruction: Box<DrawCpiBuilderInstruction<'a, 'b>>,
@@ -642,15 +507,11 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
             payer: None,
             buyer: None,
             unclaimed_prizes: None,
-            payment_mint: None,
-            token_program: None,
-            associated_token_program: None,
             system_program: None,
             rent: None,
             recent_slothashes: None,
             event_authority: None,
             program: None,
-            payment_amount: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -703,34 +564,6 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
         self.instruction.unclaimed_prizes = Some(unclaimed_prizes);
         self
     }
-    /// `[optional account]`
-    /// Payment mint.
-    #[inline(always)]
-    pub fn payment_mint(
-        &mut self,
-        payment_mint: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    ) -> &mut Self {
-        self.instruction.payment_mint = payment_mint;
-        self
-    }
-    /// Token program.
-    #[inline(always)]
-    pub fn token_program(
-        &mut self,
-        token_program: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.token_program = Some(token_program);
-        self
-    }
-    /// Associated token program.
-    #[inline(always)]
-    pub fn associated_token_program(
-        &mut self,
-        associated_token_program: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.associated_token_program = Some(associated_token_program);
-        self
-    }
     /// System program.
     #[inline(always)]
     pub fn system_program(
@@ -770,11 +603,6 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
         program: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
         self.instruction.program = Some(program);
-        self
-    }
-    #[inline(always)]
-    pub fn payment_amount(&mut self, payment_amount: u64) -> &mut Self {
-        self.instruction.payment_amount = Some(payment_amount);
         self
     }
     /// Add an additional account to the instruction.
@@ -818,13 +646,6 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
         &self,
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
-        let args = DrawInstructionArgs {
-            payment_amount: self
-                .instruction
-                .payment_amount
-                .clone()
-                .expect("payment_amount is not set"),
-        };
         let instruction = DrawCpi {
             __program: self.instruction.__program,
 
@@ -852,18 +673,6 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
                 .unclaimed_prizes
                 .expect("unclaimed_prizes is not set"),
 
-            payment_mint: self.instruction.payment_mint,
-
-            token_program: self
-                .instruction
-                .token_program
-                .expect("token_program is not set"),
-
-            associated_token_program: self
-                .instruction
-                .associated_token_program
-                .expect("associated_token_program is not set"),
-
             system_program: self
                 .instruction
                 .system_program
@@ -882,7 +691,6 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
                 .expect("event_authority is not set"),
 
             program: self.instruction.program.expect("program is not set"),
-            __args: args,
         };
         instruction.invoke_signed_with_remaining_accounts(
             signers_seeds,
@@ -900,15 +708,11 @@ struct DrawCpiBuilderInstruction<'a, 'b> {
     payer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     buyer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     unclaimed_prizes: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    payment_mint: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    associated_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     rent: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     recent_slothashes: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     event_authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    payment_amount: Option<u64>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

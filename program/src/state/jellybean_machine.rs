@@ -36,8 +36,6 @@ pub struct JellybeanMachine {
     pub supply_loaded: u64,
     /// Number of times items have been redeemed.
     pub supply_redeemed: u64,
-    /// Number of times items have been settled after being drawn.
-    pub supply_settled: u64,
     /// State of the machine.
     pub state: JellybeanState,
     /// Uri of off-chain metadata, max length 196

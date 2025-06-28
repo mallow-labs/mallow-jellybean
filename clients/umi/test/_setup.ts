@@ -1,103 +1,361 @@
 import {
-  Address,
-  Commitment,
-  CompilableTransactionMessage,
-  TransactionMessageWithBlockhashLifetime,
-  Rpc,
-  RpcSubscriptions,
-  SolanaRpcApi,
-  SolanaRpcSubscriptionsApi,
-  TransactionSigner,
-  airdropFactory,
-  appendTransactionMessageInstruction,
-  createSolanaRpc,
-  createSolanaRpcSubscriptions,
-  createTransactionMessage,
-  generateKeyPairSigner,
-  getSignatureFromTransaction,
-  lamports,
-  pipe,
-  sendAndConfirmTransactionFactory,
-  setTransactionMessageFeePayerSigner,
-  setTransactionMessageLifetimeUsingBlockhash,
-  signTransactionMessageWithSigners,
-} from '@solana/web3.js';
-import { getCreateInstruction } from '../src';
+  createGumballGuard as baseCreateGumballGuard,
+  CreateGumballGuardInstructionDataArgs,
+  DefaultGuardSetArgs,
+  findGumballGuardPda,
+  GuardSetArgs,
+  GumballGuardDataArgs,
+  InitializeGumballGuardInstructionAccounts,
+  wrap,
+} from '@mallow-labs/mallow-gumball';
+import {
+  create as baseCreateCoreAsset,
+  createCollection,
+  ruleSet,
+} from '@metaplex-foundation/mpl-core';
+import {
+  createAssociatedToken,
+  createMint,
+  findAssociatedTokenPda,
+  mintTokensTo,
+  setComputeUnitLimit,
+} from '@metaplex-foundation/mpl-toolbox';
+import {
+  DateTime,
+  generateSigner,
+  now,
+  percentAmount,
+  PublicKey,
+  publicKey,
+  PublicKeyInput,
+  Signer,
+  signerIdentity,
+  transactionBuilder,
+  TransactionSignature,
+  Umi,
+} from '@metaplex-foundation/umi';
+import { createUmi as basecreateUmi } from '@metaplex-foundation/umi-bundle-tests';
+import { Assertions } from 'ava';
+import {
+  addCoreItem,
+  createJellybeanMachine,
+  draw,
+  FeeAccount,
+  fetchJellybeanMachine,
+  initialize,
+  mallowJellybean,
+  startSale,
+} from '../src';
 
-type Client = {
-  rpc: Rpc<SolanaRpcApi>;
-  rpcSubscriptions: RpcSubscriptions<SolanaRpcSubscriptionsApi>;
+export const DEFAULT_MAX_SUPPLY = 100;
+export const DEFAULT_MARKETPLACE_FEE_BASIS_POINTS = 500;
+
+export const getDefaultFeeAccounts = (
+  authority: PublicKey,
+  marketplaceFeeAccount?: PublicKey
+): FeeAccount[] =>
+  marketplaceFeeAccount
+    ? [
+        {
+          address: marketplaceFeeAccount,
+          basisPoints: DEFAULT_MARKETPLACE_FEE_BASIS_POINTS, // 5%
+        },
+        {
+          address: authority,
+          basisPoints: 10000 - DEFAULT_MARKETPLACE_FEE_BASIS_POINTS, // 95%
+        },
+      ]
+    : [
+        {
+          address: authority,
+          basisPoints: 1000, // 100%
+        },
+      ];
+
+export const createUmi = async (signer?: Signer) => {
+  const umi = (await basecreateUmi()).use(mallowJellybean());
+  if (signer) {
+    umi.use(signerIdentity(signer));
+  }
+  return umi;
 };
 
-export const createDefaultSolanaClient = (): Client => {
-  const rpc = createSolanaRpc('http://127.0.0.1:8899');
-  const rpcSubscriptions = createSolanaRpcSubscriptions('ws://127.0.0.1:8900');
-  return { rpc, rpcSubscriptions };
+export const createCoreAsset = async (
+  umi: Umi,
+  input: Partial<Parameters<typeof baseCreateCoreAsset>[1]> = {}
+): Promise<Signer> => {
+  const asset = generateSigner(umi);
+  const defaultData = defaultAssetData();
+
+  await baseCreateCoreAsset(umi, {
+    asset,
+    ...defaultData,
+    plugins: [
+      {
+        type: 'Royalties',
+        basisPoints: 1000,
+        creators: [
+          {
+            address: umi.identity.publicKey,
+            percentage: 100,
+          },
+        ],
+        ruleSet: ruleSet('None'),
+      },
+    ],
+    ...input,
+  }).sendAndConfirm(umi);
+
+  return asset;
 };
 
-export const generateKeyPairSignerWithSol = async (
-  client: Client,
-  putativeLamports: bigint = 1_000_000_000n
-) => {
-  const signer = await generateKeyPairSigner();
-  await airdropFactory(client)({
-    recipientAddress: signer.address,
-    lamports: lamports(putativeLamports),
-    commitment: 'confirmed',
-  });
-  return signer;
+export const createMasterEdition = async (
+  umi: Umi,
+  input: Partial<Parameters<typeof createCollection>[1]> & {
+    maxSupply?: number | undefined;
+  } = {
+    maxSupply: DEFAULT_MAX_SUPPLY,
+  }
+): Promise<Signer> => {
+  const collection = generateSigner(umi);
+  const defaultData = defaultAssetData();
+
+  await createCollection(umi, {
+    collection,
+    ...defaultData,
+    plugins: [
+      {
+        type: 'Royalties',
+        basisPoints: 1000,
+        creators: [
+          {
+            address: umi.identity.publicKey,
+            percentage: 100,
+          },
+        ],
+        ruleSet: ruleSet('None'),
+      },
+      {
+        type: 'MasterEdition',
+        maxSupply: input.maxSupply,
+      },
+    ],
+    ...input,
+  }).sendAndConfirm(umi);
+
+  return collection;
 };
 
-export const createDefaultTransaction = async (
-  client: Client,
-  feePayer: TransactionSigner
-) => {
-  const { value: latestBlockhash } = await client.rpc
-    .getLatestBlockhash()
-    .send();
-  return pipe(
-    createTransactionMessage({ version: 0 }),
-    (tx) => setTransactionMessageFeePayerSigner(feePayer, tx),
-    (tx) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx)
+export const createMintWithHolders = async (
+  umi: Umi,
+  input: Partial<Omit<Parameters<typeof createMint>[1], 'mintAuthority'>> & {
+    mintAuthority?: Signer;
+    holders: { owner: PublicKeyInput; amount: number | bigint }[];
+  }
+): Promise<[Signer, ...PublicKey[]]> => {
+  const atas = [] as PublicKey[];
+  const mint = input.mint ?? generateSigner(umi);
+  const mintAuthority = input.mintAuthority ?? umi.identity;
+  let builder = transactionBuilder().add(
+    createMint(umi, {
+      ...input,
+      mint,
+      mintAuthority: mintAuthority.publicKey,
+    })
   );
+  input.holders.forEach((holder) => {
+    const owner = publicKey(holder.owner);
+    const [token] = findAssociatedTokenPda(umi, {
+      mint: mint.publicKey,
+      owner,
+    });
+    atas.push(token);
+    builder = builder.add(
+      createAssociatedToken(umi, { mint: mint.publicKey, owner })
+    );
+    if (holder.amount > 0) {
+      builder = builder.add(
+        mintTokensTo(umi, {
+          mint: mint.publicKey,
+          token,
+          amount: holder.amount,
+          mintAuthority,
+        })
+      );
+    }
+  });
+  await builder.sendAndConfirm(umi);
+
+  return [mint, ...atas];
 };
 
-export const signAndSendTransaction = async (
-  client: Client,
-  transactionMessage: CompilableTransactionMessage &
-    TransactionMessageWithBlockhashLifetime,
-  commitment: Commitment = 'confirmed'
+export const create = async <DA extends GuardSetArgs = DefaultGuardSetArgs>(
+  umi: Umi,
+  input: Omit<Partial<Parameters<typeof initialize>[1]>, 'jellybeanMachine'> & {
+    jellybeanMachine?: Signer;
+    items?: {
+      asset?: PublicKey;
+      collection?: PublicKey;
+    }[];
+    startSale?: boolean;
+  } & Partial<
+      GumballGuardDataArgs<DA extends undefined ? DefaultGuardSetArgs : DA>
+    > = {}
 ) => {
-  const signedTransaction =
-    await signTransactionMessageWithSigners(transactionMessage);
-  const signature = getSignatureFromTransaction(signedTransaction);
-  await sendAndConfirmTransactionFactory(client)(signedTransaction, {
-    commitment,
+  const jellybeanMachineSigner = input.jellybeanMachine ?? generateSigner(umi);
+  const jellybeanMachine = jellybeanMachineSigner.publicKey;
+
+  let builder = transactionBuilder().add(
+    await createJellybeanMachine(umi, {
+      ...input,
+      jellybeanMachine: jellybeanMachineSigner,
+      feeAccounts:
+        input.feeAccounts ?? getDefaultFeeAccounts(umi.identity.publicKey),
+      uri: input.uri ?? 'https://example.com/jellybean-machine.json',
+    })
+  );
+
+  if (input.guards !== undefined || input.groups !== undefined) {
+    const gumballGuard = findGumballGuardPda(umi, {
+      base: jellybeanMachine,
+    });
+    builder = builder
+      .add(
+        baseCreateGumballGuard<DA>(umi, {
+          ...input,
+          base: jellybeanMachineSigner,
+        })
+      )
+      .add(
+        wrap(umi, {
+          machine: jellybeanMachine,
+          gumballGuard,
+          machineProgram: umi.programs.get('mallowJellybean').publicKey,
+        })
+      );
+  }
+
+  (input.items ?? []).forEach((item) => {
+    builder = builder.add(
+      addCoreItem(umi, {
+        jellybeanMachine,
+        ...item,
+      })
+    );
   });
-  return signature;
+
+  if (input.startSale) {
+    builder = builder.add(
+      startSale(umi, {
+        jellybeanMachine,
+      })
+    );
+  }
+
+  await builder.sendAndConfirm(umi);
+
+  return jellybeanMachine;
 };
 
-export const getBalance = async (client: Client, address: Address) =>
-  (await client.rpc.getBalance(address, { commitment: 'confirmed' }).send())
-    .value;
+export const defaultAssetData = () => ({
+  name: 'My Asset',
+  sellerFeeBasisPoints: percentAmount(10, 2),
+  uri: 'https://example.com/my-asset.json',
+});
 
-export const createCounterForAuthority = async (
-  client: Client,
-  authority: TransactionSigner
-): Promise<Address> => {
-  const [transaction, counter] = await Promise.all([
-    createDefaultTransaction(client, authority),
-    generateKeyPairSigner(),
-  ]);
-  const createIx = getCreateInstruction({
-    counter,
-    payer: authority,
-    authority: authority.address,
-  });
-  await pipe(
-    transaction,
-    (tx) => appendTransactionMessageInstruction(createIx, tx),
-    (tx) => signAndSendTransaction(client, tx)
+export const createGumballGuard = async <
+  DA extends GuardSetArgs = DefaultGuardSetArgs,
+>(
+  umi: Umi,
+  input: Partial<
+    InitializeGumballGuardInstructionAccounts &
+      CreateGumballGuardInstructionDataArgs<
+        DA extends undefined ? DefaultGuardSetArgs : DA
+      >
+  > = {}
+) => {
+  const base = input.base ?? generateSigner(umi);
+  await transactionBuilder()
+    .add(baseCreateGumballGuard<DA>(umi, { ...input, base }))
+    .sendAndConfirm(umi);
+
+  return findGumballGuardPda(umi, { base: base.publicKey });
+};
+
+export const assertItemBought = async (
+  t: Assertions,
+  umi: Umi,
+  input: {
+    jellybeanMachine: PublicKey;
+    buyer?: PublicKey;
+    count?: number;
+  }
+) => {
+  const jellybeanMachineAccount = await fetchJellybeanMachine(
+    umi,
+    input.jellybeanMachine
   );
-  return counter.address;
+
+  const buyerCount = jellybeanMachineAccount.items.filter(
+    (item) => item.buyer === (input.buyer ?? umi.identity.publicKey)
+  ).length;
+
+  t.is(buyerCount, input.count ?? 1);
+};
+
+export const assertBotTax = async (
+  t: Assertions,
+  umi: Umi,
+  signature: TransactionSignature,
+  extraRegex?: RegExp
+) => {
+  const transaction = await umi.rpc.getTransaction(signature);
+  t.true(transaction !== null);
+  const logs = transaction!.meta.logs.join('');
+  t.regex(logs, /Gumball Guard Botting is taxed/);
+  if (extraRegex !== undefined) t.regex(logs, extraRegex);
+};
+
+export const yesterday = (): DateTime => now() - 3600n * 24n;
+export const tomorrow = (): DateTime => now() + 3600n * 24n;
+
+export const drawRemainingItems = async (
+  umi: Umi,
+  jellybeanMachine: PublicKey,
+  available: number,
+  batchSizeSetting: number = 10
+) => {
+  const indices: number[] = [];
+  for (let i = 0; i < available; i += batchSizeSetting) {
+    const buyer = generateSigner(umi);
+    const batchSize = Math.min(batchSizeSetting, available - i);
+
+    let builder = transactionBuilder().add(
+      setComputeUnitLimit(umi, { units: 1_400_000 })
+    );
+
+    // Add all draws to the same transaction
+    for (let j = 0; j < batchSize; j += 1) {
+      builder = builder.add(
+        draw(umi, {
+          jellybeanMachine,
+          buyer,
+        })
+      );
+    }
+
+    await builder.sendAndConfirm(umi);
+
+    // Fetch the machine once after the batch completes
+    const jellybeanMachineAccount = await fetchJellybeanMachine(
+      umi,
+      jellybeanMachine
+    );
+    const buyerItems = jellybeanMachineAccount.items.filter(
+      (item) => item.buyer === buyer.publicKey
+    );
+    indices.push(...buyerItems.map((item) => item.index));
+  }
+
+  return indices;
 };

@@ -14,8 +14,6 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU64Decoder,
-  getU64Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -26,6 +24,7 @@ import {
   type IInstruction,
   type IInstructionWithAccounts,
   type IInstructionWithData,
+  type OptionOrNullable,
   type ReadonlyAccount,
   type ReadonlySignerAccount,
   type ReadonlyUint8Array,
@@ -33,7 +32,11 @@ import {
   type WritableAccount,
   type WritableSignerAccount,
 } from '@solana/kit';
-import { resolveAuthorityPda } from '../../hooked';
+import {
+  resolveAuthorityPda,
+  resolveEventAuthorityPda,
+  resolveProgram,
+} from '../../hooked';
 import { findUnclaimedPrizesPda } from '../pdas';
 import { MALLOW_JELLYBEAN_PROGRAM_ADDRESS } from '../programs';
 import {
@@ -58,18 +61,15 @@ export type DrawInstruction<
   TAccountPayer extends string | IAccountMeta<string> = string,
   TAccountBuyer extends string | IAccountMeta<string> = string,
   TAccountUnclaimedPrizes extends string | IAccountMeta<string> = string,
-  TAccountPaymentMint extends string | IAccountMeta<string> = string,
-  TAccountTokenProgram extends
-    | string
-    | IAccountMeta<string> = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
-  TAccountAssociatedTokenProgram extends string | IAccountMeta<string> = string,
   TAccountSystemProgram extends
     | string
     | IAccountMeta<string> = '11111111111111111111111111111111',
   TAccountRent extends
     | string
     | IAccountMeta<string> = 'SysvarRent111111111111111111111111111111111',
-  TAccountRecentSlothashes extends string | IAccountMeta<string> = string,
+  TAccountRecentSlothashes extends
+    | string
+    | IAccountMeta<string> = 'SysvarS1otHashes111111111111111111111111111',
   TAccountEventAuthority extends string | IAccountMeta<string> = string,
   TAccountProgram extends string | IAccountMeta<string> = string,
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
@@ -97,15 +97,6 @@ export type DrawInstruction<
       TAccountUnclaimedPrizes extends string
         ? WritableAccount<TAccountUnclaimedPrizes>
         : TAccountUnclaimedPrizes,
-      TAccountPaymentMint extends string
-        ? WritableAccount<TAccountPaymentMint>
-        : TAccountPaymentMint,
-      TAccountTokenProgram extends string
-        ? ReadonlyAccount<TAccountTokenProgram>
-        : TAccountTokenProgram,
-      TAccountAssociatedTokenProgram extends string
-        ? ReadonlyAccount<TAccountAssociatedTokenProgram>
-        : TAccountAssociatedTokenProgram,
       TAccountSystemProgram extends string
         ? ReadonlyAccount<TAccountSystemProgram>
         : TAccountSystemProgram,
@@ -125,19 +116,13 @@ export type DrawInstruction<
     ]
   >;
 
-export type DrawInstructionData = {
-  discriminator: ReadonlyUint8Array;
-  paymentAmount: bigint;
-};
+export type DrawInstructionData = { discriminator: ReadonlyUint8Array };
 
-export type DrawInstructionDataArgs = { paymentAmount: number | bigint };
+export type DrawInstructionDataArgs = {};
 
 export function getDrawInstructionDataEncoder(): Encoder<DrawInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([
-      ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['paymentAmount', getU64Encoder()],
-    ]),
+    getStructEncoder([['discriminator', fixEncoderSize(getBytesEncoder(), 8)]]),
     (value) => ({ ...value, discriminator: DRAW_DISCRIMINATOR })
   );
 }
@@ -145,7 +130,6 @@ export function getDrawInstructionDataEncoder(): Encoder<DrawInstructionDataArgs
 export function getDrawInstructionDataDecoder(): Decoder<DrawInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['paymentAmount', getU64Decoder()],
   ]);
 }
 
@@ -159,6 +143,11 @@ export function getDrawInstructionDataCodec(): Codec<
   );
 }
 
+export type DrawInstructionExtraArgs = {
+  /** Forcing DrawInstructionExtraArgs to be rendered to fix a bug where resolvedArgs is using an undefined type */
+  unused?: OptionOrNullable<boolean>;
+};
+
 export type DrawAsyncInput<
   TAccountJellybeanMachine extends string = string,
   TAccountAuthorityPda extends string = string,
@@ -166,9 +155,6 @@ export type DrawAsyncInput<
   TAccountPayer extends string = string,
   TAccountBuyer extends string = string,
   TAccountUnclaimedPrizes extends string = string,
-  TAccountPaymentMint extends string = string,
-  TAccountTokenProgram extends string = string,
-  TAccountAssociatedTokenProgram extends string = string,
   TAccountSystemProgram extends string = string,
   TAccountRent extends string = string,
   TAccountRecentSlothashes extends string = string,
@@ -189,12 +175,6 @@ export type DrawAsyncInput<
   buyer: Address<TAccountBuyer>;
   /** Buyer unclaimed draws account. */
   unclaimedPrizes?: Address<TAccountUnclaimedPrizes>;
-  /** Payment mint. */
-  paymentMint?: Address<TAccountPaymentMint>;
-  /** Token program. */
-  tokenProgram?: Address<TAccountTokenProgram>;
-  /** Associated token program. */
-  associatedTokenProgram: Address<TAccountAssociatedTokenProgram>;
   /** System program. */
   systemProgram?: Address<TAccountSystemProgram>;
   /** Rent. */
@@ -203,10 +183,10 @@ export type DrawAsyncInput<
    * SlotHashes sysvar cluster data.
    *
    */
-  recentSlothashes: Address<TAccountRecentSlothashes>;
-  eventAuthority: Address<TAccountEventAuthority>;
-  program: Address<TAccountProgram>;
-  paymentAmount: DrawInstructionDataArgs['paymentAmount'];
+  recentSlothashes?: Address<TAccountRecentSlothashes>;
+  eventAuthority?: Address<TAccountEventAuthority>;
+  program?: Address<TAccountProgram>;
+  unused?: DrawInstructionExtraArgs['unused'];
 };
 
 export async function getDrawInstructionAsync<
@@ -216,9 +196,6 @@ export async function getDrawInstructionAsync<
   TAccountPayer extends string,
   TAccountBuyer extends string,
   TAccountUnclaimedPrizes extends string,
-  TAccountPaymentMint extends string,
-  TAccountTokenProgram extends string,
-  TAccountAssociatedTokenProgram extends string,
   TAccountSystemProgram extends string,
   TAccountRent extends string,
   TAccountRecentSlothashes extends string,
@@ -233,9 +210,6 @@ export async function getDrawInstructionAsync<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
-    TAccountPaymentMint,
-    TAccountTokenProgram,
-    TAccountAssociatedTokenProgram,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -252,9 +226,6 @@ export async function getDrawInstructionAsync<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
-    TAccountPaymentMint,
-    TAccountTokenProgram,
-    TAccountAssociatedTokenProgram,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -277,12 +248,6 @@ export async function getDrawInstructionAsync<
     payer: { value: input.payer ?? null, isWritable: true },
     buyer: { value: input.buyer ?? null, isWritable: false },
     unclaimedPrizes: { value: input.unclaimedPrizes ?? null, isWritable: true },
-    paymentMint: { value: input.paymentMint ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    associatedTokenProgram: {
-      value: input.associatedTokenProgram ?? null,
-      isWritable: false,
-    },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     rent: { value: input.rent ?? null, isWritable: false },
     recentSlothashes: {
@@ -316,10 +281,6 @@ export async function getDrawInstructionAsync<
       buyer: expectAddress(accounts.buyer.value),
     });
   }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value =
-      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address<'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'>;
-  }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =
       '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
@@ -327,6 +288,25 @@ export async function getDrawInstructionAsync<
   if (!accounts.rent.value) {
     accounts.rent.value =
       'SysvarRent111111111111111111111111111111111' as Address<'SysvarRent111111111111111111111111111111111'>;
+  }
+  if (!accounts.recentSlothashes.value) {
+    accounts.recentSlothashes.value =
+      'SysvarS1otHashes111111111111111111111111111' as Address<'SysvarS1otHashes111111111111111111111111111'>;
+  }
+  if (!accounts.eventAuthority.value) {
+    accounts.eventAuthority = {
+      ...accounts.eventAuthority,
+      ...resolveEventAuthorityPda(resolverScope),
+    };
+  }
+  if (!accounts.program.value) {
+    accounts.program = {
+      ...accounts.program,
+      ...resolveProgram(resolverScope),
+    };
+  }
+  if (!args.unused) {
+    args.unused = false;
   }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
@@ -338,9 +318,6 @@ export async function getDrawInstructionAsync<
       getAccountMeta(accounts.payer),
       getAccountMeta(accounts.buyer),
       getAccountMeta(accounts.unclaimedPrizes),
-      getAccountMeta(accounts.paymentMint),
-      getAccountMeta(accounts.tokenProgram),
-      getAccountMeta(accounts.associatedTokenProgram),
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.rent),
       getAccountMeta(accounts.recentSlothashes),
@@ -348,9 +325,7 @@ export async function getDrawInstructionAsync<
       getAccountMeta(accounts.program),
     ],
     programAddress,
-    data: getDrawInstructionDataEncoder().encode(
-      args as DrawInstructionDataArgs
-    ),
+    data: getDrawInstructionDataEncoder().encode({}),
   } as DrawInstruction<
     TProgramAddress,
     TAccountJellybeanMachine,
@@ -359,9 +334,6 @@ export async function getDrawInstructionAsync<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
-    TAccountPaymentMint,
-    TAccountTokenProgram,
-    TAccountAssociatedTokenProgram,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -379,9 +351,6 @@ export type DrawInput<
   TAccountPayer extends string = string,
   TAccountBuyer extends string = string,
   TAccountUnclaimedPrizes extends string = string,
-  TAccountPaymentMint extends string = string,
-  TAccountTokenProgram extends string = string,
-  TAccountAssociatedTokenProgram extends string = string,
   TAccountSystemProgram extends string = string,
   TAccountRent extends string = string,
   TAccountRecentSlothashes extends string = string,
@@ -402,12 +371,6 @@ export type DrawInput<
   buyer: Address<TAccountBuyer>;
   /** Buyer unclaimed draws account. */
   unclaimedPrizes: Address<TAccountUnclaimedPrizes>;
-  /** Payment mint. */
-  paymentMint?: Address<TAccountPaymentMint>;
-  /** Token program. */
-  tokenProgram?: Address<TAccountTokenProgram>;
-  /** Associated token program. */
-  associatedTokenProgram: Address<TAccountAssociatedTokenProgram>;
   /** System program. */
   systemProgram?: Address<TAccountSystemProgram>;
   /** Rent. */
@@ -416,10 +379,10 @@ export type DrawInput<
    * SlotHashes sysvar cluster data.
    *
    */
-  recentSlothashes: Address<TAccountRecentSlothashes>;
-  eventAuthority: Address<TAccountEventAuthority>;
-  program: Address<TAccountProgram>;
-  paymentAmount: DrawInstructionDataArgs['paymentAmount'];
+  recentSlothashes?: Address<TAccountRecentSlothashes>;
+  eventAuthority?: Address<TAccountEventAuthority>;
+  program?: Address<TAccountProgram>;
+  unused?: DrawInstructionExtraArgs['unused'];
 };
 
 export function getDrawInstruction<
@@ -429,9 +392,6 @@ export function getDrawInstruction<
   TAccountPayer extends string,
   TAccountBuyer extends string,
   TAccountUnclaimedPrizes extends string,
-  TAccountPaymentMint extends string,
-  TAccountTokenProgram extends string,
-  TAccountAssociatedTokenProgram extends string,
   TAccountSystemProgram extends string,
   TAccountRent extends string,
   TAccountRecentSlothashes extends string,
@@ -446,9 +406,6 @@ export function getDrawInstruction<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
-    TAccountPaymentMint,
-    TAccountTokenProgram,
-    TAccountAssociatedTokenProgram,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -464,9 +421,6 @@ export function getDrawInstruction<
   TAccountPayer,
   TAccountBuyer,
   TAccountUnclaimedPrizes,
-  TAccountPaymentMint,
-  TAccountTokenProgram,
-  TAccountAssociatedTokenProgram,
   TAccountSystemProgram,
   TAccountRent,
   TAccountRecentSlothashes,
@@ -488,12 +442,6 @@ export function getDrawInstruction<
     payer: { value: input.payer ?? null, isWritable: true },
     buyer: { value: input.buyer ?? null, isWritable: false },
     unclaimedPrizes: { value: input.unclaimedPrizes ?? null, isWritable: true },
-    paymentMint: { value: input.paymentMint ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    associatedTokenProgram: {
-      value: input.associatedTokenProgram ?? null,
-      isWritable: false,
-    },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     rent: { value: input.rent ?? null, isWritable: false },
     recentSlothashes: {
@@ -521,10 +469,6 @@ export function getDrawInstruction<
       ...resolveAuthorityPda(resolverScope),
     };
   }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value =
-      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address<'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'>;
-  }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =
       '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
@@ -532,6 +476,25 @@ export function getDrawInstruction<
   if (!accounts.rent.value) {
     accounts.rent.value =
       'SysvarRent111111111111111111111111111111111' as Address<'SysvarRent111111111111111111111111111111111'>;
+  }
+  if (!accounts.recentSlothashes.value) {
+    accounts.recentSlothashes.value =
+      'SysvarS1otHashes111111111111111111111111111' as Address<'SysvarS1otHashes111111111111111111111111111'>;
+  }
+  if (!accounts.eventAuthority.value) {
+    accounts.eventAuthority = {
+      ...accounts.eventAuthority,
+      ...resolveEventAuthorityPda(resolverScope),
+    };
+  }
+  if (!accounts.program.value) {
+    accounts.program = {
+      ...accounts.program,
+      ...resolveProgram(resolverScope),
+    };
+  }
+  if (!args.unused) {
+    args.unused = false;
   }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
@@ -543,9 +506,6 @@ export function getDrawInstruction<
       getAccountMeta(accounts.payer),
       getAccountMeta(accounts.buyer),
       getAccountMeta(accounts.unclaimedPrizes),
-      getAccountMeta(accounts.paymentMint),
-      getAccountMeta(accounts.tokenProgram),
-      getAccountMeta(accounts.associatedTokenProgram),
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.rent),
       getAccountMeta(accounts.recentSlothashes),
@@ -553,9 +513,7 @@ export function getDrawInstruction<
       getAccountMeta(accounts.program),
     ],
     programAddress,
-    data: getDrawInstructionDataEncoder().encode(
-      args as DrawInstructionDataArgs
-    ),
+    data: getDrawInstructionDataEncoder().encode({}),
   } as DrawInstruction<
     TProgramAddress,
     TAccountJellybeanMachine,
@@ -564,9 +522,6 @@ export function getDrawInstruction<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
-    TAccountPaymentMint,
-    TAccountTokenProgram,
-    TAccountAssociatedTokenProgram,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -598,24 +553,18 @@ export type ParsedDrawInstruction<
     buyer: TAccountMetas[4];
     /** Buyer unclaimed draws account. */
     unclaimedPrizes: TAccountMetas[5];
-    /** Payment mint. */
-    paymentMint?: TAccountMetas[6] | undefined;
-    /** Token program. */
-    tokenProgram: TAccountMetas[7];
-    /** Associated token program. */
-    associatedTokenProgram: TAccountMetas[8];
     /** System program. */
-    systemProgram: TAccountMetas[9];
+    systemProgram: TAccountMetas[6];
     /** Rent. */
-    rent: TAccountMetas[10];
+    rent: TAccountMetas[7];
     /**
      * SlotHashes sysvar cluster data.
      *
      */
 
-    recentSlothashes: TAccountMetas[11];
-    eventAuthority: TAccountMetas[12];
-    program: TAccountMetas[13];
+    recentSlothashes: TAccountMetas[8];
+    eventAuthority: TAccountMetas[9];
+    program: TAccountMetas[10];
   };
   data: DrawInstructionData;
 };
@@ -628,7 +577,7 @@ export function parseDrawInstruction<
     IInstructionWithAccounts<TAccountMetas> &
     IInstructionWithData<Uint8Array>
 ): ParsedDrawInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 14) {
+  if (instruction.accounts.length < 11) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -637,12 +586,6 @@ export function parseDrawInstruction<
     const accountMeta = instruction.accounts![accountIndex]!;
     accountIndex += 1;
     return accountMeta;
-  };
-  const getNextOptionalAccount = () => {
-    const accountMeta = getNextAccount();
-    return accountMeta.address === MALLOW_JELLYBEAN_PROGRAM_ADDRESS
-      ? undefined
-      : accountMeta;
   };
   return {
     programAddress: instruction.programAddress,
@@ -653,9 +596,6 @@ export function parseDrawInstruction<
       payer: getNextAccount(),
       buyer: getNextAccount(),
       unclaimedPrizes: getNextAccount(),
-      paymentMint: getNextOptionalAccount(),
-      tokenProgram: getNextAccount(),
-      associatedTokenProgram: getNextAccount(),
       systemProgram: getNextAccount(),
       rent: getNextAccount(),
       recentSlothashes: getNextAccount(),

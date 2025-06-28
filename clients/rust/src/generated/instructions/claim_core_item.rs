@@ -91,7 +91,7 @@ impl ClaimCoreItem {
         if let Some(print_asset) = self.print_asset {
             accounts.push(solana_program::instruction::AccountMeta::new(
                 print_asset,
-                false,
+                true,
             ));
         } else {
             accounts.push(solana_program::instruction::AccountMeta::new_readonly(
@@ -165,7 +165,7 @@ pub struct ClaimCoreItemInstructionArgs {
 ///   4. `[writable]` unclaimed_prizes
 ///   5. `[writable, optional]` asset
 ///   6. `[writable, optional]` collection
-///   7. `[writable, optional]` print_asset
+///   7. `[writable, signer, optional]` print_asset
 ///   8. `[optional]` mpl_core_program (default to `CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d`)
 ///   9. `[optional]` system_program (default to `11111111111111111111111111111111`)
 ///   10. `[]` event_authority
@@ -491,7 +491,7 @@ impl<'a, 'b> ClaimCoreItemCpi<'a, 'b> {
         if let Some(print_asset) = self.print_asset {
             accounts.push(solana_program::instruction::AccountMeta::new(
                 *print_asset.key,
-                false,
+                true,
             ));
         } else {
             accounts.push(solana_program::instruction::AccountMeta::new_readonly(
@@ -574,7 +574,7 @@ impl<'a, 'b> ClaimCoreItemCpi<'a, 'b> {
 ///   4. `[writable]` unclaimed_prizes
 ///   5. `[writable, optional]` asset
 ///   6. `[writable, optional]` collection
-///   7. `[writable, optional]` print_asset
+///   7. `[writable, signer, optional]` print_asset
 ///   8. `[]` mpl_core_program
 ///   9. `[]` system_program
 ///   10. `[]` event_authority

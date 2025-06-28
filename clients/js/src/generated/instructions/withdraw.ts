@@ -24,7 +24,6 @@ import {
   type IInstruction,
   type IInstructionWithAccounts,
   type IInstructionWithData,
-  type ReadonlyAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
@@ -46,9 +45,6 @@ export type WithdrawInstruction<
   TAccountJellybeanMachine extends string | IAccountMeta<string> = string,
   TAccountAuthority extends string | IAccountMeta<string> = string,
   TAccountMintAuthority extends string | IAccountMeta<string> = string,
-  TAccountTokenProgram extends
-    | string
-    | IAccountMeta<string> = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
 > = IInstruction<TProgram> &
   IInstructionWithData<Uint8Array> &
@@ -65,9 +61,6 @@ export type WithdrawInstruction<
         ? WritableSignerAccount<TAccountMintAuthority> &
             IAccountSignerMeta<TAccountMintAuthority>
         : TAccountMintAuthority,
-      TAccountTokenProgram extends string
-        ? ReadonlyAccount<TAccountTokenProgram>
-        : TAccountTokenProgram,
       ...TRemainingAccounts,
     ]
   >;
@@ -103,7 +96,6 @@ export type WithdrawInput<
   TAccountJellybeanMachine extends string = string,
   TAccountAuthority extends string = string,
   TAccountMintAuthority extends string = string,
-  TAccountTokenProgram extends string = string,
 > = {
   /** Gumball Machine acccount. */
   jellybeanMachine: Address<TAccountJellybeanMachine>;
@@ -111,29 +103,25 @@ export type WithdrawInput<
   authority: TransactionSigner<TAccountAuthority>;
   /** Mint authority of the jellybean machine. */
   mintAuthority: TransactionSigner<TAccountMintAuthority>;
-  tokenProgram?: Address<TAccountTokenProgram>;
 };
 
 export function getWithdrawInstruction<
   TAccountJellybeanMachine extends string,
   TAccountAuthority extends string,
   TAccountMintAuthority extends string,
-  TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof MALLOW_JELLYBEAN_PROGRAM_ADDRESS,
 >(
   input: WithdrawInput<
     TAccountJellybeanMachine,
     TAccountAuthority,
-    TAccountMintAuthority,
-    TAccountTokenProgram
+    TAccountMintAuthority
   >,
   config?: { programAddress?: TProgramAddress }
 ): WithdrawInstruction<
   TProgramAddress,
   TAccountJellybeanMachine,
   TAccountAuthority,
-  TAccountMintAuthority,
-  TAccountTokenProgram
+  TAccountMintAuthority
 > {
   // Program address.
   const programAddress =
@@ -147,18 +135,11 @@ export function getWithdrawInstruction<
     },
     authority: { value: input.authority ?? null, isWritable: true },
     mintAuthority: { value: input.mintAuthority ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
     ResolvedAccount
   >;
-
-  // Resolve default values.
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value =
-      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address<'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'>;
-  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   const instruction = {
@@ -166,7 +147,6 @@ export function getWithdrawInstruction<
       getAccountMeta(accounts.jellybeanMachine),
       getAccountMeta(accounts.authority),
       getAccountMeta(accounts.mintAuthority),
-      getAccountMeta(accounts.tokenProgram),
     ],
     programAddress,
     data: getWithdrawInstructionDataEncoder().encode({}),
@@ -174,8 +154,7 @@ export function getWithdrawInstruction<
     TProgramAddress,
     TAccountJellybeanMachine,
     TAccountAuthority,
-    TAccountMintAuthority,
-    TAccountTokenProgram
+    TAccountMintAuthority
   >;
 
   return instruction;
@@ -193,7 +172,6 @@ export type ParsedWithdrawInstruction<
     authority: TAccountMetas[1];
     /** Mint authority of the jellybean machine. */
     mintAuthority: TAccountMetas[2];
-    tokenProgram: TAccountMetas[3];
   };
   data: WithdrawInstructionData;
 };
@@ -206,7 +184,7 @@ export function parseWithdrawInstruction<
     IInstructionWithAccounts<TAccountMetas> &
     IInstructionWithData<Uint8Array>
 ): ParsedWithdrawInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
+  if (instruction.accounts.length < 3) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -222,7 +200,6 @@ export function parseWithdrawInstruction<
       jellybeanMachine: getNextAccount(),
       authority: getNextAccount(),
       mintAuthority: getNextAccount(),
-      tokenProgram: getNextAccount(),
     },
     data: getWithdrawInstructionDataDecoder().decode(instruction.data),
   };

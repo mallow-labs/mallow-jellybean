@@ -67,7 +67,6 @@ pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> 
         items_loaded: 0,
         supply_loaded: 0,
         supply_redeemed: 0,
-        supply_settled: 0,
         state: JellybeanState::None,
         uri: args.uri,
         padding: [0; 320],

@@ -21,7 +21,11 @@ import {
   struct,
   u16,
 } from '@metaplex-foundation/umi/serializers';
-import { resolveAuthorityPda } from '../../hooked';
+import {
+  resolveAuthorityPda,
+  resolveEventAuthorityPda,
+  resolveProgram,
+} from '../../hooked';
 import { findUnclaimedPrizesPda } from '../accounts';
 import {
   ResolvedAccount,
@@ -43,11 +47,11 @@ export type ClaimCoreItemInstructionAccounts = {
   unclaimedPrizes?: PublicKey | Pda;
   asset?: PublicKey | Pda;
   collection?: PublicKey | Pda;
-  printAsset?: PublicKey | Pda;
+  printAsset?: Signer;
   mplCoreProgram?: PublicKey | Pda;
   systemProgram?: PublicKey | Pda;
-  eventAuthority: PublicKey | Pda;
-  program: PublicKey | Pda;
+  eventAuthority?: PublicKey | Pda;
+  program?: PublicKey | Pda;
 };
 
 // Data.
@@ -202,6 +206,30 @@ export function claimCoreItem(
       '11111111111111111111111111111111'
     );
     resolvedAccounts.systemProgram.isWritable = false;
+  }
+  if (!resolvedAccounts.eventAuthority.value) {
+    resolvedAccounts.eventAuthority = {
+      ...resolvedAccounts.eventAuthority,
+      ...resolveEventAuthorityPda(
+        context,
+        resolvedAccounts,
+        resolvedArgs,
+        programId,
+        false
+      ),
+    };
+  }
+  if (!resolvedAccounts.program.value) {
+    resolvedAccounts.program = {
+      ...resolvedAccounts.program,
+      ...resolveProgram(
+        context,
+        resolvedAccounts,
+        resolvedArgs,
+        programId,
+        false
+      ),
+    };
   }
 
   // Accounts in order.

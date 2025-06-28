@@ -8,6 +8,7 @@
 
 import {
   Context,
+  OptionOrNullable,
   Pda,
   PublicKey,
   Signer,
@@ -20,11 +21,15 @@ import {
   bytes,
   mapSerializer,
   struct,
-  u64,
 } from '@metaplex-foundation/umi/serializers';
-import { resolveAuthorityPda } from '../../hooked';
+import {
+  resolveAuthorityPda,
+  resolveEventAuthorityPda,
+  resolveProgram,
+} from '../../hooked';
 import { findUnclaimedPrizesPda } from '../accounts';
 import {
+  PickPartial,
   ResolvedAccount,
   ResolvedAccountsWithIndices,
   expectPublicKey,
@@ -45,15 +50,9 @@ export type DrawInstructionAccounts = {
    *
    */
 
-  buyer: PublicKey | Pda;
+  buyer?: PublicKey | Pda;
   /** Buyer unclaimed draws account. */
   unclaimedPrizes?: PublicKey | Pda;
-  /** Payment mint. */
-  paymentMint?: PublicKey | Pda;
-  /** Token program. */
-  tokenProgram?: PublicKey | Pda;
-  /** Associated token program. */
-  associatedTokenProgram: PublicKey | Pda;
   /** System program. */
   systemProgram?: PublicKey | Pda;
   /** Rent. */
@@ -63,31 +62,24 @@ export type DrawInstructionAccounts = {
    *
    */
 
-  recentSlothashes: PublicKey | Pda;
-  eventAuthority: PublicKey | Pda;
-  program: PublicKey | Pda;
+  recentSlothashes?: PublicKey | Pda;
+  eventAuthority?: PublicKey | Pda;
+  program?: PublicKey | Pda;
 };
 
 // Data.
-export type DrawInstructionData = {
-  discriminator: Uint8Array;
-  paymentAmount: bigint;
-};
+export type DrawInstructionData = { discriminator: Uint8Array };
 
-export type DrawInstructionDataArgs = { paymentAmount: number | bigint };
+export type DrawInstructionDataArgs = {};
 
 export function getDrawInstructionDataSerializer(): Serializer<
   DrawInstructionDataArgs,
   DrawInstructionData
 > {
   return mapSerializer<DrawInstructionDataArgs, any, DrawInstructionData>(
-    struct<DrawInstructionData>(
-      [
-        ['discriminator', bytes({ size: 8 })],
-        ['paymentAmount', u64()],
-      ],
-      { description: 'DrawInstructionData' }
-    ),
+    struct<DrawInstructionData>([['discriminator', bytes({ size: 8 })]], {
+      description: 'DrawInstructionData',
+    }),
     (value) => ({
       ...value,
       discriminator: new Uint8Array([61, 40, 62, 184, 31, 176, 24, 130]),
@@ -95,8 +87,17 @@ export function getDrawInstructionDataSerializer(): Serializer<
   ) as Serializer<DrawInstructionDataArgs, DrawInstructionData>;
 }
 
+// Extra Args.
+export type DrawInstructionExtraArgs = {
+  /** Forcing DrawInstructionExtraArgs to be rendered to fix a bug where resolvedArgs is using an undefined type */
+  unused?: OptionOrNullable<boolean>;
+};
+
 // Args.
-export type DrawInstructionArgs = DrawInstructionDataArgs;
+export type DrawInstructionArgs = PickPartial<
+  DrawInstructionExtraArgs,
+  'unused'
+>;
 
 // Instruction.
 export function draw(
@@ -141,43 +142,24 @@ export function draw(
       isWritable: true as boolean,
       value: input.unclaimedPrizes ?? null,
     },
-    paymentMint: {
-      index: 6,
-      isWritable: true as boolean,
-      value: input.paymentMint ?? null,
-    },
-    tokenProgram: {
-      index: 7,
-      isWritable: false as boolean,
-      value: input.tokenProgram ?? null,
-    },
-    associatedTokenProgram: {
-      index: 8,
-      isWritable: false as boolean,
-      value: input.associatedTokenProgram ?? null,
-    },
     systemProgram: {
-      index: 9,
+      index: 6,
       isWritable: false as boolean,
       value: input.systemProgram ?? null,
     },
-    rent: {
-      index: 10,
-      isWritable: false as boolean,
-      value: input.rent ?? null,
-    },
+    rent: { index: 7, isWritable: false as boolean, value: input.rent ?? null },
     recentSlothashes: {
-      index: 11,
+      index: 8,
       isWritable: false as boolean,
       value: input.recentSlothashes ?? null,
     },
     eventAuthority: {
-      index: 12,
+      index: 9,
       isWritable: false as boolean,
       value: input.eventAuthority ?? null,
     },
     program: {
-      index: 13,
+      index: 10,
       isWritable: false as boolean,
       value: input.program ?? null,
     },
@@ -202,6 +184,9 @@ export function draw(
   if (!resolvedAccounts.payer.value) {
     resolvedAccounts.payer.value = context.payer;
   }
+  if (!resolvedAccounts.buyer.value) {
+    resolvedAccounts.buyer.value = context.identity.publicKey;
+  }
   if (!resolvedAccounts.unclaimedPrizes.value) {
     resolvedAccounts.unclaimedPrizes.value = findUnclaimedPrizesPda(context, {
       jellybeanMachine: expectPublicKey(
@@ -209,13 +194,6 @@ export function draw(
       ),
       buyer: expectPublicKey(resolvedAccounts.buyer.value),
     });
-  }
-  if (!resolvedAccounts.tokenProgram.value) {
-    resolvedAccounts.tokenProgram.value = context.programs.getPublicKey(
-      'splToken',
-      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
-    );
-    resolvedAccounts.tokenProgram.isWritable = false;
   }
   if (!resolvedAccounts.systemProgram.value) {
     resolvedAccounts.systemProgram.value = context.programs.getPublicKey(
@@ -228,6 +206,38 @@ export function draw(
     resolvedAccounts.rent.value = publicKey(
       'SysvarRent111111111111111111111111111111111'
     );
+  }
+  if (!resolvedAccounts.recentSlothashes.value) {
+    resolvedAccounts.recentSlothashes.value = publicKey(
+      'SysvarS1otHashes111111111111111111111111111'
+    );
+  }
+  if (!resolvedAccounts.eventAuthority.value) {
+    resolvedAccounts.eventAuthority = {
+      ...resolvedAccounts.eventAuthority,
+      ...resolveEventAuthorityPda(
+        context,
+        resolvedAccounts,
+        resolvedArgs,
+        programId,
+        false
+      ),
+    };
+  }
+  if (!resolvedAccounts.program.value) {
+    resolvedAccounts.program = {
+      ...resolvedAccounts.program,
+      ...resolveProgram(
+        context,
+        resolvedAccounts,
+        resolvedArgs,
+        programId,
+        false
+      ),
+    };
+  }
+  if (!resolvedArgs.unused) {
+    resolvedArgs.unused = false;
   }
 
   // Accounts in order.
@@ -243,9 +253,7 @@ export function draw(
   );
 
   // Data.
-  const data = getDrawInstructionDataSerializer().serialize(
-    resolvedArgs as DrawInstructionDataArgs
-  );
+  const data = getDrawInstructionDataSerializer().serialize({});
 
   // Bytes Created On Chain.
   const bytesCreatedOnChain = 0;

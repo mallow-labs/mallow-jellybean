@@ -21,6 +21,7 @@
   "scripts": {
     "build": "rimraf dist && tsup && tsc -p ./tsconfig.declarations.json",
     "build:docs": "typedoc",
+    "dev": "tsup --watch",
     "test": "ava",
     "lint": "eslint --ext js,ts,tsx src",
     "lint:fix": "eslint --fix --ext js,ts,tsx src",
@@ -46,14 +47,16 @@
   },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",
+    "@metaplex-foundation/mpl-toolbox": "^0.10.0",
+    "@metaplex-foundation/umi-bundle-tests": "^1.2.0",
     "@solana/eslint-config-solana": "^3.0.3",
-    "@solana/web3.js": "^2.0.0",
+    "@solana/web3.js": "^1.98.2",
     "@types/node": "^20",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
     "ava": "^6.1.3",
     "eslint": "^8.57.0",
-    "prettier": "^3.3.3",
+    "prettier": "^3.6.2",
     "rimraf": "^5.0.5",
     "tsup": "^8.1.2",
     "typedoc": "^0.25.12",
@@ -72,7 +75,8 @@
   },
   "packageManager": "pnpm@9.1.0",
   "dependencies": {
-    "@metaplex-foundation/umi": "^1.2.0",
-    "serializers": "link:@metaplex-foundation/umi/serializers"
+    "@mallow-labs/mallow-gumball": "link:../../../mallow-monorepo/packages/mallow-gumball/clients/js",
+    "@metaplex-foundation/mpl-core": "^1.4.1",
+    "@metaplex-foundation/umi": "^1.2.0"
   }
 }

@@ -9,10 +9,11 @@
     "generate:idls": "zx ./scripts/generate-idls.mjs",
     "solana:check": "zx ./scripts/check-solana-version.mjs",
     "solana:link": "zx ./scripts/link-solana-version.mjs",
+    "rust:link": "zx ./scripts/link-rust-version.mjs",
     "generate": "pnpm generate:idls && pnpm generate:clients",
     "generate:clients": "zx ./scripts/generate-clients.mjs",
+    "validator": "pnpm validator:start --restart",
     "validator:start": "zx ./scripts/start-validator.mjs",
-    "validator:restart": "pnpm validator:start --restart",
     "validator:stop": "zx ./scripts/stop-validator.mjs",
     "clients:js:format": "zx ./scripts/client/format-js.mjs",
     "clients:js:lint": "zx ./scripts/client/lint-js.mjs",
@@ -21,7 +22,8 @@
     "clients:rust:format": "zx ./scripts/client/format-rust.mjs",
     "clients:rust:lint": "zx ./scripts/client/lint-rust.mjs",
     "clients:rust:publish": "zx ./scripts/client/publish-rust.mjs",
-    "clients:rust:test": "zx ./scripts/client/test-rust.mjs"
+    "clients:rust:test": "zx ./scripts/client/test-rust.mjs",
+    "format:fix": "prettier --write scripts"
   },
   "devDependencies": {
     "@codama/nodes-from-anchor": "^1.0.0",
@@ -31,6 +33,8 @@
     "@iarna/toml": "^2.2.5",
     "@metaplex-foundation/shank-js": "^0.1.7",
     "codama": "^1.0.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.1.0",
     "typescript": "^5.5.2",
     "zx": "^7.2.3"
   },

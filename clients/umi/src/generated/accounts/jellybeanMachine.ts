@@ -62,8 +62,6 @@ export type JellybeanMachineAccountData = {
   supplyLoaded: bigint;
   /** Number of times items have been redeemed. */
   supplyRedeemed: bigint;
-  /** Number of times items have been settled after being drawn. */
-  supplySettled: bigint;
   /** State of the machine. */
   state: JellybeanState;
   /** Uri of off-chain metadata, max length 196 */
@@ -87,8 +85,6 @@ export type JellybeanMachineAccountDataArgs = {
   supplyLoaded: number | bigint;
   /** Number of times items have been redeemed. */
   supplyRedeemed: number | bigint;
-  /** Number of times items have been settled after being drawn. */
-  supplySettled: number | bigint;
   /** State of the machine. */
   state: JellybeanStateArgs;
   /** Uri of off-chain metadata, max length 196 */
@@ -116,7 +112,6 @@ export function getJellybeanMachineAccountDataSerializer(): Serializer<
         ['itemsLoaded', u16()],
         ['supplyLoaded', u64()],
         ['supplyRedeemed', u64()],
-        ['supplySettled', u64()],
         ['state', getJellybeanStateSerializer()],
         ['uri', string()],
         ['padding', bytes({ size: 320 })],
@@ -212,7 +207,6 @@ export function getJellybeanMachineGpaBuilder(
       itemsLoaded: number;
       supplyLoaded: number | bigint;
       supplyRedeemed: number | bigint;
-      supplySettled: number | bigint;
       state: JellybeanStateArgs;
       uri: string;
       padding: Uint8Array;
@@ -225,7 +219,6 @@ export function getJellybeanMachineGpaBuilder(
       itemsLoaded: [null, u16()],
       supplyLoaded: [null, u64()],
       supplyRedeemed: [null, u64()],
-      supplySettled: [null, u64()],
       state: [null, getJellybeanStateSerializer()],
       uri: [null, string()],
       padding: [null, bytes({ size: 320 })],

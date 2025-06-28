@@ -34,7 +34,6 @@ export type WithdrawInstructionAccounts = {
   authority?: Signer;
   /** Mint authority of the jellybean machine. */
   mintAuthority: Signer;
-  tokenProgram?: PublicKey | Pda;
 };
 
 // Data.
@@ -89,23 +88,11 @@ export function withdraw(
       isWritable: true as boolean,
       value: input.mintAuthority ?? null,
     },
-    tokenProgram: {
-      index: 3,
-      isWritable: false as boolean,
-      value: input.tokenProgram ?? null,
-    },
   } satisfies ResolvedAccountsWithIndices;
 
   // Default values.
   if (!resolvedAccounts.authority.value) {
     resolvedAccounts.authority.value = context.identity;
-  }
-  if (!resolvedAccounts.tokenProgram.value) {
-    resolvedAccounts.tokenProgram.value = context.programs.getPublicKey(
-      'splToken',
-      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
-    );
-    resolvedAccounts.tokenProgram.isWritable = false;
   }
 
   // Accounts in order.

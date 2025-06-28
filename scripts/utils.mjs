@@ -1,5 +1,5 @@
-import 'zx/globals';
 import { parse as parseToml } from '@iarna/toml';
+import 'zx/globals';
 
 process.env.FORCE_COLOR = 3;
 process.env.CARGO_TERM_COLOR = 'always';
@@ -88,6 +88,10 @@ export function getSolanaVersion() {
   return getCargoMetadata()?.cli?.solana;
 }
 
+export function getRustVersion() {
+  return getToolchain('build');
+}
+
 export function getToolchain(operation) {
   return getCargoMetadata()?.toolchains?.[operation];
 }
@@ -120,6 +124,15 @@ export async function getInstalledSolanaVersion() {
   try {
     const { stdout } = await $`solana --version`.quiet();
     return stdout.match(/(\d+\.\d+\.\d+)/)?.[1];
+  } catch (error) {
+    return '';
+  }
+}
+
+export async function getInstalledRustVersion() {
+  try {
+    const { stdout } = await $`rustc --version`.quiet();
+    return stdout.match(/rustc (\d+\.\d+\.\d+) \(.*?\)/)?.[1];
   } catch (error) {
     return '';
   }

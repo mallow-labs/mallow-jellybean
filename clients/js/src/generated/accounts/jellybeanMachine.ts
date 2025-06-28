@@ -89,8 +89,6 @@ export type JellybeanMachine = {
   supplyLoaded: bigint;
   /** Number of times items have been redeemed. */
   supplyRedeemed: bigint;
-  /** Number of times items have been settled after being drawn. */
-  supplySettled: bigint;
   /** State of the machine. */
   state: JellybeanState;
   /** Uri of off-chain metadata, max length 196 */
@@ -114,8 +112,6 @@ export type JellybeanMachineArgs = {
   supplyLoaded: number | bigint;
   /** Number of times items have been redeemed. */
   supplyRedeemed: number | bigint;
-  /** Number of times items have been settled after being drawn. */
-  supplySettled: number | bigint;
   /** State of the machine. */
   state: JellybeanStateArgs;
   /** Uri of off-chain metadata, max length 196 */
@@ -138,7 +134,6 @@ export function getJellybeanMachineEncoder(): Encoder<JellybeanMachineArgs> {
       ['itemsLoaded', getU16Encoder()],
       ['supplyLoaded', getU64Encoder()],
       ['supplyRedeemed', getU64Encoder()],
-      ['supplySettled', getU64Encoder()],
       ['state', getJellybeanStateEncoder()],
       ['uri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
       ['padding', fixEncoderSize(getBytesEncoder(), 320)],
@@ -160,7 +155,6 @@ export function getJellybeanMachineDecoder(): Decoder<JellybeanMachine> {
     ['itemsLoaded', getU16Decoder()],
     ['supplyLoaded', getU64Decoder()],
     ['supplyRedeemed', getU64Decoder()],
-    ['supplySettled', getU64Decoder()],
     ['state', getJellybeanStateDecoder()],
     ['uri', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
     ['padding', fixDecoderSize(getBytesDecoder(), 320)],

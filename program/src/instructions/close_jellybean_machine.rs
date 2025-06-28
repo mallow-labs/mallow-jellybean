@@ -10,7 +10,6 @@ pub struct CloseJellybeanMachine<'info> {
         close = authority, 
         has_one = authority @ JellybeanError::InvalidAuthority,
         has_one = mint_authority @ JellybeanError::InvalidMintAuthority,
-        constraint = jellybean_machine.supply_redeemed == jellybean_machine.supply_settled @ JellybeanError::NotAllSettled
     )]
     jellybean_machine: Account<'info, JellybeanMachine>,
 
@@ -21,8 +20,6 @@ pub struct CloseJellybeanMachine<'info> {
     /// Mint authority of the jellybean machine.
     #[account(mut)]
     mint_authority: Signer<'info>,
-
-    token_program: Program<'info, anchor_spl::token::Token>,
 }
 
 pub fn close_jellybean_machine<'info>(

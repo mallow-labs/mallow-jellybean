@@ -17,8 +17,6 @@ pub struct Withdraw {
     pub authority: solana_program::pubkey::Pubkey,
     /// Mint authority of the jellybean machine.
     pub mint_authority: solana_program::pubkey::Pubkey,
-
-    pub token_program: solana_program::pubkey::Pubkey,
 }
 
 impl Withdraw {
@@ -31,7 +29,7 @@ impl Withdraw {
         &self,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(4 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.jellybean_machine,
             false,
@@ -43,10 +41,6 @@ impl Withdraw {
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.mint_authority,
             true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            self.token_program,
-            false,
         ));
         accounts.extend_from_slice(remaining_accounts);
         let data = borsh::to_vec(&WithdrawInstructionData::new()).unwrap();
@@ -86,13 +80,11 @@ impl Default for WithdrawInstructionData {
 ///   0. `[writable]` jellybean_machine
 ///   1. `[writable, signer]` authority
 ///   2. `[writable, signer]` mint_authority
-///   3. `[optional]` token_program (default to `TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA`)
 #[derive(Clone, Debug, Default)]
 pub struct WithdrawBuilder {
     jellybean_machine: Option<solana_program::pubkey::Pubkey>,
     authority: Option<solana_program::pubkey::Pubkey>,
     mint_authority: Option<solana_program::pubkey::Pubkey>,
-    token_program: Option<solana_program::pubkey::Pubkey>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -121,12 +113,6 @@ impl WithdrawBuilder {
         self.mint_authority = Some(mint_authority);
         self
     }
-    /// `[optional account, default to 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA']`
-    #[inline(always)]
-    pub fn token_program(&mut self, token_program: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.token_program = Some(token_program);
-        self
-    }
     /// Add an additional account to the instruction.
     #[inline(always)]
     pub fn add_remaining_account(
@@ -153,9 +139,6 @@ impl WithdrawBuilder {
                 .expect("jellybean_machine is not set"),
             authority: self.authority.expect("authority is not set"),
             mint_authority: self.mint_authority.expect("mint_authority is not set"),
-            token_program: self.token_program.unwrap_or(solana_program::pubkey!(
-                "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-            )),
         };
 
         accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
@@ -170,8 +153,6 @@ pub struct WithdrawCpiAccounts<'a, 'b> {
     pub authority: &'b solana_program::account_info::AccountInfo<'a>,
     /// Mint authority of the jellybean machine.
     pub mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-
-    pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
 /// `withdraw` CPI instruction.
@@ -184,8 +165,6 @@ pub struct WithdrawCpi<'a, 'b> {
     pub authority: &'b solana_program::account_info::AccountInfo<'a>,
     /// Mint authority of the jellybean machine.
     pub mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-
-    pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
 impl<'a, 'b> WithdrawCpi<'a, 'b> {
@@ -198,7 +177,6 @@ impl<'a, 'b> WithdrawCpi<'a, 'b> {
             jellybean_machine: accounts.jellybean_machine,
             authority: accounts.authority,
             mint_authority: accounts.mint_authority,
-            token_program: accounts.token_program,
         }
     }
     #[inline(always)]
@@ -235,7 +213,7 @@ impl<'a, 'b> WithdrawCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(4 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.jellybean_machine.key,
             false,
@@ -247,10 +225,6 @@ impl<'a, 'b> WithdrawCpi<'a, 'b> {
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.mint_authority.key,
             true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            *self.token_program.key,
-            false,
         ));
         remaining_accounts.iter().for_each(|remaining_account| {
             accounts.push(solana_program::instruction::AccountMeta {
@@ -266,12 +240,11 @@ impl<'a, 'b> WithdrawCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(5 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(4 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.jellybean_machine.clone());
         account_infos.push(self.authority.clone());
         account_infos.push(self.mint_authority.clone());
-        account_infos.push(self.token_program.clone());
         remaining_accounts
             .iter()
             .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
@@ -291,7 +264,6 @@ impl<'a, 'b> WithdrawCpi<'a, 'b> {
 ///   0. `[writable]` jellybean_machine
 ///   1. `[writable, signer]` authority
 ///   2. `[writable, signer]` mint_authority
-///   3. `[]` token_program
 #[derive(Clone, Debug)]
 pub struct WithdrawCpiBuilder<'a, 'b> {
     instruction: Box<WithdrawCpiBuilderInstruction<'a, 'b>>,
@@ -304,7 +276,6 @@ impl<'a, 'b> WithdrawCpiBuilder<'a, 'b> {
             jellybean_machine: None,
             authority: None,
             mint_authority: None,
-            token_program: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -334,14 +305,6 @@ impl<'a, 'b> WithdrawCpiBuilder<'a, 'b> {
         mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
         self.instruction.mint_authority = Some(mint_authority);
-        self
-    }
-    #[inline(always)]
-    pub fn token_program(
-        &mut self,
-        token_program: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.token_program = Some(token_program);
         self
     }
     /// Add an additional account to the instruction.
@@ -399,11 +362,6 @@ impl<'a, 'b> WithdrawCpiBuilder<'a, 'b> {
                 .instruction
                 .mint_authority
                 .expect("mint_authority is not set"),
-
-            token_program: self
-                .instruction
-                .token_program
-                .expect("token_program is not set"),
         };
         instruction.invoke_signed_with_remaining_accounts(
             signers_seeds,
@@ -418,7 +376,6 @@ struct WithdrawCpiBuilderInstruction<'a, 'b> {
     jellybean_machine: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     mint_authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

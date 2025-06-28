@@ -64,7 +64,7 @@ pub struct ClaimCoreItem<'info> {
 
     /// CHECK: Safe due to item check
     #[account(mut)]
-    print_asset: Option<UncheckedAccount<'info>>,
+    print_asset: Option<Signer<'info>>,
 
     /// CHECK: Safe due to constraint
     #[account(address = mpl_core::ID)]
@@ -160,16 +160,11 @@ pub fn claim_core_item<'info>(
     let item_position = BASE_JELLYBEAN_MACHINE_SIZE + (index as usize) * LOADED_ITEM_SIZE;
     let prize_mint = Pubkey::try_from_slice(&data[item_position..item_position + 32])?;
     assert_keys_equal(mint, prize_mint, "Invalid mint")?;
-
-    let jellybean_machine = &mut ctx.accounts.jellybean_machine;
-    jellybean_machine.supply_settled = jellybean_machine
-        .supply_settled
-        .checked_add(1)
-        .ok_or(JellybeanError::NumericalOverflowError)?;
+    drop(data);
 
     emit_cpi!(ClaimItemEvent {
         mint,
-        authority: jellybean_machine.authority.key(),
+        authority: ctx.accounts.jellybean_machine.authority.key(),
     });
 
     Ok(())

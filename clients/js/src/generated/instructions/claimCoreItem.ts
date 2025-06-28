@@ -32,7 +32,11 @@ import {
   type WritableAccount,
   type WritableSignerAccount,
 } from '@solana/kit';
-import { resolveAuthorityPda } from '../../hooked';
+import {
+  resolveAuthorityPda,
+  resolveEventAuthorityPda,
+  resolveProgram,
+} from '../../hooked';
 import { findUnclaimedPrizesPda } from '../pdas';
 import { MALLOW_JELLYBEAN_PROGRAM_ADDRESS } from '../programs';
 import {
@@ -97,7 +101,8 @@ export type ClaimCoreItemInstruction<
         ? WritableAccount<TAccountCollection>
         : TAccountCollection,
       TAccountPrintAsset extends string
-        ? WritableAccount<TAccountPrintAsset>
+        ? WritableSignerAccount<TAccountPrintAsset> &
+            IAccountSignerMeta<TAccountPrintAsset>
         : TAccountPrintAsset,
       TAccountMplCoreProgram extends string
         ? ReadonlyAccount<TAccountMplCoreProgram>
@@ -174,11 +179,11 @@ export type ClaimCoreItemAsyncInput<
   unclaimedPrizes?: Address<TAccountUnclaimedPrizes>;
   asset?: Address<TAccountAsset>;
   collection?: Address<TAccountCollection>;
-  printAsset?: Address<TAccountPrintAsset>;
+  printAsset?: TransactionSigner<TAccountPrintAsset>;
   mplCoreProgram?: Address<TAccountMplCoreProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  eventAuthority: Address<TAccountEventAuthority>;
-  program: Address<TAccountProgram>;
+  eventAuthority?: Address<TAccountEventAuthority>;
+  program?: Address<TAccountProgram>;
   index: ClaimCoreItemInstructionDataArgs['index'];
 };
 
@@ -283,6 +288,18 @@ export async function getClaimCoreItemInstructionAsync<
     accounts.systemProgram.value =
       '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
   }
+  if (!accounts.eventAuthority.value) {
+    accounts.eventAuthority = {
+      ...accounts.eventAuthority,
+      ...resolveEventAuthorityPda(resolverScope),
+    };
+  }
+  if (!accounts.program.value) {
+    accounts.program = {
+      ...accounts.program,
+      ...resolveProgram(resolverScope),
+    };
+  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   const instruction = {
@@ -348,11 +365,11 @@ export type ClaimCoreItemInput<
   unclaimedPrizes: Address<TAccountUnclaimedPrizes>;
   asset?: Address<TAccountAsset>;
   collection?: Address<TAccountCollection>;
-  printAsset?: Address<TAccountPrintAsset>;
+  printAsset?: TransactionSigner<TAccountPrintAsset>;
   mplCoreProgram?: Address<TAccountMplCoreProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  eventAuthority: Address<TAccountEventAuthority>;
-  program: Address<TAccountProgram>;
+  eventAuthority?: Address<TAccountEventAuthority>;
+  program?: Address<TAccountProgram>;
   index: ClaimCoreItemInstructionDataArgs['index'];
 };
 
@@ -448,6 +465,18 @@ export function getClaimCoreItemInstruction<
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =
       '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+  if (!accounts.eventAuthority.value) {
+    accounts.eventAuthority = {
+      ...accounts.eventAuthority,
+      ...resolveEventAuthorityPda(resolverScope),
+    };
+  }
+  if (!accounts.program.value) {
+    accounts.program = {
+      ...accounts.program,
+      ...resolveProgram(resolverScope),
+    };
   }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
