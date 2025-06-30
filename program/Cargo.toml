@@ -10,7 +10,8 @@ publish = false
 program-id = "J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq"
 program-dependencies = [
     "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d",
-    "GGRDy4ieS7ExrUu313QkszyuT9o3BvDLuc3H5VLgCpSF"
+    "GGRDy4ieS7ExrUu313QkszyuT9o3BvDLuc3H5VLgCpSF",
+    "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 ]
 account-dependencies = []
 

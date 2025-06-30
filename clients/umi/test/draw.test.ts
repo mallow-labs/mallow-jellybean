@@ -1,5 +1,5 @@
 import { drawJellybean } from '@mallow-labs/mallow-gumball';
-import { some } from '@metaplex-foundation/umi';
+import { addAmounts, sameAmounts, some } from '@metaplex-foundation/umi';
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
@@ -16,6 +16,7 @@ import {
   createMasterEdition,
   createUmi,
   DEFAULT_MAX_SUPPLY,
+  DEFAULT_SOL_PAYMENT_LAMPORTS,
 } from './_setup';
 
 test('it can draw an item from a master edition', async (t) => {
@@ -633,4 +634,104 @@ test('it draws items with reasonable randomness distribution', async (t) => {
   });
 
   t.is(totalItemsRedeemed, drawCount);
+});
+
+test('it transfers funds to the correct user', async (t) => {
+  const sellerUmi = await createUmi();
+  const assetSigner = await createCoreAsset(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  const initialBalance = await sellerUmi.rpc.getBalance(
+    sellerUmi.identity.publicKey
+  );
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  const finalBalance = await sellerUmi.rpc.getBalance(
+    sellerUmi.identity.publicKey
+  );
+  t.true(
+    sameAmounts(
+      finalBalance,
+      addAmounts(initialBalance, DEFAULT_SOL_PAYMENT_LAMPORTS)
+    )
+  );
+});
+
+test('it fails when fee account is not provided', async (t) => {
+  const sellerUmi = await createUmi();
+  const assetSigner = await createCoreAsset(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await t.throwsAsync(
+    () =>
+      drawJellybean(buyerUmi, {
+        jellybeanMachine,
+        mintArgs: {
+          solPayment: some({
+            feeAccounts: [],
+          }),
+        },
+      }).sendAndConfirm(buyerUmi),
+    { message: /MissingRemainingAccount/ }
+  );
+});
+
+test('it fails when fee account is incorrect', async (t) => {
+  const sellerUmi = await createUmi();
+  const assetSigner = await createCoreAsset(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await t.throwsAsync(
+    () =>
+      drawJellybean(buyerUmi, {
+        jellybeanMachine,
+        mintArgs: {
+          solPayment: some({
+            feeAccounts: [buyer.publicKey],
+          }),
+        },
+      }).sendAndConfirm(buyerUmi),
+    { message: /Invalid fee account address/ }
+  );
 });

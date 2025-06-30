@@ -192,7 +192,7 @@ export const createMintWithHolders = async (
   return [mint, ...atas];
 };
 
-export const create = async <DA extends GuardSetArgs = DefaultGuardSetArgs>(
+export const create = async (
   umi: Umi,
   input: Omit<Partial<Parameters<typeof initialize>[1]>, 'jellybeanMachine'> & {
     jellybeanMachine?: Signer;
@@ -201,9 +201,7 @@ export const create = async <DA extends GuardSetArgs = DefaultGuardSetArgs>(
       collection?: PublicKey;
     }[];
     startSale?: boolean;
-  } & Partial<
-      GumballGuardDataArgs<DA extends undefined ? DefaultGuardSetArgs : DA>
-    > = {}
+  } & Partial<GumballGuardDataArgs<DefaultGuardSetArgs>> = {}
 ) => {
   const jellybeanMachineSigner = input.jellybeanMachine ?? generateSigner(umi);
   const jellybeanMachine = jellybeanMachineSigner.publicKey;
@@ -233,8 +231,9 @@ export const create = async <DA extends GuardSetArgs = DefaultGuardSetArgs>(
     });
     builder = builder
       .add(
-        baseCreateGumballGuard<DA>(umi, {
+        baseCreateGumballGuard<DefaultGuardSetArgs>(umi, {
           ...input,
+          guards,
           base: jellybeanMachineSigner,
         })
       )

@@ -427,9 +427,8 @@ test('it returns rent for machine use when removing an asset', async (t) => {
   }).sendAndConfirm(umi);
 
   const finalBalance = await umi.rpc.getBalance(umi.identity.publicKey);
-  t.is(
+  t.true(
     isGreaterThanAmount(finalBalance, initialBalance),
-    true,
     `Final balance ${finalBalance.basisPoints} should be greater than initial balance ${initialBalance.basisPoints}`
   );
 });
