@@ -31,12 +31,12 @@ pub struct RemoveCoreItem<'info> {
     #[account(mut)]
     authority: Signer<'info>,
 
-    /// CHECK: Safe due to freeze
+    /// CHECK: Verified in processors
     #[account(mut)]
     asset: Option<UncheckedAccount<'info>>,
 
     /// Core asset's collection if it's part of one.
-    /// CHECK: Verified in mpl_core processors
+    /// CHECK: Verified in processors
     #[account(mut)]
     collection: Option<UncheckedAccount<'info>>,
 
@@ -60,10 +60,6 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
     let mint = Pubkey::try_from_slice(&data[item_position..item_position + 32])?;
     drop(data);
 
-    let jellybean_machine = &mut ctx.accounts.jellybean_machine;
-    // Remove the item from the jellybean machine
-    processors::remove_multiple_items_span(jellybean_machine, index, index, authority)?;
-
     let collection_info = ctx
         .accounts
         .collection
@@ -73,8 +69,7 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
 
     let auth_seeds = [
         AUTHORITY_SEED.as_bytes(),
-        ctx.accounts
-            .jellybean_machine
+        jellybean_machine
             .to_account_info()
             .key
             .as_ref(),
@@ -93,12 +88,12 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
             .new_owner(authority)
             .system_program(Some(system_program))
             .invoke_signed(&[&auth_seeds])?;
-    } else if let Some(collection_account) = &ctx.accounts.collection {
-        assert_keys_equal(mint, *collection_account.key, "Invalid collection")?;
+    } else if let Some(collection) = collection {
+        assert_keys_equal(mint, *collection.key, "Invalid collection")?;
 
         // Update the master edition authority to the authority pda
         UpdateCollectionV1CpiBuilder::new(mpl_core_program)
-            .collection(collection_account)
+            .collection(collection)
             .payer(authority)
             .authority(Some(authority_pda))
             .new_update_authority(Some(authority))
@@ -107,6 +102,9 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
     } else {
         return err!(JellybeanError::InvalidAsset);
     };
+
+    // Remove the item from the jellybean machine
+    processors::remove_multiple_items_span(jellybean_machine, index, index, authority)?;
 
     Ok(())
 }

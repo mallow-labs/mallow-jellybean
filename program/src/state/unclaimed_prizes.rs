@@ -20,6 +20,8 @@ pub struct Prize {
     pub edition_number: u32,
 }
 
+pub const PRIZE_SIZE: usize = 6;
+
 impl UnclaimedPrizes {
     pub const CURRENT_VERSION: u8 = 0;
     pub const SEED_PREFIX: &'static str = "unclaimed_prizes";
@@ -31,21 +33,8 @@ impl UnclaimedPrizes {
         + 32 // buyer
         + 4; // Vec length prefix
 
-    // Initial size for empty Vec
-    pub const INIT_SIZE: usize = Self::BASE_SIZE;
-
     /// Calculate the space needed for a given number of prize indices
     pub fn space(prize_count: usize) -> usize {
-        Self::BASE_SIZE + (prize_count * core::mem::size_of::<Prize>())
-    }
-
-    /// Get the current space requirement for this account
-    pub fn current_space(&self) -> usize {
-        Self::space(self.prizes.len())
-    }
-
-    /// Get the space needed to add one more prize
-    pub fn space_for_next_prize(&self) -> usize {
-        Self::space(self.prizes.len() + 1)
+        Self::BASE_SIZE + (prize_count * PRIZE_SIZE)
     }
 }

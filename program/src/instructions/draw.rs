@@ -52,8 +52,8 @@ pub struct Draw<'info> {
             buyer.key().as_ref(),
         ],
         bump,
-        space = UnclaimedPrizes::INIT_SIZE,
-        payer = payer
+        space = if unclaimed_prizes.data_is_empty() {UnclaimedPrizes::space(0)} else {unclaimed_prizes.data_len()},
+        payer = payer,
     )]
     unclaimed_prizes: Box<Account<'info, UnclaimedPrizes>>,
 
@@ -83,7 +83,7 @@ pub fn draw<'info>(
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
     let unclaimed_prizes = &mut ctx.accounts.unclaimed_prizes;
 
-    if unclaimed_prizes.version == 0 {
+    if unclaimed_prizes.jellybean_machine == Pubkey::default() {
         unclaimed_prizes.version = UnclaimedPrizes::CURRENT_VERSION;
         unclaimed_prizes.jellybean_machine = jellybean_machine.key();
         unclaimed_prizes.buyer = ctx.accounts.buyer.key();
@@ -92,35 +92,28 @@ pub fn draw<'info>(
     // Calculate space needed for one more prize
     let current_len = unclaimed_prizes.prizes.len();
     let new_space = UnclaimedPrizes::space(current_len + 1);
-    let current_space = unclaimed_prizes.to_account_info().data_len();
 
-    // Reallocate if needed
-    if new_space > current_space {
-        let rent = Rent::get()?;
-        let new_rent_minimum = rent.minimum_balance(new_space);
-        let current_lamports = unclaimed_prizes.to_account_info().lamports();
+    let rent = Rent::get()?;
+    let new_rent_minimum = rent.minimum_balance(new_space);
+    let current_lamports = unclaimed_prizes.to_account_info().lamports();
 
-        if new_rent_minimum > current_lamports {
-            let additional_lamports = new_rent_minimum - current_lamports;
+    let additional_lamports = new_rent_minimum - current_lamports;
+    // Transfer additional lamports from payer
+    anchor_lang::system_program::transfer(
+        anchor_lang::context::CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.payer.to_account_info(),
+                to: unclaimed_prizes.to_account_info(),
+            },
+        ),
+        additional_lamports,
+    )?;
 
-            // Transfer additional lamports from payer
-            anchor_lang::system_program::transfer(
-                anchor_lang::context::CpiContext::new(
-                    ctx.accounts.system_program.to_account_info(),
-                    anchor_lang::system_program::Transfer {
-                        from: ctx.accounts.payer.to_account_info(),
-                        to: unclaimed_prizes.to_account_info(),
-                    },
-                ),
-                additional_lamports,
-            )?;
-        }
-
-        // Reallocate the account
-        unclaimed_prizes
-            .to_account_info()
-            .realloc(new_space, false)?;
-    }
+    // Reallocate the account
+    unclaimed_prizes
+        .to_account_info()
+        .realloc(new_space, false)?;
 
     let accounts = DrawAccounts {
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
