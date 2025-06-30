@@ -5,7 +5,7 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-use crate::generated::types::FeeAccount;
+use crate::generated::types::SettingsArgs;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 
@@ -96,8 +96,7 @@ impl Default for InitializeInstructionData {
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct InitializeInstructionArgs {
-    pub fee_accounts: Vec<Option<FeeAccount>>,
-    pub uri: String,
+    pub args: SettingsArgs,
 }
 
 /// Instruction builder for `Initialize`.
@@ -116,8 +115,7 @@ pub struct InitializeBuilder {
     authority_pda: Option<solana_program::pubkey::Pubkey>,
     payer: Option<solana_program::pubkey::Pubkey>,
     system_program: Option<solana_program::pubkey::Pubkey>,
-    fee_accounts: Option<Vec<Option<FeeAccount>>>,
-    uri: Option<String>,
+    args: Option<SettingsArgs>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -160,13 +158,8 @@ impl InitializeBuilder {
         self
     }
     #[inline(always)]
-    pub fn fee_accounts(&mut self, fee_accounts: Vec<Option<FeeAccount>>) -> &mut Self {
-        self.fee_accounts = Some(fee_accounts);
-        self
-    }
-    #[inline(always)]
-    pub fn uri(&mut self, uri: String) -> &mut Self {
-        self.uri = Some(uri);
+    pub fn args(&mut self, args: SettingsArgs) -> &mut Self {
+        self.args = Some(args);
         self
     }
     /// Add an additional account to the instruction.
@@ -201,8 +194,7 @@ impl InitializeBuilder {
                 .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
         };
         let args = InitializeInstructionArgs {
-            fee_accounts: self.fee_accounts.clone().expect("fee_accounts is not set"),
-            uri: self.uri.clone().expect("uri is not set"),
+            args: self.args.clone().expect("args is not set"),
         };
 
         accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
@@ -374,8 +366,7 @@ impl<'a, 'b> InitializeCpiBuilder<'a, 'b> {
             authority_pda: None,
             payer: None,
             system_program: None,
-            fee_accounts: None,
-            uri: None,
+            args: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -423,13 +414,8 @@ impl<'a, 'b> InitializeCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn fee_accounts(&mut self, fee_accounts: Vec<Option<FeeAccount>>) -> &mut Self {
-        self.instruction.fee_accounts = Some(fee_accounts);
-        self
-    }
-    #[inline(always)]
-    pub fn uri(&mut self, uri: String) -> &mut Self {
-        self.instruction.uri = Some(uri);
+    pub fn args(&mut self, args: SettingsArgs) -> &mut Self {
+        self.instruction.args = Some(args);
         self
     }
     /// Add an additional account to the instruction.
@@ -474,12 +460,7 @@ impl<'a, 'b> InitializeCpiBuilder<'a, 'b> {
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
         let args = InitializeInstructionArgs {
-            fee_accounts: self
-                .instruction
-                .fee_accounts
-                .clone()
-                .expect("fee_accounts is not set"),
-            uri: self.instruction.uri.clone().expect("uri is not set"),
+            args: self.instruction.args.clone().expect("args is not set"),
         };
         let instruction = InitializeCpi {
             __program: self.instruction.__program,
@@ -519,8 +500,7 @@ struct InitializeCpiBuilderInstruction<'a, 'b> {
     authority_pda: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     payer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    fee_accounts: Option<Vec<Option<FeeAccount>>>,
-    uri: Option<String>,
+    args: Option<SettingsArgs>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

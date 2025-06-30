@@ -7,23 +7,13 @@
  */
 
 import {
-  addDecoderSizePrefix,
-  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getArrayDecoder,
-  getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getOptionDecoder,
-  getOptionEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  getUtf8Decoder,
-  getUtf8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -34,8 +24,6 @@ import {
   type IInstruction,
   type IInstructionWithAccounts,
   type IInstructionWithData,
-  type Option,
-  type OptionOrNullable,
   type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
@@ -44,10 +32,10 @@ import {
 import { MALLOW_JELLYBEAN_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 import {
-  getFeeAccountDecoder,
-  getFeeAccountEncoder,
-  type FeeAccount,
-  type FeeAccountArgs,
+  getSettingsArgsDecoder,
+  getSettingsArgsEncoder,
+  type SettingsArgs,
+  type SettingsArgsArgs,
 } from '../types';
 
 export const UPDATE_SETTINGS_DISCRIMINATOR = new Uint8Array([
@@ -82,24 +70,16 @@ export type UpdateSettingsInstruction<
 
 export type UpdateSettingsInstructionData = {
   discriminator: ReadonlyUint8Array;
-  feeAccounts: Array<Option<FeeAccount>>;
-  uri: string;
+  args: SettingsArgs;
 };
 
-export type UpdateSettingsInstructionDataArgs = {
-  feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
-  uri: string;
-};
+export type UpdateSettingsInstructionDataArgs = { args: SettingsArgsArgs };
 
 export function getUpdateSettingsInstructionDataEncoder(): Encoder<UpdateSettingsInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      [
-        'feeAccounts',
-        getArrayEncoder(getOptionEncoder(getFeeAccountEncoder())),
-      ],
-      ['uri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['args', getSettingsArgsEncoder()],
     ]),
     (value) => ({ ...value, discriminator: UPDATE_SETTINGS_DISCRIMINATOR })
   );
@@ -108,8 +88,7 @@ export function getUpdateSettingsInstructionDataEncoder(): Encoder<UpdateSetting
 export function getUpdateSettingsInstructionDataDecoder(): Decoder<UpdateSettingsInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['feeAccounts', getArrayDecoder(getOptionDecoder(getFeeAccountDecoder()))],
-    ['uri', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['args', getSettingsArgsDecoder()],
   ]);
 }
 
@@ -131,8 +110,7 @@ export type UpdateSettingsInput<
   jellybeanMachine: Address<TAccountJellybeanMachine>;
   /** Gumball Machine authority. This is the address that controls the upate of the jellybean machine. */
   authority: TransactionSigner<TAccountAuthority>;
-  feeAccounts: UpdateSettingsInstructionDataArgs['feeAccounts'];
-  uri: UpdateSettingsInstructionDataArgs['uri'];
+  args: UpdateSettingsInstructionDataArgs['args'];
 };
 
 export function getUpdateSettingsInstruction<

@@ -27,7 +27,7 @@ pub mod mallow_jellybean {
     ///   2. `[writable]` Authority PDA (PDA, seeds: ["authority", jellybean_machine])
     ///   3. `[signer, writable]` Payer
     ///   4. `[]` System program
-    pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> {
+    pub fn initialize(ctx: Context<Initialize>, args: SettingsArgs) -> Result<()> {
         instructions::initialize(ctx, args)
     }
 
@@ -37,7 +37,7 @@ pub mod mallow_jellybean {
     ///
     ///   0. `[writable]` Gumball Machine account
     ///   1. `[signer, writable]` Gumball Machine authority
-    pub fn update_settings(ctx: Context<UpdateSettings>, args: UpdateArgs) -> Result<()> {
+    pub fn update_settings(ctx: Context<UpdateSettings>, args: SettingsArgs) -> Result<()> {
         instructions::update_settings(ctx, args)
     }
 

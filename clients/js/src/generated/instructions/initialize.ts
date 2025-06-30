@@ -7,23 +7,13 @@
  */
 
 import {
-  addDecoderSizePrefix,
-  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getArrayDecoder,
-  getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getOptionDecoder,
-  getOptionEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  getUtf8Decoder,
-  getUtf8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -34,8 +24,6 @@ import {
   type IInstruction,
   type IInstructionWithAccounts,
   type IInstructionWithData,
-  type Option,
-  type OptionOrNullable,
   type ReadonlyAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
@@ -46,10 +34,10 @@ import { resolveAuthorityPda } from '../../hooked';
 import { MALLOW_JELLYBEAN_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 import {
-  getFeeAccountDecoder,
-  getFeeAccountEncoder,
-  type FeeAccount,
-  type FeeAccountArgs,
+  getSettingsArgsDecoder,
+  getSettingsArgsEncoder,
+  type SettingsArgs,
+  type SettingsArgsArgs,
 } from '../types';
 
 export const INITIALIZE_DISCRIMINATOR = new Uint8Array([
@@ -96,24 +84,16 @@ export type InitializeInstruction<
 
 export type InitializeInstructionData = {
   discriminator: ReadonlyUint8Array;
-  feeAccounts: Array<Option<FeeAccount>>;
-  uri: string;
+  args: SettingsArgs;
 };
 
-export type InitializeInstructionDataArgs = {
-  feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
-  uri: string;
-};
+export type InitializeInstructionDataArgs = { args: SettingsArgsArgs };
 
 export function getInitializeInstructionDataEncoder(): Encoder<InitializeInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      [
-        'feeAccounts',
-        getArrayEncoder(getOptionEncoder(getFeeAccountEncoder())),
-      ],
-      ['uri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['args', getSettingsArgsEncoder()],
     ]),
     (value) => ({ ...value, discriminator: INITIALIZE_DISCRIMINATOR })
   );
@@ -122,8 +102,7 @@ export function getInitializeInstructionDataEncoder(): Encoder<InitializeInstruc
 export function getInitializeInstructionDataDecoder(): Decoder<InitializeInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['feeAccounts', getArrayDecoder(getOptionDecoder(getFeeAccountDecoder()))],
-    ['uri', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['args', getSettingsArgsDecoder()],
   ]);
 }
 
@@ -158,8 +137,7 @@ export type InitializeInput<
   /** Payer of the transaction. */
   payer: TransactionSigner<TAccountPayer>;
   systemProgram?: Address<TAccountSystemProgram>;
-  feeAccounts: InitializeInstructionDataArgs['feeAccounts'];
-  uri: InitializeInstructionDataArgs['uri'];
+  args: InitializeInstructionDataArgs['args'];
 };
 
 export function getInitializeInstruction<

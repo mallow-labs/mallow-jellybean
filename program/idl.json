@@ -57,7 +57,7 @@
         {
           "name": "args",
           "type": {
-            "defined": "InitializeArgs"
+            "defined": "SettingsArgs"
           }
         }
       ]
@@ -94,7 +94,7 @@
         {
           "name": "args",
           "type": {
-            "defined": "UpdateArgs"
+            "defined": "SettingsArgs"
           }
         }
       ]
@@ -743,50 +743,6 @@
   ],
   "types": [
     {
-      "name": "InitializeArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "feeAccounts",
-            "type": {
-              "vec": {
-                "option": {
-                  "defined": "FeeAccount"
-                }
-              }
-            }
-          },
-          {
-            "name": "uri",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "name": "UpdateArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "feeAccounts",
-            "type": {
-              "vec": {
-                "option": {
-                  "defined": "FeeAccount"
-                }
-              }
-            }
-          },
-          {
-            "name": "uri",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "name": "FeeAccount",
       "type": {
         "kind": "struct",
@@ -821,6 +777,31 @@
           },
           {
             "name": "SaleEnded"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SettingsArgs",
+      "docs": [
+        "Common arguments for settings-related operations (initialize and update_settings)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "feeAccounts",
+            "type": {
+              "vec": {
+                "option": {
+                  "defined": "FeeAccount"
+                }
+              }
+            }
+          },
+          {
+            "name": "uri",
+            "type": "string"
           }
         ]
       }
@@ -974,6 +955,17 @@
       "code": 6019,
       "name": "InvalidItemIndex",
       "msg": "Invalid item index"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidFeeAccountBasisPoints",
+      "msg": "Fee account basis points must sum to 10000"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq",
+    "origin": "anchor",
+    "binaryVersion": "0.29.0",
+    "libVersion": "0.29.0"
+  }
 }

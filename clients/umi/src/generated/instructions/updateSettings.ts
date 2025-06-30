@@ -8,8 +8,6 @@
 
 import {
   Context,
-  Option,
-  OptionOrNullable,
   Pda,
   PublicKey,
   Signer,
@@ -18,11 +16,8 @@ import {
 } from '@metaplex-foundation/umi';
 import {
   Serializer,
-  array,
   bytes,
   mapSerializer,
-  option,
-  string,
   struct,
 } from '@metaplex-foundation/umi/serializers';
 import {
@@ -30,7 +25,11 @@ import {
   ResolvedAccountsWithIndices,
   getAccountMetasAndSigners,
 } from '../shared';
-import { FeeAccount, FeeAccountArgs, getFeeAccountSerializer } from '../types';
+import {
+  SettingsArgs,
+  SettingsArgsArgs,
+  getSettingsArgsSerializer,
+} from '../types';
 
 // Accounts.
 export type UpdateSettingsInstructionAccounts = {
@@ -43,14 +42,10 @@ export type UpdateSettingsInstructionAccounts = {
 // Data.
 export type UpdateSettingsInstructionData = {
   discriminator: Uint8Array;
-  feeAccounts: Array<Option<FeeAccount>>;
-  uri: string;
+  args: SettingsArgs;
 };
 
-export type UpdateSettingsInstructionDataArgs = {
-  feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
-  uri: string;
-};
+export type UpdateSettingsInstructionDataArgs = { args: SettingsArgsArgs };
 
 export function getUpdateSettingsInstructionDataSerializer(): Serializer<
   UpdateSettingsInstructionDataArgs,
@@ -64,8 +59,7 @@ export function getUpdateSettingsInstructionDataSerializer(): Serializer<
     struct<UpdateSettingsInstructionData>(
       [
         ['discriminator', bytes({ size: 8 })],
-        ['feeAccounts', array(option(getFeeAccountSerializer()))],
-        ['uri', string()],
+        ['args', getSettingsArgsSerializer()],
       ],
       { description: 'UpdateSettingsInstructionData' }
     ),

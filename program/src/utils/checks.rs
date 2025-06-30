@@ -47,3 +47,34 @@ pub fn assert_initialized<T: Pack + IsInitialized>(account_info: &AccountInfo) -
         Ok(account)
     }
 }
+
+/// Validates URI length
+pub fn validate_uri_length(uri: &str, max_length: usize) -> Result<()> {
+    if uri.len() > max_length - 4 {
+        return err!(JellybeanError::UriTooLong);
+    }
+    Ok(())
+}
+
+/// Validates fee account basis points
+pub fn validate_fee_accounts(fee_accounts: &[Option<crate::FeeAccount>]) -> Result<()> {
+    let total_basis_points: u32 = fee_accounts
+        .iter()
+        .filter_map(|account| account.as_ref())
+        .map(|account| account.basis_points as u32)
+        .sum();
+
+    // Only validate if there are any fee accounts
+    if total_basis_points > 0 && total_basis_points != 10000 {
+        return err!(JellybeanError::InvalidFeeAccountBasisPoints);
+    }
+
+    Ok(())
+}
+
+/// Validates settings arguments (URI length and fee accounts)
+pub fn validate_settings_args(args: &crate::SettingsArgs, max_uri_length: usize) -> Result<()> {
+    validate_uri_length(&args.uri, max_uri_length)?;
+    validate_fee_accounts(&args.fee_accounts)?;
+    Ok(())
+}

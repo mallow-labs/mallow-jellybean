@@ -1,4 +1,4 @@
-use crate::{state::JellybeanMachine, FeeAccount, MAX_FEE_ACCOUNTS};
+use crate::{state::JellybeanMachine, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH, SettingsArgs, utils::validate_settings_args};
 use anchor_lang::prelude::*;
 
 /// Initializes a new jellybean machine.
@@ -16,14 +16,11 @@ pub struct UpdateSettings<'info> {
     authority: Signer<'info>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct UpdateArgs {
-    pub fee_accounts: Vec<Option<FeeAccount>>,
-    pub uri: String,
-}
-
-pub fn update_settings(ctx: Context<UpdateSettings>, args: UpdateArgs) -> Result<()> {
+pub fn update_settings(ctx: Context<UpdateSettings>, args: SettingsArgs) -> Result<()> {
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
+
+    // Validate settings arguments
+    validate_settings_args(&args, MAX_URI_LENGTH)?;
 
     let mut fee_accounts_array = [None; MAX_FEE_ACCOUNTS];
     let copy_len = args.fee_accounts.len().min(MAX_FEE_ACCOUNTS);

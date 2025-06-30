@@ -70,6 +70,9 @@ pub enum MallowJellybeanError {
     /// 6019 - Invalid item index
     #[error("Invalid item index")]
     InvalidItemIndex = 0x1783,
+    /// 6020 - Fee account basis points must sum to 10000
+    #[error("Fee account basis points must sum to 10000")]
+    InvalidFeeAccountBasisPoints = 0x1784,
 }
 
 impl solana_program::program_error::PrintProgramError for MallowJellybeanError {

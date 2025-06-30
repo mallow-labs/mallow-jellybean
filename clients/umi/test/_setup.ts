@@ -71,7 +71,7 @@ export const getDefaultFeeAccounts = (
     : [
         {
           address: authority,
-          basisPoints: 1000, // 100%
+          basisPoints: 10000, // 100%
         },
       ];
 
@@ -212,9 +212,12 @@ export const create = async <DA extends GuardSetArgs = DefaultGuardSetArgs>(
     await createJellybeanMachine(umi, {
       ...input,
       jellybeanMachine: jellybeanMachineSigner,
-      feeAccounts:
-        input.feeAccounts ?? getDefaultFeeAccounts(umi.identity.publicKey),
-      uri: input.uri ?? 'https://example.com/jellybean-machine.json',
+      args: {
+        feeAccounts:
+          input.args?.feeAccounts ??
+          getDefaultFeeAccounts(umi.identity.publicKey),
+        uri: input.args?.uri ?? 'https://example.com/jellybean-machine.json',
+      },
     })
   );
 

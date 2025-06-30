@@ -42,4 +42,6 @@ pub enum JellybeanError {
     InvalidInputLength,
     #[msg("Invalid item index")]
     InvalidItemIndex,
+    #[msg("Fee account basis points must sum to 10000")]
+    InvalidFeeAccountBasisPoints,
 }

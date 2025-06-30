@@ -278,6 +278,22 @@ export class InvalidItemIndexError extends ProgramError {
 codeToErrorMap.set(0x1783, InvalidItemIndexError);
 nameToErrorMap.set('InvalidItemIndex', InvalidItemIndexError);
 
+/** InvalidFeeAccountBasisPoints: Fee account basis points must sum to 10000 */
+export class InvalidFeeAccountBasisPointsError extends ProgramError {
+  override readonly name: string = 'InvalidFeeAccountBasisPoints';
+
+  readonly code: number = 0x1784; // 6020
+
+  constructor(program: Program, cause?: Error) {
+    super('Fee account basis points must sum to 10000', program, cause);
+  }
+}
+codeToErrorMap.set(0x1784, InvalidFeeAccountBasisPointsError);
+nameToErrorMap.set(
+  'InvalidFeeAccountBasisPoints',
+  InvalidFeeAccountBasisPointsError
+);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors

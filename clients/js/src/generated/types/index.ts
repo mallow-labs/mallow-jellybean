@@ -9,3 +9,4 @@
 export * from './feeAccount';
 export * from './jellybeanState';
 export * from './prize';
+export * from './settingsArgs';

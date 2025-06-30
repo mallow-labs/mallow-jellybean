@@ -1,6 +1,7 @@
 use crate::{
-    constants::AUTHORITY_SEED, state::JellybeanMachine, FeeAccount, JellybeanError, JellybeanState,
-    BASE_JELLYBEAN_MACHINE_SIZE, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH,
+    constants::AUTHORITY_SEED, state::JellybeanMachine, JellybeanState,
+    BASE_JELLYBEAN_MACHINE_SIZE, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH, SettingsArgs,
+    utils::validate_settings_args,
 };
 use anchor_lang::{prelude::*, Discriminator};
 
@@ -42,18 +43,11 @@ pub struct Initialize<'info> {
     system_program: Program<'info, System>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct InitializeArgs {
-    pub fee_accounts: Vec<Option<FeeAccount>>,
-    pub uri: String,
-}
-
-pub fn initialize(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> {
+pub fn initialize(ctx: Context<Initialize>, args: SettingsArgs) -> Result<()> {
     let jellybean_machine_account = &mut ctx.accounts.jellybean_machine;
 
-    if args.uri.len() >= MAX_URI_LENGTH - 4 {
-        return err!(JellybeanError::UriTooLong);
-    }
+    // Validate settings arguments
+    validate_settings_args(&args, MAX_URI_LENGTH)?;
 
     let mut fee_accounts_array = [None; MAX_FEE_ACCOUNTS];
     let copy_len = args.fee_accounts.len().min(MAX_FEE_ACCOUNTS);

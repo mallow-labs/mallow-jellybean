@@ -82,6 +82,13 @@ pub struct LoadedItem {
     pub supply_redeemed: u32,
 }
 
+/// Common arguments for settings-related operations (initialize and update_settings)
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct SettingsArgs {
+    pub fee_accounts: Vec<Option<FeeAccount>>,
+    pub uri: String,
+}
+
 #[derive(Copy, AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug)]
 pub enum JellybeanState {
     None,      // Initial state
