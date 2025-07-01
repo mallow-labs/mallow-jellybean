@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::JellybeanError;
+
 /// Jellybean machine state and config data.
 #[account]
 #[derive(Debug)]
@@ -36,5 +38,14 @@ impl UnclaimedPrizes {
     /// Calculate the space needed for a given number of prize indices
     pub fn space(prize_count: usize) -> usize {
         Self::BASE_SIZE + (prize_count * PRIZE_SIZE)
+    }
+
+    pub fn claim_item(&mut self, item_index: u16) -> Result<Prize> {
+        let position = self
+            .prizes
+            .iter()
+            .position(|prize| prize.item_index == item_index)
+            .ok_or(JellybeanError::InvalidItemIndex)?;
+        Ok(self.prizes.remove(position))
     }
 }

@@ -12,7 +12,7 @@ pub struct AddCoreItem<'info> {
     #[account(
         mut,
         has_one = authority @ JellybeanError::InvalidAuthority,
-        constraint = jellybean_machine.can_edit_items() @ JellybeanError::InvalidState,
+        constraint = jellybean_machine.can_add_items() @ JellybeanError::InvalidState,
     )]
     jellybean_machine: Box<Account<'info, JellybeanMachine>>,
 
@@ -80,6 +80,7 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
             mint: asset.key(),
             supply_loaded: 1,
             supply_redeemed: 0,
+            supply_claimed: 0,
         }
     } else if let Some(collection_account) = &ctx.accounts.collection {
         let collection_info = collection_account.to_account_info();
@@ -104,6 +105,7 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
                     mint: collection_account.key(),
                     supply_loaded: max_supply,
                     supply_redeemed: collection.base.current_size,
+                    supply_claimed: 0,
                 }
             } else {
                 return err!(JellybeanError::InvalidMasterEditionSupply);

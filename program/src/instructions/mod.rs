@@ -1,6 +1,5 @@
 pub mod add_core_item;
 pub mod claim_core_item;
-pub mod close_jellybean_machine;
 pub mod draw;
 pub mod end_sale;
 pub mod initialize;
@@ -8,10 +7,10 @@ pub mod remove_core_item;
 pub mod set_mint_authority;
 pub mod start_sale;
 pub mod update_settings;
+pub mod withdraw;
 
 pub use add_core_item::*;
 pub use claim_core_item::*;
-pub use close_jellybean_machine::*;
 pub use draw::*;
 pub use end_sale::*;
 pub use initialize::*;
@@ -19,3 +18,4 @@ pub use remove_core_item::*;
 pub use set_mint_authority::*;
 pub use start_sale::*;
 pub use update_settings::*;
+pub use withdraw::*;

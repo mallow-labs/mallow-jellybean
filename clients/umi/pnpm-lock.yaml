@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@mallow-labs/mallow-gumball':
-        specifier: link:../../../mallow-monorepo/packages/mallow-gumball/clients/js
-        version: link:../../../mallow-monorepo/packages/mallow-gumball/clients/js
+        specifier: link:../../../mallow-gumball/clients/js
+        version: link:../../../mallow-gumball/clients/js
       '@metaplex-foundation/mpl-core':
         specifier: ^1.4.1
         version: 1.4.1(@metaplex-foundation/umi@1.2.0)(@noble/hashes@1.8.0)

@@ -42,7 +42,7 @@ export type ClaimCoreItemInstructionAccounts = {
   jellybeanMachine: PublicKey | Pda;
   authorityPda?: PublicKey | Pda;
   /** buyer of the nft */
-  buyer: PublicKey | Pda;
+  buyer?: PublicKey | Pda;
   /** Buyer unclaimed draws account. */
   unclaimedPrizes?: PublicKey | Pda;
   asset?: PublicKey | Pda;
@@ -184,6 +184,9 @@ export function claimCoreItem(
         true
       ),
     };
+  }
+  if (!resolvedAccounts.buyer.value) {
+    resolvedAccounts.buyer.value = context.identity.publicKey;
   }
   if (!resolvedAccounts.unclaimedPrizes.value) {
     resolvedAccounts.unclaimedPrizes.value = findUnclaimedPrizesPda(context, {

@@ -1,18 +1,18 @@
 use crate::{
     assert_keys_equal, constants::AUTHORITY_SEED, processors, state::JellybeanMachine,
-    JellybeanError, BASE_JELLYBEAN_MACHINE_SIZE, LOADED_ITEM_SIZE,
+    JellybeanError, LoadedItem, BASE_JELLYBEAN_MACHINE_SIZE, LOADED_ITEM_SIZE,
 };
 use anchor_lang::prelude::*;
 use mpl_core::instructions::{TransferV1CpiBuilder, UpdateCollectionV1CpiBuilder};
 
-/// Remove core asset from a jellybean machine.
+/// Remove a Core item from a Jellybean Machine. This can be done before starting a sale or after it has ended.
 #[derive(Accounts)]
 pub struct RemoveCoreItem<'info> {
     /// Gumball Machine account.
     #[account(
         mut,
         has_one = authority @ JellybeanError::InvalidAuthority,
-        constraint = jellybean_machine.can_edit_items() @ JellybeanError::InvalidState,
+        constraint = jellybean_machine.can_remove_items() @ JellybeanError::InvalidState,
     )]
     jellybean_machine: Account<'info, JellybeanMachine>,
 
@@ -57,7 +57,12 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
 
     let data = jellybean_machine_info.data.borrow();
     let item_position = BASE_JELLYBEAN_MACHINE_SIZE + (index as usize) * LOADED_ITEM_SIZE;
-    let mint = Pubkey::try_from_slice(&data[item_position..item_position + 32])?;
+    let loaded_item =
+        LoadedItem::try_from_slice(&data[item_position..item_position + LOADED_ITEM_SIZE])?;
+    require!(
+        loaded_item.supply_claimed == loaded_item.supply_redeemed,
+        JellybeanError::ItemNotFullyClaimed
+    );
     drop(data);
 
     let collection_info = ctx
@@ -69,27 +74,27 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
 
     let auth_seeds = [
         AUTHORITY_SEED.as_bytes(),
-        jellybean_machine
-            .to_account_info()
-            .key
-            .as_ref(),
+        jellybean_machine.to_account_info().key.as_ref(),
         &[ctx.bumps.authority_pda],
     ];
 
     if let Some(asset) = &ctx.accounts.asset {
-        assert_keys_equal(mint, *asset.key, "Invalid asset")?;
+        assert_keys_equal(loaded_item.mint, *asset.key, "Invalid asset")?;
 
-        // Transfer the core asset to the authority pda
-        TransferV1CpiBuilder::new(mpl_core_program)
-            .asset(asset)
-            .collection(collection)
-            .payer(authority)
-            .authority(Some(authority_pda))
-            .new_owner(authority)
-            .system_program(Some(system_program))
-            .invoke_signed(&[&auth_seeds])?;
+        // Only need to transfer if the asset hasn't been redeemed
+        if loaded_item.supply_redeemed == 0 {
+            // Transfer the core asset to the authority pda
+            TransferV1CpiBuilder::new(mpl_core_program)
+                .asset(asset)
+                .collection(collection)
+                .payer(authority)
+                .authority(Some(authority_pda))
+                .new_owner(authority)
+                .system_program(Some(system_program))
+                .invoke_signed(&[&auth_seeds])?;
+        }
     } else if let Some(collection) = collection {
-        assert_keys_equal(mint, *collection.key, "Invalid collection")?;
+        assert_keys_equal(loaded_item.mint, *collection.key, "Invalid collection")?;
 
         // Update the master edition authority to the authority pda
         UpdateCollectionV1CpiBuilder::new(mpl_core_program)

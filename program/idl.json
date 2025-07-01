@@ -960,6 +960,16 @@
       "code": 6020,
       "name": "InvalidFeeAccountBasisPoints",
       "msg": "Fee account basis points must sum to 10000"
+    },
+    {
+      "code": 6021,
+      "name": "ItemNotFullyClaimed",
+      "msg": "Item not fully claimed"
+    },
+    {
+      "code": 6022,
+      "name": "ItemsStillLoaded",
+      "msg": "Items still loaded"
     }
   ],
   "metadata": {

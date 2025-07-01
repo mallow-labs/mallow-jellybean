@@ -161,9 +161,7 @@ pub mod mallow_jellybean {
     ///     - `[]` Associated Token program
     ///     - `[]` System program
     ///     - `[]` Rent sysvar
-    pub fn withdraw<'info>(
-        ctx: Context<'_, '_, '_, 'info, CloseJellybeanMachine<'info>>,
-    ) -> Result<()> {
-        instructions::close_jellybean_machine(ctx)
+    pub fn withdraw<'info>(ctx: Context<'_, '_, '_, 'info, Withdraw<'info>>) -> Result<()> {
+        instructions::withdraw(ctx)
     }
 }

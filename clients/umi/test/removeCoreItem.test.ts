@@ -1,9 +1,11 @@
+import { drawJellybean } from '@mallow-labs/mallow-gumball';
 import { fetchAsset, fetchCollection } from '@metaplex-foundation/mpl-core';
 import { isGreaterThanAmount } from '@metaplex-foundation/umi';
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
   addCoreItem,
+  claimCoreItem,
   fetchJellybeanMachineWithItems,
   JellybeanState,
   removeCoreItem,
@@ -60,7 +62,7 @@ test('it can remove a one-of-one asset from a jellybean machine', async (t) => {
   t.is(asset.owner, umi.identity.publicKey);
 });
 
-test('it can remove a collection (master edition) from a jellybean machine', async (t) => {
+test('it can remove a master edition from a jellybean machine', async (t) => {
   const umi = await createUmi();
   const collectionSigner = await createMasterEdition(umi);
 
@@ -430,5 +432,120 @@ test('it returns rent for machine use when removing an asset', async (t) => {
   t.true(
     isGreaterThanAmount(finalBalance, initialBalance),
     `Final balance ${finalBalance.basisPoints} should be greater than initial balance ${initialBalance.basisPoints}`
+  );
+});
+
+test('it can remove a one-of-one asset after being claimed', async (t) => {
+  const umi = await createUmi();
+  const assetSigner = await createCoreAsset(umi);
+
+  const jellybeanMachine = await create(umi, {
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyerUmi = await createUmi();
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: {
+        feeAccounts: [umi.identity.publicKey],
+      },
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  await claimCoreItem(buyerUmi, {
+    jellybeanMachine,
+    asset: assetSigner.publicKey,
+    index: 0,
+  }).sendAndConfirm(buyerUmi);
+
+  // Remove the asset
+  await removeCoreItem(umi, {
+    jellybeanMachine,
+    asset: assetSigner.publicKey,
+    index: 0,
+  }).sendAndConfirm(umi);
+
+  // Verify the asset was removed from the jellybean machine
+  const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
+    umi,
+    jellybeanMachine
+  );
+  t.is(jellybeanMachineAccount.itemsLoaded, 0);
+  t.is(jellybeanMachineAccount.supplyLoaded, 0n);
+
+  // Verify the asset is owned by the buyer
+  const asset = await fetchAsset(umi, assetSigner.publicKey);
+  t.is(asset.owner, buyerUmi.identity.publicKey);
+});
+
+test('it fails when trying to remove a one-of-one asset before being claimed', async (t) => {
+  const umi = await createUmi();
+  const assetSigner = await createCoreAsset(umi);
+
+  const jellybeanMachine = await create(umi, {
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyerUmi = await createUmi();
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: {
+        feeAccounts: [umi.identity.publicKey],
+      },
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  await t.throwsAsync(
+    removeCoreItem(umi, {
+      jellybeanMachine,
+      asset: assetSigner.publicKey,
+      index: 0,
+    }).sendAndConfirm(umi),
+    { message: /ItemNotFullyClaimed/ }
+  );
+});
+
+test('it fails when trying to remove a master edition before sale has ended', async (t) => {
+  const umi = await createUmi();
+  const collectionSigner = await createMasterEdition(umi);
+
+  const jellybeanMachine = await create(umi, {
+    items: [
+      {
+        collection: collectionSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyerUmi = await createUmi();
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: {
+        feeAccounts: [umi.identity.publicKey],
+      },
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  await t.throwsAsync(
+    removeCoreItem(umi, {
+      jellybeanMachine,
+      collection: collectionSigner.publicKey,
+      index: 0,
+    }).sendAndConfirm(umi),
+    { message: /InvalidState/ }
   );
 });

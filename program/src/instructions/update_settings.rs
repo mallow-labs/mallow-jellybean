@@ -1,4 +1,7 @@
-use crate::{state::JellybeanMachine, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH, SettingsArgs, utils::validate_settings_args};
+use crate::{
+    state::JellybeanMachine, utils::validate_settings_args, SettingsArgs, MAX_FEE_ACCOUNTS,
+    MAX_URI_LENGTH,
+};
 use anchor_lang::prelude::*;
 
 /// Initializes a new jellybean machine.

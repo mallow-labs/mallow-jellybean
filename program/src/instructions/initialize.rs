@@ -1,7 +1,6 @@
 use crate::{
-    constants::AUTHORITY_SEED, state::JellybeanMachine, JellybeanState,
-    BASE_JELLYBEAN_MACHINE_SIZE, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH, SettingsArgs,
-    utils::validate_settings_args,
+    constants::AUTHORITY_SEED, state::JellybeanMachine, utils::validate_settings_args,
+    JellybeanState, SettingsArgs, BASE_JELLYBEAN_MACHINE_SIZE, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH,
 };
 use anchor_lang::{prelude::*, Discriminator};
 

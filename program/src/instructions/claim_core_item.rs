@@ -1,7 +1,7 @@
 use crate::{
-    assert_keys_equal, constants::AUTHORITY_SEED, events::ClaimItemEvent, processors::claim_item,
-    state::JellybeanMachine, JellybeanError, JellybeanState, UnclaimedPrizes,
-    BASE_JELLYBEAN_MACHINE_SIZE, LOADED_ITEM_SIZE,
+    assert_keys_equal, constants::AUTHORITY_SEED, events::ClaimItemEvent, state::JellybeanMachine,
+    JellybeanError, JellybeanState, LoadedItem, UnclaimedPrizes, BASE_JELLYBEAN_MACHINE_SIZE,
+    LOADED_ITEM_SIZE,
 };
 use anchor_lang::prelude::*;
 use mpl_core::{
@@ -92,7 +92,7 @@ pub fn claim_core_item<'info>(
         .map(|account| account.to_account_info());
     let collection = collection_info.as_ref();
 
-    let prize = claim_item(unclaimed_prizes, index)?;
+    let prize = unclaimed_prizes.claim_item(index)?;
 
     let auth_seeds = [
         AUTHORITY_SEED.as_bytes(),
@@ -156,10 +156,16 @@ pub fn claim_core_item<'info>(
         return err!(JellybeanError::InvalidAsset);
     };
 
-    let data = jellybean_machine_info.data.borrow();
+    let mut data = jellybean_machine_info.data.borrow_mut();
     let item_position = BASE_JELLYBEAN_MACHINE_SIZE + (index as usize) * LOADED_ITEM_SIZE;
-    let prize_mint = Pubkey::try_from_slice(&data[item_position..item_position + 32])?;
-    assert_keys_equal(mint, prize_mint, "Invalid mint")?;
+    let loaded_item =
+        LoadedItem::try_from_slice(&data[item_position..item_position + LOADED_ITEM_SIZE])?;
+    assert_keys_equal(mint, loaded_item.mint, "Invalid mint")?;
+
+    let supply_claimed_slice: &mut [u8] =
+        &mut data[item_position + 32 + 4 + 4..item_position + 32 + 4 + 4 + 4];
+    supply_claimed_slice.copy_from_slice(&u32::to_le_bytes(loaded_item.supply_claimed + 1));
+
     drop(data);
 
     emit_cpi!(ClaimItemEvent {

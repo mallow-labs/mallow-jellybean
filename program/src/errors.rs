@@ -44,4 +44,8 @@ pub enum JellybeanError {
     InvalidItemIndex,
     #[msg("Fee account basis points must sum to 10000")]
     InvalidFeeAccountBasisPoints,
+    #[msg("Item not fully claimed")]
+    ItemNotFullyClaimed,
+    #[msg("Items still loaded")]
+    ItemsStillLoaded,
 }

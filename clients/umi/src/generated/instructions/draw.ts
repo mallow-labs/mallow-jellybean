@@ -42,7 +42,7 @@ export type DrawInstructionAccounts = {
   jellybeanMachine: PublicKey | Pda;
   authorityPda?: PublicKey | Pda;
   /** Jellybean machine mint authority (mint only allowed for the mint_authority). */
-  mintAuthority: Signer;
+  mintAuthority?: Signer;
   /** Payer for the transaction and account allocation (rent). */
   payer?: Signer;
   /**
@@ -180,6 +180,9 @@ export function draw(
         true
       ),
     };
+  }
+  if (!resolvedAccounts.mintAuthority.value) {
+    resolvedAccounts.mintAuthority.value = context.identity;
   }
   if (!resolvedAccounts.payer.value) {
     resolvedAccounts.payer.value = context.payer;

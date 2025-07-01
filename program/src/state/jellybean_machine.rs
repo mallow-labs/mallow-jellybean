@@ -54,12 +54,12 @@ impl JellybeanMachine {
         BASE_JELLYBEAN_MACHINE_SIZE + (LOADED_ITEM_SIZE * item_count as usize)
     }
 
-    pub fn can_edit_items(&self) -> bool {
-        self.supply_redeemed == 0 && self.state == JellybeanState::None
+    pub fn can_add_items(&self) -> bool {
+        self.state == JellybeanState::None
     }
 
-    pub fn can_settle_items(&self) -> bool {
-        self.state == JellybeanState::SaleEnded
+    pub fn can_remove_items(&self) -> bool {
+        self.state == JellybeanState::None || self.state == JellybeanState::SaleEnded
     }
 }
 
@@ -80,6 +80,8 @@ pub struct LoadedItem {
     pub supply_loaded: u32,
     /// Number of times this item has been redeemed.
     pub supply_redeemed: u32,
+    /// Number of redeemed items that have been claimed.
+    pub supply_claimed: u32,
 }
 
 /// Common arguments for settings-related operations (initialize and update_settings)

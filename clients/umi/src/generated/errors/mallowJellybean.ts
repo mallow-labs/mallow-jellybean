@@ -294,6 +294,32 @@ nameToErrorMap.set(
   InvalidFeeAccountBasisPointsError
 );
 
+/** ItemNotFullyClaimed: Item not fully claimed */
+export class ItemNotFullyClaimedError extends ProgramError {
+  override readonly name: string = 'ItemNotFullyClaimed';
+
+  readonly code: number = 0x1785; // 6021
+
+  constructor(program: Program, cause?: Error) {
+    super('Item not fully claimed', program, cause);
+  }
+}
+codeToErrorMap.set(0x1785, ItemNotFullyClaimedError);
+nameToErrorMap.set('ItemNotFullyClaimed', ItemNotFullyClaimedError);
+
+/** ItemsStillLoaded: Items still loaded */
+export class ItemsStillLoadedError extends ProgramError {
+  override readonly name: string = 'ItemsStillLoaded';
+
+  readonly code: number = 0x1786; // 6022
+
+  constructor(program: Program, cause?: Error) {
+    super('Items still loaded', program, cause);
+  }
+}
+codeToErrorMap.set(0x1786, ItemsStillLoadedError);
+nameToErrorMap.set('ItemsStillLoaded', ItemsStillLoadedError);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors

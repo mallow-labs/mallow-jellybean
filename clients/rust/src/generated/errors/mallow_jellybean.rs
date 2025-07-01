@@ -73,6 +73,12 @@ pub enum MallowJellybeanError {
     /// 6020 - Fee account basis points must sum to 10000
     #[error("Fee account basis points must sum to 10000")]
     InvalidFeeAccountBasisPoints = 0x1784,
+    /// 6021 - Item not fully claimed
+    #[error("Item not fully claimed")]
+    ItemNotFullyClaimed = 0x1785,
+    /// 6022 - Items still loaded
+    #[error("Items still loaded")]
+    ItemsStillLoaded = 0x1786,
 }
 
 impl solana_program::program_error::PrintProgramError for MallowJellybeanError {

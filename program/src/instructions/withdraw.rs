@@ -3,13 +3,14 @@ use anchor_lang::prelude::*;
 
 /// Withdraw the rent SOL from the jellybean machine account.
 #[derive(Accounts)]
-pub struct CloseJellybeanMachine<'info> {
+pub struct Withdraw<'info> {
     /// Gumball Machine acccount.
     #[account(
         mut, 
         close = authority, 
         has_one = authority @ JellybeanError::InvalidAuthority,
         has_one = mint_authority @ JellybeanError::InvalidMintAuthority,
+        constraint = jellybean_machine.items_loaded == 0 @ JellybeanError::ItemsStillLoaded,
     )]
     jellybean_machine: Account<'info, JellybeanMachine>,
 
@@ -22,8 +23,6 @@ pub struct CloseJellybeanMachine<'info> {
     mint_authority: Signer<'info>,
 }
 
-pub fn close_jellybean_machine<'info>(
-    _: Context<'_, '_, '_, 'info, CloseJellybeanMachine<'info>>,
-) -> Result<()> {
+pub fn withdraw<'info>(_: Context<'_, '_, '_, 'info, Withdraw<'info>>) -> Result<()> {
     Ok(())
 }

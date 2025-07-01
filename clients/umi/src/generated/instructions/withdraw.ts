@@ -33,7 +33,7 @@ export type WithdrawInstructionAccounts = {
   /** Authority of the jellybean machine. */
   authority?: Signer;
   /** Mint authority of the jellybean machine. */
-  mintAuthority: Signer;
+  mintAuthority?: Signer;
 };
 
 // Data.
@@ -93,6 +93,9 @@ export function withdraw(
   // Default values.
   if (!resolvedAccounts.authority.value) {
     resolvedAccounts.authority.value = context.identity;
+  }
+  if (!resolvedAccounts.mintAuthority.value) {
+    resolvedAccounts.mintAuthority.value = context.identity;
   }
 
   // Accounts in order.

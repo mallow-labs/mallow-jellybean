@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "build": "pnpm programs:build && pnpm generate",
     "programs:build": "pnpm solana:link && pnpm rust:link && zx ./scripts/program/build.mjs",
     "programs:test": "zx ./scripts/program/test.mjs",
     "programs:clean": "zx ./scripts/program/clean.mjs",

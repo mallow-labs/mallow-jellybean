@@ -41,6 +41,11 @@ codama.update(
       ignoreIfOptional: true,
     },
     {
+      account: 'mintAuthority',
+      defaultValue: c.identityValueNode(),
+      ignoreIfOptional: true,
+    },
+    {
       account: 'payer',
       defaultValue: c.payerValueNode(),
       ignoreIfOptional: true,
@@ -98,6 +103,13 @@ codama.update(
           type: c.optionTypeNode(c.booleanTypeNode()),
           defaultValue: c.booleanValueNode(false),
           docs: 'Forcing DrawInstructionExtraArgs to be rendered to fix a bug where resolvedArgs is using an undefined type',
+        },
+      },
+    },
+    claimCoreItem: {
+      accounts: {
+        buyer: {
+          defaultValue: c.identityValueNode(),
         },
       },
     },

@@ -1,7 +1,7 @@
 use crate::{
-    constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError,
-    JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedPrizes,
-    BASE_JELLYBEAN_MACHINE_SIZE, LOADED_ITEM_SIZE,
+    constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError, JellybeanMachine,
+    JellybeanState, LoadedItem, Prize, UnclaimedPrizes, BASE_JELLYBEAN_MACHINE_SIZE,
+    LOADED_ITEM_SIZE,
 };
 use anchor_lang::prelude::*;
 use arrayref::array_ref;
@@ -77,9 +77,7 @@ pub(crate) struct DrawAccounts<'info> {
     pub recent_slothashes: AccountInfo<'info>,
 }
 
-pub fn draw<'info>(
-    ctx: Context<'_, '_, '_, 'info, Draw<'info>>
-) -> Result<()> {
+pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
     let unclaimed_prizes = &mut ctx.accounts.unclaimed_prizes;
 
