@@ -38,6 +38,7 @@ import {
 } from '@metaplex-foundation/umi';
 import { createUmi as basecreateUmi } from '@metaplex-foundation/umi-bundle-tests';
 import { Assertions } from 'ava';
+import { chunk } from 'lodash';
 import {
   addCoreItem,
   createJellybeanMachine,
@@ -246,16 +247,21 @@ export const create = async (
       );
   }
 
-  (input.items ?? []).forEach((item) => {
-    builder = builder.add(
-      addCoreItem(umi, {
-        jellybeanMachine,
-        ...item,
-      })
-    );
-  });
+  const itemBatches = chunk(input.items ?? [], 8);
 
-  if (input.startSale) {
+  if (itemBatches.length > 0) {
+    const firstBatch = itemBatches.shift();
+    firstBatch?.forEach((item) => {
+      builder = builder.add(
+        addCoreItem(umi, {
+          jellybeanMachine,
+          ...item,
+        })
+      );
+    });
+  }
+
+  if (itemBatches.length === 0 && input.startSale) {
     builder = builder.add(
       startSale(umi, {
         jellybeanMachine,
@@ -264,6 +270,27 @@ export const create = async (
   }
 
   await builder.sendAndConfirm(umi);
+
+  if (itemBatches.length > 0) {
+    for (const batch of itemBatches) {
+      let batchBuilder = transactionBuilder();
+      batch.forEach((item) => {
+        batchBuilder = batchBuilder.add(
+          addCoreItem(umi, { jellybeanMachine, ...item })
+        );
+      });
+      await batchBuilder.sendAndConfirm(umi);
+    }
+
+    if (input.startSale) {
+      const builder = transactionBuilder().add(
+        startSale(umi, {
+          jellybeanMachine,
+        })
+      );
+      await builder.sendAndConfirm(umi);
+    }
+  }
 
   return jellybeanMachine;
 };

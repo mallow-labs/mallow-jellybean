@@ -81,6 +81,7 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
             supply_loaded: 1,
             supply_redeemed: 0,
             supply_claimed: 0,
+            escrow_amount: 0,
         }
     } else if let Some(collection_account) = &ctx.accounts.collection {
         let collection_info = collection_account.to_account_info();
@@ -101,11 +102,31 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
                     .system_program(system_program)
                     .invoke()?;
 
+                let rent = Rent::get()?;
+                let name = if let Some(name) = master_edition.master_edition.name {
+                    name
+                } else {
+                    collection.base.name
+                };
+
+                let uri = if let Some(uri) = master_edition.master_edition.uri {
+                    uri
+                } else {
+                    collection.base.uri
+                };
+
+                // We escrow funds from the buyer to cover printing fees, this allows the buyer or seller to settle the sale
+                let escrow_amount = 
+                // AssetV1 + Edition plugin base size + name + uri size
+                    rent.minimum_balance(47_usize + name.len() + uri.len()) 
+                        + 1_500_000; // Metaplex fee
+
                 LoadedItem {
                     mint: collection_account.key(),
                     supply_loaded: max_supply,
                     supply_redeemed: collection.base.current_size,
                     supply_claimed: 0,
+                    escrow_amount
                 }
             } else {
                 return err!(JellybeanError::InvalidMasterEditionSupply);

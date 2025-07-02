@@ -9,6 +9,7 @@ import {
   fetchUnclaimedPrizesFromSeeds,
   JellybeanMachineAccountWithItemsData,
   JellybeanState,
+  safeFetchUnclaimedPrizesFromSeeds,
 } from '../src';
 import {
   create,
@@ -44,10 +45,13 @@ test('it can claim an edition', async (t) => {
     },
   }).sendAndConfirm(buyerUmi);
 
-  let updatedUnclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
-    jellybeanMachine,
-    buyer: buyer.publicKey,
-  });
+  const updatedUnclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(
+    sellerUmi,
+    {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    }
+  );
   const drawnEditionNumber = updatedUnclaimedPrizes.prizes[0].editionNumber;
 
   const printAsset = generateSigner(buyerUmi);
@@ -59,11 +63,12 @@ test('it can claim an edition', async (t) => {
     printAsset,
   }).sendAndConfirm(buyerUmi);
 
-  updatedUnclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
-    jellybeanMachine,
-    buyer: buyer.publicKey,
-  });
-  t.is(updatedUnclaimedPrizes.prizes.length, 0);
+  t.falsy(
+    await safeFetchUnclaimedPrizesFromSeeds(sellerUmi, {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    })
+  );
 
   const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
     sellerUmi,
@@ -132,14 +137,12 @@ test('it can claim a one of one asset', async (t) => {
     index: 0,
   }).sendAndConfirm(buyerUmi);
 
-  const updatedUnclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(
-    sellerUmi,
-    {
+  t.falsy(
+    await safeFetchUnclaimedPrizesFromSeeds(sellerUmi, {
       jellybeanMachine,
       buyer: buyer.publicKey,
-    }
+    })
   );
-  t.is(updatedUnclaimedPrizes.prizes.length, 0);
 
   const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
     sellerUmi,
@@ -212,14 +215,12 @@ test('it can claim a one of one asset in a collection', async (t) => {
     index: 0,
   }).sendAndConfirm(buyerUmi);
 
-  const updatedUnclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(
-    sellerUmi,
-    {
+  t.falsy(
+    await safeFetchUnclaimedPrizesFromSeeds(sellerUmi, {
       jellybeanMachine,
       buyer: buyer.publicKey,
-    }
+    })
   );
-  t.is(updatedUnclaimedPrizes.prizes.length, 0);
 
   const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
     sellerUmi,
@@ -374,7 +375,7 @@ test('it fails if the prize has already been claimed', async (t) => {
         index: 0,
         printAsset,
       }).sendAndConfirm(buyerUmi),
-    { message: /InvalidItemIndex/ }
+    { message: /AccountNotInitialized/ }
   );
 });
 
@@ -418,4 +419,96 @@ test('it fails if the buyer is invalid', async (t) => {
       }).sendAndConfirm(buyer2Umi),
     { message: /AccountNotInitialized./ }
   );
+});
+
+test('it can claim then draw then claim again', async (t) => {
+  const sellerUmi = await createUmi();
+  const assetSigners = await Promise.all([
+    createCoreAsset(sellerUmi),
+    createCoreAsset(sellerUmi),
+  ]);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        asset: assetSigners[0].publicKey,
+      },
+      {
+        asset: assetSigners[1].publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  let unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+  });
+  let drawnPrize = unclaimedPrizes.prizes[0];
+
+  await claimCoreItem(buyerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+    asset: assetSigners[drawnPrize.itemIndex].publicKey,
+    index: drawnPrize.itemIndex,
+  }).sendAndConfirm(buyerUmi);
+
+  t.falsy(
+    await safeFetchUnclaimedPrizesFromSeeds(sellerUmi, {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    })
+  );
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+  });
+  drawnPrize = unclaimedPrizes.prizes[0];
+
+  await claimCoreItem(buyerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+    asset: assetSigners[drawnPrize.itemIndex].publicKey,
+    index: drawnPrize.itemIndex,
+  }).sendAndConfirm(buyerUmi);
+
+  t.falsy(
+    await safeFetchUnclaimedPrizesFromSeeds(sellerUmi, {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    })
+  );
+
+  const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
+    sellerUmi,
+    jellybeanMachine
+  );
+  t.like(jellybeanMachineAccount, <JellybeanMachineAccountWithItemsData>{
+    itemsLoaded: 2,
+    supplyLoaded: 2n,
+    supplyRedeemed: 2n,
+    state: JellybeanState.SaleEnded,
+  });
 });

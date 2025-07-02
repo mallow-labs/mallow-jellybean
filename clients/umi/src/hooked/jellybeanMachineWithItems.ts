@@ -16,6 +16,7 @@ import {
   Serializer,
   struct,
   u32,
+  u64,
 } from '@metaplex-foundation/umi/serializers';
 import {
   getJellybeanMachineAccountDataSerializer as baseGetJellybeanMachineAccountDataSerializer,
@@ -50,6 +51,12 @@ export type JellybeanMachineItem = {
 
   /** The supply of the item that has been redeemed. */
   readonly supplyRedeemed: number;
+
+  /** The supply of the item that has been claimed. */
+  readonly supplyClaimed: number;
+
+  /** The escrow amount for the item. */
+  readonly escrowAmount: bigint;
 };
 
 type JellybeanMachineHiddenSection = {
@@ -70,10 +77,14 @@ function getHiddenSection(
             mint: PublicKey;
             supplyLoaded: number;
             supplyRedeemed: number;
+            supplyClaimed: number;
+            escrowAmount: bigint;
           }>([
             ['mint', publicKey()],
             ['supplyLoaded', u32()],
             ['supplyRedeemed', u32()],
+            ['supplyClaimed', u32()],
+            ['escrowAmount', u64()],
           ]),
           { size: itemsLoaded }
         ),

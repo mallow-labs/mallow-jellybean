@@ -23,4 +23,13 @@ export default defineConfig(() => [
     format: 'cjs',
     outDir: './dist/test',
   },
+
+  // Benchmarks.
+  {
+    ...SHARED_OPTIONS,
+    bundle: false,
+    entry: ['./benchmark/**/*.ts'],
+    format: 'cjs',
+    outDir: './dist/benchmark',
+  },
 ]);

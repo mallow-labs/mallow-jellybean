@@ -3,10 +3,9 @@ use crate::{
     JellybeanState, LoadedItem, Prize, UnclaimedPrizes, BASE_JELLYBEAN_MACHINE_SIZE,
     LOADED_ITEM_SIZE,
 };
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use arrayref::array_ref;
 use solana_program::sysvar;
-use std::cell::RefMut;
 
 /// Draws an item from the jellybean machine.
 #[event_cpi]
@@ -75,6 +74,9 @@ pub struct Draw<'info> {
 /// Accounts to mint an NFT.
 pub(crate) struct DrawAccounts<'info> {
     pub recent_slothashes: AccountInfo<'info>,
+    pub payer: AccountInfo<'info>,
+    pub authority_pda: AccountInfo<'info>,
+    pub system_program: AccountInfo<'info>,
 }
 
 pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
@@ -115,6 +117,9 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
 
     let accounts = DrawAccounts {
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
+        payer: ctx.accounts.payer.to_account_info(),
+        authority_pda: ctx.accounts.authority_pda.to_account_info(),
+        system_program: ctx.accounts.system_program.to_account_info(),
     };
 
     let prize = process_draw(jellybean_machine, accounts)?;
@@ -144,8 +149,6 @@ pub(crate) fn process_draw(
     jellybean_machine: &mut Box<Account<'_, JellybeanMachine>>,
     accounts: DrawAccounts,
 ) -> Result<Prize> {
-    let account_info = jellybean_machine.to_account_info();
-    let account_data = account_info.data.borrow_mut();
     let supply_loaded = jellybean_machine.supply_loaded;
 
     // are there items to be minted?
@@ -166,8 +169,8 @@ pub(crate) fn process_draw(
         seed.checked_rem(supply_loaded - jellybean_machine.supply_redeemed)
             .ok_or(JellybeanError::NumericalOverflowError)? as usize;
 
-    let prize = get_prize_and_update_supply_redeemed(
-        account_data,
+    let (prize, item) = get_prize_and_update_supply_redeemed(
+        jellybean_machine,
         jellybean_machine.items_loaded,
         target_supply_index,
     )?;
@@ -182,6 +185,17 @@ pub(crate) fn process_draw(
         jellybean_machine.state = JellybeanState::SaleEnded;
     }
 
+    if item.escrow_amount > 0 {
+        // Escrow any additional amount required
+        transfer(CpiContext::new(
+            accounts.system_program,
+            Transfer {
+                from: accounts.payer,
+                to: accounts.authority_pda,
+            },
+        ), item.escrow_amount)?;
+    }
+
     // release the data borrow
     drop(data);
 
@@ -191,17 +205,18 @@ pub(crate) fn process_draw(
 /// Get the prize for a given target supply index.
 /// The target supply index is the index of the item in the remaining supply across all items.
 fn get_prize_and_update_supply_redeemed(
-    mut account_data: RefMut<'_, &mut [u8]>,
+    jellybean_machine: &mut Box<Account<'_, JellybeanMachine>>,
     items_loaded: u16,
     target_supply_index: usize,
-) -> Result<Prize> {
+) -> Result<(Prize, LoadedItem)> {
+    let account_info = jellybean_machine.to_account_info();
+    let mut account_data = account_info.data.borrow_mut();
+
     // Iterate the loaded items section of the account data
     let mut remaining_supply_covered = 0;
 
     for i in 0..items_loaded {
-        let item_position = BASE_JELLYBEAN_MACHINE_SIZE + i as usize * LOADED_ITEM_SIZE;
-        let item_data = &account_data[item_position..item_position + LOADED_ITEM_SIZE];
-        let item = LoadedItem::try_from_slice(item_data)?;
+        let item = JellybeanMachine::get_loaded_item_at_index(&account_data, i as usize)?;
         let remaining_supply = item.supply_loaded - item.supply_redeemed;
 
         // Skip items with no remaining supply
@@ -217,15 +232,15 @@ fn get_prize_and_update_supply_redeemed(
                 .checked_add(1)
                 .ok_or(JellybeanError::NumericalOverflowError)?;
 
+            let item_position = BASE_JELLYBEAN_MACHINE_SIZE + i as usize * LOADED_ITEM_SIZE;
             // 36 is the offset of the supply_redeemed field in the LoadedItem struct
-            let supply_redeemed_slice: &mut [u8] =
-                &mut account_data[item_position + 36..item_position + 40];
+            let supply_redeemed_slice = &mut account_data[item_position + 36..item_position + 40];
             supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(new_supply_redeemed));
 
-            return Ok(Prize {
+            return Ok((Prize {
                 item_index: i,
                 edition_number: new_supply_redeemed,
-            });
+            }, item));
         }
 
         remaining_supply_covered += remaining_supply as usize;

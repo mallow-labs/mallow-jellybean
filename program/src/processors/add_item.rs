@@ -51,23 +51,13 @@ pub fn add_item<'info>(
         .checked_add(item.supply_loaded as u64)
         .ok_or(JellybeanError::NumericalOverflowError)?;
 
-    let mut position = BASE_JELLYBEAN_MACHINE_SIZE + new_item_index * LOADED_ITEM_SIZE;
-
-    let mint_slice: &mut [u8] = &mut data[position..position + 32];
-    mint_slice.copy_from_slice(&item.mint.to_bytes());
-    position += 32;
-
-    let supply_loaded_slice: &mut [u8] = &mut data[position..position + 4];
-    supply_loaded_slice.copy_from_slice(&u32::to_le_bytes(item.supply_loaded));
-    position += 4;
-
-    let supply_redeemed_slice: &mut [u8] = &mut data[position..position + 4];
-    supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(item.supply_redeemed));
+    let position = BASE_JELLYBEAN_MACHINE_SIZE + new_item_index * LOADED_ITEM_SIZE;
+    let item_slice: &mut [u8] = &mut data[position..position + LOADED_ITEM_SIZE];
+    item_slice.copy_from_slice(&item.try_to_vec()?);
 
     msg!(
-        "Added item: mint={}, supply_loaded={}, new items_loaded={}, new supply_loaded={}",
+        "Added item: mint={}, new items_loaded={}, new supply_loaded={}",
         item.mint,
-        item.supply_loaded,
         jellybean_machine.items_loaded,
         jellybean_machine.supply_loaded
     );

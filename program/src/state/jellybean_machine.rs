@@ -1,4 +1,7 @@
-use anchor_lang::prelude::*;
+use anchor_lang::prelude::{
+    borsh::{BorshDeserialize, BorshSerialize},
+    *,
+};
 
 pub const MAX_URI_LENGTH: usize = 196;
 pub const MAX_FEE_ACCOUNTS: usize = 6;
@@ -15,8 +18,6 @@ pub const BASE_JELLYBEAN_MACHINE_SIZE: usize = 8 // discriminator
     + 1 // state
     + MAX_URI_LENGTH // uri
     + 320; // padding
-
-pub const LOADED_ITEM_SIZE: usize = core::mem::size_of::<LoadedItem>();
 
 /// Jellybean machine state and config data.
 #[account]
@@ -61,6 +62,12 @@ impl JellybeanMachine {
     pub fn can_remove_items(&self) -> bool {
         self.state == JellybeanState::None || self.state == JellybeanState::SaleEnded
     }
+
+    pub fn get_loaded_item_at_index(account_data: &[u8], index: usize) -> Result<LoadedItem> {
+        let item_position = BASE_JELLYBEAN_MACHINE_SIZE + index * LOADED_ITEM_SIZE;
+        let item_data = &mut &account_data[item_position..item_position + LOADED_ITEM_SIZE];
+        return Ok(LoadedItem::deserialize(item_data)?);
+    }
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug)]
@@ -71,8 +78,14 @@ pub struct FeeAccount {
     pub basis_points: u16,
 }
 
+pub const LOADED_ITEM_SIZE: usize = 32 + // mint
+    4 + // supply_loaded
+    4 + // supply_redeemed
+    4 + // supply_claimed
+    8; // escrow_amount
+
 /// Config line struct for storing asset (NFT) data pre-mint.
-#[derive(AnchorSerialize, AnchorDeserialize, Debug)]
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct LoadedItem {
     /// Mint account of the asset.
     pub mint: Pubkey,
@@ -82,6 +95,8 @@ pub struct LoadedItem {
     pub supply_redeemed: u32,
     /// Number of redeemed items that have been claimed.
     pub supply_claimed: u32,
+    /// Escrow amount for the item (for edition prints)
+    pub escrow_amount: u64,
 }
 
 /// Common arguments for settings-related operations (initialize and update_settings)

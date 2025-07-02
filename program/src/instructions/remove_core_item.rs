@@ -1,6 +1,6 @@
 use crate::{
     assert_keys_equal, constants::AUTHORITY_SEED, processors, state::JellybeanMachine,
-    JellybeanError, LoadedItem, BASE_JELLYBEAN_MACHINE_SIZE, LOADED_ITEM_SIZE,
+    JellybeanError
 };
 use anchor_lang::prelude::*;
 use mpl_core::instructions::{TransferV1CpiBuilder, UpdateCollectionV1CpiBuilder};
@@ -56,13 +56,13 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
     let jellybean_machine_info = jellybean_machine.to_account_info();
 
     let data = jellybean_machine_info.data.borrow();
-    let item_position = BASE_JELLYBEAN_MACHINE_SIZE + (index as usize) * LOADED_ITEM_SIZE;
-    let loaded_item =
-        LoadedItem::try_from_slice(&data[item_position..item_position + LOADED_ITEM_SIZE])?;
+    let loaded_item = JellybeanMachine::get_loaded_item_at_index(&data, index as usize)?;
+
     require!(
         loaded_item.supply_claimed == loaded_item.supply_redeemed,
         JellybeanError::ItemNotFullyClaimed
     );
+
     drop(data);
 
     let collection_info = ctx

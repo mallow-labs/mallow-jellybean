@@ -1,6 +1,6 @@
 use crate::{
     assert_keys_equal, constants::AUTHORITY_SEED, events::ClaimItemEvent, state::JellybeanMachine,
-    JellybeanError, JellybeanState, LoadedItem, UnclaimedPrizes, BASE_JELLYBEAN_MACHINE_SIZE,
+    JellybeanError, JellybeanState, UnclaimedPrizes, BASE_JELLYBEAN_MACHINE_SIZE,
     LOADED_ITEM_SIZE,
 };
 use anchor_lang::prelude::*;
@@ -100,6 +100,9 @@ pub fn claim_core_item<'info>(
         &[ctx.bumps.authority_pda],
     ];
 
+    let mut data = jellybean_machine_info.data.borrow_mut();
+    let loaded_item = JellybeanMachine::get_loaded_item_at_index(&data, index as usize)?;
+
     let mint = if let Some(asset) = &ctx.accounts.asset {
         // Transfer the core asset to the buyer
         TransferV1CpiBuilder::new(mpl_core_program)
@@ -126,10 +129,18 @@ pub fn claim_core_item<'info>(
 
         msg!("printing edition number: {}", edition_number);
 
+        // Send any escrow amount to the payer first
+        if loaded_item.escrow_amount > 0 {
+            let mut authority_lamports = authority_pda.try_borrow_mut_lamports()?;
+            **authority_lamports -= loaded_item.escrow_amount;
+            let mut payer_lamports = payer.try_borrow_mut_lamports()?;
+            **payer_lamports += loaded_item.escrow_amount;
+        }
+
         CreateV1CpiBuilder::new(mpl_core_program)
             .asset(print_asset)
             .collection(Some(collection_account))
-            .payer(payer)
+            .payer(&payer)
             .name(if let Some(name) = plugin.master_edition.name {
                 name
             } else {
@@ -156,17 +167,19 @@ pub fn claim_core_item<'info>(
         return err!(JellybeanError::InvalidAsset);
     };
 
-    let mut data = jellybean_machine_info.data.borrow_mut();
-    let item_position = BASE_JELLYBEAN_MACHINE_SIZE + (index as usize) * LOADED_ITEM_SIZE;
-    let loaded_item =
-        LoadedItem::try_from_slice(&data[item_position..item_position + LOADED_ITEM_SIZE])?;
     assert_keys_equal(mint, loaded_item.mint, "Invalid mint")?;
 
+    let item_position = BASE_JELLYBEAN_MACHINE_SIZE + index as usize * LOADED_ITEM_SIZE;
     let supply_claimed_slice: &mut [u8] =
-        &mut data[item_position + 32 + 4 + 4..item_position + 32 + 4 + 4 + 4];
+        &mut data[item_position + 40..item_position + 44];
     supply_claimed_slice.copy_from_slice(&u32::to_le_bytes(loaded_item.supply_claimed + 1));
 
     drop(data);
+
+    // Close unclaimed_prize account back to the buyer if it's empty
+    if unclaimed_prizes.prizes.is_empty() {
+        unclaimed_prizes.close(buyer.to_account_info())?;
+    }
 
     emit_cpi!(ClaimItemEvent {
         mint,
