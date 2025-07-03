@@ -57,10 +57,14 @@ import {
   getFeeAccountEncoder,
   getJellybeanStateDecoder,
   getJellybeanStateEncoder,
+  getPrintFeeConfigDecoder,
+  getPrintFeeConfigEncoder,
   type FeeAccount,
   type FeeAccountArgs,
   type JellybeanState,
   type JellybeanStateArgs,
+  type PrintFeeConfig,
+  type PrintFeeConfigArgs,
 } from '../types';
 
 export const JELLYBEAN_MACHINE_DISCRIMINATOR = new Uint8Array([
@@ -82,7 +86,9 @@ export type JellybeanMachine = {
   /** Authority address allowed to mint from the jellybean machine. */
   mintAuthority: Address;
   /** Fee accounts for proceeds of each draw */
-  feeAccounts: Array<Option<FeeAccount>>;
+  feeAccounts: Array<FeeAccount>;
+  /** Print fee config */
+  printFeeConfig: Option<PrintFeeConfig>;
   /** Total unique items loaded. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
@@ -105,7 +111,9 @@ export type JellybeanMachineArgs = {
   /** Authority address allowed to mint from the jellybean machine. */
   mintAuthority: Address;
   /** Fee accounts for proceeds of each draw */
-  feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
+  feeAccounts: Array<FeeAccountArgs>;
+  /** Print fee config */
+  printFeeConfig: OptionOrNullable<PrintFeeConfigArgs>;
   /** Total unique items loaded. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
@@ -127,10 +135,8 @@ export function getJellybeanMachineEncoder(): Encoder<JellybeanMachineArgs> {
       ['version', getU8Encoder()],
       ['authority', getAddressEncoder()],
       ['mintAuthority', getAddressEncoder()],
-      [
-        'feeAccounts',
-        getArrayEncoder(getOptionEncoder(getFeeAccountEncoder()), { size: 6 }),
-      ],
+      ['feeAccounts', getArrayEncoder(getFeeAccountEncoder())],
+      ['printFeeConfig', getOptionEncoder(getPrintFeeConfigEncoder())],
       ['itemsLoaded', getU16Encoder()],
       ['supplyLoaded', getU64Encoder()],
       ['supplyRedeemed', getU64Encoder()],
@@ -148,10 +154,8 @@ export function getJellybeanMachineDecoder(): Decoder<JellybeanMachine> {
     ['version', getU8Decoder()],
     ['authority', getAddressDecoder()],
     ['mintAuthority', getAddressDecoder()],
-    [
-      'feeAccounts',
-      getArrayDecoder(getOptionDecoder(getFeeAccountDecoder()), { size: 6 }),
-    ],
+    ['feeAccounts', getArrayDecoder(getFeeAccountDecoder())],
+    ['printFeeConfig', getOptionDecoder(getPrintFeeConfigDecoder())],
     ['itemsLoaded', getU16Decoder()],
     ['supplyLoaded', getU64Decoder()],
     ['supplyRedeemed', getU64Decoder()],

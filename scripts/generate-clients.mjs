@@ -116,6 +116,14 @@ codama.update(
   })
 );
 
+codama.update(
+  c.setStructDefaultValuesVisitor({
+    settingsArgs: {
+      printFeeConfig: c.noneValueNode(),
+    },
+  })
+);
+
 // Render JavaScript.
 const jsClient = path.join(__dirname, '..', 'clients', 'js');
 codama.accept(

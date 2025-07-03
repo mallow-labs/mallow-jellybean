@@ -5,16 +5,17 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-use crate::generated::types::FeeAccount;
-use crate::generated::types::PrintFeeConfig;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
+use solana_program::pubkey::Pubkey;
 
-/// Common arguments for settings-related operations (initialize and update_settings)
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct SettingsArgs {
-    pub uri: String,
-    pub fee_accounts: Vec<FeeAccount>,
-    pub print_fee_config: Option<PrintFeeConfig>,
+pub struct PrintFeeConfig {
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
+    )]
+    pub address: Pubkey,
+    pub amount: u64,
 }

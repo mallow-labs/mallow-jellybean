@@ -6,11 +6,12 @@ use anchor_lang::prelude::{
 pub const MAX_URI_LENGTH: usize = 196;
 pub const MAX_FEE_ACCOUNTS: usize = 6;
 
-pub const BASE_JELLYBEAN_MACHINE_SIZE: usize = 8 // discriminator
+const BASE_JELLYBEAN_MACHINE_SIZE: usize = 8 // discriminator
     + 1                                       // version
     + 32                                      // authority
     + 32                                      // mint authority
-    + MAX_FEE_ACCOUNTS * core::mem::size_of::<FeeAccount>()                 // fee splits
+    + 4                                       // fee account vec size
+    + 41                                      // print fee config
     + 2                                       // items loaded
     + 8                                       // supply loaded
     + 8                                       // supply redeemed
@@ -30,7 +31,9 @@ pub struct JellybeanMachine {
     /// Authority address allowed to mint from the jellybean machine.
     pub mint_authority: Pubkey,
     /// Fee accounts for proceeds of each draw
-    pub fee_accounts: [Option<FeeAccount>; MAX_FEE_ACCOUNTS],
+    pub fee_accounts: Vec<FeeAccount>,
+    /// Print fee config
+    pub print_fee_config: Option<PrintFeeConfig>,
     /// Total unique items loaded.
     pub items_loaded: u16,
     /// Total supply_loaded of all items added.
@@ -50,9 +53,27 @@ pub struct JellybeanMachine {
 impl JellybeanMachine {
     pub const CURRENT_VERSION: u8 = 0;
 
+    pub fn get_base_size(&self) -> usize {
+        Self::get_base_size_with_fee_accounts(self.fee_accounts.len())
+    }
+
+    pub fn get_base_size_with_fee_accounts(fee_accounts_len: usize) -> usize {
+        BASE_JELLYBEAN_MACHINE_SIZE + fee_accounts_len * 34
+    }
+
+    pub fn get_loaded_item_position(&self, index: usize) -> usize {
+        self.get_base_size() + index * LOADED_ITEM_SIZE
+    }
+
     /// Gets the size of the jellybean machine given the number of items.
-    pub fn get_size(item_count: u64) -> usize {
-        BASE_JELLYBEAN_MACHINE_SIZE + (LOADED_ITEM_SIZE * item_count as usize)
+    pub fn get_size(&self, item_count: u64) -> usize {
+        Self::get_size_with_fee_accounts(self.fee_accounts.len(), item_count)
+    }
+
+    /// Gets the size of the jellybean machine given the number of items.
+    pub fn get_size_with_fee_accounts(fee_accounts_len: usize, item_count: u64) -> usize {
+        Self::get_base_size_with_fee_accounts(fee_accounts_len)
+            + (LOADED_ITEM_SIZE * item_count as usize)
     }
 
     pub fn can_add_items(&self) -> bool {
@@ -63,8 +84,12 @@ impl JellybeanMachine {
         self.state == JellybeanState::None || self.state == JellybeanState::SaleEnded
     }
 
-    pub fn get_loaded_item_at_index(account_data: &[u8], index: usize) -> Result<LoadedItem> {
-        let item_position = BASE_JELLYBEAN_MACHINE_SIZE + index * LOADED_ITEM_SIZE;
+    pub fn get_loaded_item_at_index(
+        &self,
+        account_data: &[u8],
+        index: usize,
+    ) -> Result<LoadedItem> {
+        let item_position = self.get_loaded_item_position(index);
         let item_data = &mut &account_data[item_position..item_position + LOADED_ITEM_SIZE];
         return Ok(LoadedItem::deserialize(item_data)?);
     }
@@ -102,8 +127,15 @@ pub struct LoadedItem {
 /// Common arguments for settings-related operations (initialize and update_settings)
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct SettingsArgs {
-    pub fee_accounts: Vec<Option<FeeAccount>>,
     pub uri: String,
+    pub fee_accounts: Vec<FeeAccount>,
+    pub print_fee_config: Option<PrintFeeConfig>,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct PrintFeeConfig {
+    pub address: Pubkey,
+    pub amount: u64,
 }
 
 #[derive(Copy, AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug)]

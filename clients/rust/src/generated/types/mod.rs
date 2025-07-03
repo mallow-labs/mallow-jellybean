@@ -7,10 +7,12 @@
 
 pub(crate) mod r#fee_account;
 pub(crate) mod r#jellybean_state;
+pub(crate) mod r#print_fee_config;
 pub(crate) mod r#prize;
 pub(crate) mod r#settings_args;
 
 pub use self::r#fee_account::*;
 pub use self::r#jellybean_state::*;
+pub use self::r#print_fee_config::*;
 pub use self::r#prize::*;
 pub use self::r#settings_args::*;

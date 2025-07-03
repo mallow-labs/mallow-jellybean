@@ -48,4 +48,6 @@ pub enum JellybeanError {
     ItemNotFullyClaimed,
     #[msg("Items still loaded")]
     ItemsStillLoaded,
+    #[msg("Too many fee accounts")]
+    TooManyFeeAccounts,
 }

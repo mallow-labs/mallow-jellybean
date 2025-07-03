@@ -216,6 +216,7 @@ export const create = async (
           input.args?.feeAccounts ??
           getDefaultFeeAccounts(umi.identity.publicKey),
         uri: input.args?.uri ?? 'https://example.com/jellybean-machine.json',
+        printFeeConfig: input.args?.printFeeConfig,
       },
     })
   );

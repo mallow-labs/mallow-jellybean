@@ -1,4 +1,4 @@
-use crate::JellybeanError;
+use crate::{FeeAccount, JellybeanError, SettingsArgs, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program_pack::{IsInitialized, Pack};
 use anchor_lang::solana_program::{account_info::AccountInfo, pubkey::Pubkey};
@@ -49,20 +49,26 @@ pub fn assert_initialized<T: Pack + IsInitialized>(account_info: &AccountInfo) -
 }
 
 /// Validates URI length
-pub fn validate_uri_length(uri: &str, max_length: usize) -> Result<()> {
-    if uri.len() > max_length - 4 {
+pub fn validate_uri_length(uri: &str) -> Result<()> {
+    if uri.len() > MAX_URI_LENGTH - 4 {
         return err!(JellybeanError::UriTooLong);
     }
     Ok(())
 }
 
 /// Validates fee account basis points
-pub fn validate_fee_accounts(fee_accounts: &[Option<crate::FeeAccount>]) -> Result<()> {
-    let total_basis_points: u32 = fee_accounts
-        .iter()
-        .filter_map(|account| account.as_ref())
-        .map(|account| account.basis_points as u32)
-        .sum();
+pub fn validate_fee_accounts(fee_accounts: &Vec<FeeAccount>) -> Result<()> {
+    if fee_accounts.len() > MAX_FEE_ACCOUNTS {
+        return err!(JellybeanError::TooManyFeeAccounts);
+    }
+
+    let mut total_basis_points: u16 = 0;
+
+    for account in fee_accounts.iter() {
+        total_basis_points = total_basis_points
+            .checked_add(account.basis_points)
+            .ok_or(JellybeanError::InvalidFeeAccountBasisPoints)?;
+    }
 
     // Only validate if there are any fee accounts
     if total_basis_points > 0 && total_basis_points != 10000 {
@@ -73,8 +79,8 @@ pub fn validate_fee_accounts(fee_accounts: &[Option<crate::FeeAccount>]) -> Resu
 }
 
 /// Validates settings arguments (URI length and fee accounts)
-pub fn validate_settings_args(args: &crate::SettingsArgs, max_uri_length: usize) -> Result<()> {
-    validate_uri_length(&args.uri, max_uri_length)?;
+pub fn validate_settings_args(args: &SettingsArgs) -> Result<()> {
+    validate_uri_length(&args.uri)?;
     validate_fee_accounts(&args.fee_accounts)?;
     Ok(())
 }

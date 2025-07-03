@@ -56,7 +56,7 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> 
     let jellybean_machine_info = jellybean_machine.to_account_info();
 
     let data = jellybean_machine_info.data.borrow();
-    let loaded_item = JellybeanMachine::get_loaded_item_at_index(&data, index as usize)?;
+    let loaded_item = jellybean_machine.get_loaded_item_at_index(&data, index as usize)?;
 
     require!(
         loaded_item.supply_claimed == loaded_item.supply_redeemed,

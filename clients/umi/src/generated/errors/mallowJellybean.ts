@@ -320,6 +320,19 @@ export class ItemsStillLoadedError extends ProgramError {
 codeToErrorMap.set(0x1786, ItemsStillLoadedError);
 nameToErrorMap.set('ItemsStillLoaded', ItemsStillLoadedError);
 
+/** TooManyFeeAccounts: Too many fee accounts */
+export class TooManyFeeAccountsError extends ProgramError {
+  override readonly name: string = 'TooManyFeeAccounts';
+
+  readonly code: number = 0x1787; // 6023
+
+  constructor(program: Program, cause?: Error) {
+    super('Too many fee accounts', program, cause);
+  }
+}
+codeToErrorMap.set(0x1787, TooManyFeeAccountsError);
+nameToErrorMap.set('TooManyFeeAccounts', TooManyFeeAccountsError);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors

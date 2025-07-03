@@ -549,3 +549,39 @@ test('it fails when trying to remove a master edition before sale has ended', as
     { message: /InvalidState/ }
   );
 });
+
+test('it can remove the first item when there are multiple items', async (t) => {
+  const umi = await createUmi();
+  const assetSigners = await Promise.all([
+    createCoreAsset(umi),
+    createCoreAsset(umi),
+  ]);
+
+  const jellybeanMachine = await create(umi, {
+    items: [
+      {
+        asset: assetSigners[0].publicKey,
+      },
+      {
+        asset: assetSigners[1].publicKey,
+      },
+    ],
+  });
+
+  // Remove the asset
+  await removeCoreItem(umi, {
+    jellybeanMachine,
+    asset: assetSigners[0].publicKey,
+    index: 0,
+  }).sendAndConfirm(umi);
+
+  // Verify the asset was removed from the jellybean machine
+  const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
+    umi,
+    jellybeanMachine
+  );
+  t.is(jellybeanMachineAccount.itemsLoaded, 1);
+  t.is(jellybeanMachineAccount.supplyLoaded, 1n);
+  t.is(jellybeanMachineAccount.items.length, 1);
+  t.is(jellybeanMachineAccount.items[0].mint, assetSigners[1].publicKey);
+});

@@ -1,7 +1,5 @@
 use crate::{
-    constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError, JellybeanMachine,
-    JellybeanState, LoadedItem, Prize, UnclaimedPrizes, BASE_JELLYBEAN_MACHINE_SIZE,
-    LOADED_ITEM_SIZE,
+    assert_keys_equal, constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError, JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedPrizes
 };
 use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 use arrayref::array_ref;
@@ -56,6 +54,10 @@ pub struct Draw<'info> {
     )]
     unclaimed_prizes: Box<Account<'info, UnclaimedPrizes>>,
 
+    /// Print fee account. Required if the jellybean machine has a print fee config.
+    #[account(mut)]
+    print_fee_account: Option<UncheckedAccount<'info>>,
+
     /// System program.
     system_program: Program<'info, System>,
 
@@ -76,6 +78,7 @@ pub(crate) struct DrawAccounts<'info> {
     pub recent_slothashes: AccountInfo<'info>,
     pub payer: AccountInfo<'info>,
     pub authority_pda: AccountInfo<'info>,
+    pub print_fee_account: Option<AccountInfo<'info>>,
     pub system_program: AccountInfo<'info>,
 }
 
@@ -119,6 +122,7 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
         authority_pda: ctx.accounts.authority_pda.to_account_info(),
+        print_fee_account: ctx.accounts.print_fee_account.as_ref().map(|a| a.to_account_info()),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
 
@@ -145,9 +149,9 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
 /// The index minted depends on the configuration of the jellybean machine: it could be
 /// a psuedo-randomly selected one or sequential. In both cases, after minted a
 /// specific index, the jellybean machine does not allow to mint the same index again.
-pub(crate) fn process_draw(
-    jellybean_machine: &mut Box<Account<'_, JellybeanMachine>>,
-    accounts: DrawAccounts,
+pub(crate) fn process_draw<'a>(
+    jellybean_machine: &mut Box<Account<'a, JellybeanMachine>>,
+    accounts: DrawAccounts<'a>,
 ) -> Result<Prize> {
     let supply_loaded = jellybean_machine.supply_loaded;
 
@@ -188,12 +192,30 @@ pub(crate) fn process_draw(
     if item.escrow_amount > 0 {
         // Escrow any additional amount required
         transfer(CpiContext::new(
-            accounts.system_program,
+            accounts.system_program.to_account_info(),
             Transfer {
-                from: accounts.payer,
+                from: accounts.payer.to_account_info(),
                 to: accounts.authority_pda,
             },
         ), item.escrow_amount)?;
+    }
+
+    // Is master edition?
+    if item.supply_loaded > 1 {
+        if let Some(print_fee_config) = &jellybean_machine.print_fee_config {
+            if print_fee_config.amount > 0 {
+                let fee_account = accounts.print_fee_account.as_ref().unwrap();
+                assert_keys_equal(fee_account.key(), print_fee_config.address, "Invalid print fee account")?;
+                // Send print fee to the print fee config address
+                transfer(CpiContext::new(
+                    accounts.system_program.to_account_info(),
+                    Transfer {
+                        from: accounts.payer.to_account_info(),
+                        to: fee_account.to_account_info(),
+                    },
+                ), print_fee_config.amount)?;
+            }
+        }
     }
 
     // release the data borrow
@@ -216,7 +238,7 @@ fn get_prize_and_update_supply_redeemed(
     let mut remaining_supply_covered = 0;
 
     for i in 0..items_loaded {
-        let item = JellybeanMachine::get_loaded_item_at_index(&account_data, i as usize)?;
+        let item = jellybean_machine.get_loaded_item_at_index(&account_data, i as usize)?;
         let remaining_supply = item.supply_loaded - item.supply_redeemed;
 
         // Skip items with no remaining supply
@@ -232,7 +254,7 @@ fn get_prize_and_update_supply_redeemed(
                 .checked_add(1)
                 .ok_or(JellybeanError::NumericalOverflowError)?;
 
-            let item_position = BASE_JELLYBEAN_MACHINE_SIZE + i as usize * LOADED_ITEM_SIZE;
+            let item_position = jellybean_machine.get_loaded_item_position(i as usize);
             // 36 is the offset of the supply_redeemed field in the LoadedItem struct
             let supply_redeemed_slice = &mut account_data[item_position + 36..item_position + 40];
             supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(new_supply_redeemed));

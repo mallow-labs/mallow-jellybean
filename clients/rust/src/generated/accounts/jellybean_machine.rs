@@ -7,6 +7,7 @@
 
 use crate::generated::types::FeeAccount;
 use crate::generated::types::JellybeanState;
+use crate::generated::types::PrintFeeConfig;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use solana_program::pubkey::Pubkey;
@@ -32,7 +33,9 @@ pub struct JellybeanMachine {
     )]
     pub mint_authority: Pubkey,
     /// Fee accounts for proceeds of each draw
-    pub fee_accounts: [Option<FeeAccount>; 6],
+    pub fee_accounts: Vec<FeeAccount>,
+    /// Print fee config
+    pub print_fee_config: Option<PrintFeeConfig>,
     /// Total unique items loaded.
     pub items_loaded: u16,
     /// Total supply_loaded of all items added.

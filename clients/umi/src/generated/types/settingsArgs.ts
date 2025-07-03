@@ -6,36 +6,50 @@
  * @see https://github.com/codama-idl/codama
  */
 
-import { Option, OptionOrNullable } from '@metaplex-foundation/umi';
+import { Option, OptionOrNullable, none } from '@metaplex-foundation/umi';
 import {
   Serializer,
   array,
+  mapSerializer,
   option,
   string,
   struct,
 } from '@metaplex-foundation/umi/serializers';
-import { FeeAccount, FeeAccountArgs, getFeeAccountSerializer } from '.';
+import {
+  FeeAccount,
+  FeeAccountArgs,
+  PrintFeeConfig,
+  PrintFeeConfigArgs,
+  getFeeAccountSerializer,
+  getPrintFeeConfigSerializer,
+} from '.';
 
 /** Common arguments for settings-related operations (initialize and update_settings) */
 export type SettingsArgs = {
-  feeAccounts: Array<Option<FeeAccount>>;
   uri: string;
+  feeAccounts: Array<FeeAccount>;
+  printFeeConfig: Option<PrintFeeConfig>;
 };
 
 export type SettingsArgsArgs = {
-  feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
   uri: string;
+  feeAccounts: Array<FeeAccountArgs>;
+  printFeeConfig?: OptionOrNullable<PrintFeeConfigArgs>;
 };
 
 export function getSettingsArgsSerializer(): Serializer<
   SettingsArgsArgs,
   SettingsArgs
 > {
-  return struct<SettingsArgs>(
-    [
-      ['feeAccounts', array(option(getFeeAccountSerializer()))],
-      ['uri', string()],
-    ],
-    { description: 'SettingsArgs' }
+  return mapSerializer<SettingsArgsArgs, any, SettingsArgs>(
+    struct<SettingsArgs>(
+      [
+        ['uri', string()],
+        ['feeAccounts', array(getFeeAccountSerializer())],
+        ['printFeeConfig', option(getPrintFeeConfigSerializer())],
+      ],
+      { description: 'SettingsArgs' }
+    ),
+    (value) => ({ ...value, printFeeConfig: value.printFeeConfig ?? none() })
   ) as Serializer<SettingsArgsArgs, SettingsArgs>;
 }

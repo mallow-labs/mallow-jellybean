@@ -17,7 +17,8 @@ export const JELLYBEAN_MACHINE_BASE_SIZE =
   1 + // version
   32 + // authority
   32 + // mint authority
-  MAX_FEE_ACCOUNTS * FEE_ACCOUNT_SIZE + // fee accounts
+  4 + // fee account vec size
+  41 + // print fee config
   2 + // items loaded
   8 + // supply loaded
   8 + // supply redeemed
@@ -25,6 +26,10 @@ export const JELLYBEAN_MACHINE_BASE_SIZE =
   1 + // state
   MAX_URI_LENGTH + // uri
   PADDING_SIZE; // padding
+
+export function getJellybeanMachineBaseSize(feeAccounts: number) {
+  return JELLYBEAN_MACHINE_BASE_SIZE + feeAccounts * FEE_ACCOUNT_SIZE;
+}
 
 export type CreateJellybeanMachineInput = Omit<
   Parameters<typeof initialize>[1],
@@ -37,7 +42,7 @@ export const createJellybeanMachine = async (
   context: Parameters<typeof initialize>[0] & Pick<Context, 'rpc'>,
   input: CreateJellybeanMachineInput
 ): Promise<TransactionBuilder> => {
-  const space = JELLYBEAN_MACHINE_BASE_SIZE;
+  const space = getJellybeanMachineBaseSize(input.args.feeAccounts.length);
   const lamports = await context.rpc.getRent(space);
 
   return transactionBuilder()

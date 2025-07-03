@@ -61,6 +61,7 @@ export type DrawInstruction<
   TAccountPayer extends string | IAccountMeta<string> = string,
   TAccountBuyer extends string | IAccountMeta<string> = string,
   TAccountUnclaimedPrizes extends string | IAccountMeta<string> = string,
+  TAccountPrintFeeAccount extends string | IAccountMeta<string> = string,
   TAccountSystemProgram extends
     | string
     | IAccountMeta<string> = '11111111111111111111111111111111',
@@ -97,6 +98,9 @@ export type DrawInstruction<
       TAccountUnclaimedPrizes extends string
         ? WritableAccount<TAccountUnclaimedPrizes>
         : TAccountUnclaimedPrizes,
+      TAccountPrintFeeAccount extends string
+        ? WritableAccount<TAccountPrintFeeAccount>
+        : TAccountPrintFeeAccount,
       TAccountSystemProgram extends string
         ? ReadonlyAccount<TAccountSystemProgram>
         : TAccountSystemProgram,
@@ -155,6 +159,7 @@ export type DrawAsyncInput<
   TAccountPayer extends string = string,
   TAccountBuyer extends string = string,
   TAccountUnclaimedPrizes extends string = string,
+  TAccountPrintFeeAccount extends string = string,
   TAccountSystemProgram extends string = string,
   TAccountRent extends string = string,
   TAccountRecentSlothashes extends string = string,
@@ -175,6 +180,8 @@ export type DrawAsyncInput<
   buyer: Address<TAccountBuyer>;
   /** Buyer unclaimed draws account. */
   unclaimedPrizes?: Address<TAccountUnclaimedPrizes>;
+  /** Print fee account. Required if the jellybean machine has a print fee config. */
+  printFeeAccount?: Address<TAccountPrintFeeAccount>;
   /** System program. */
   systemProgram?: Address<TAccountSystemProgram>;
   /** Rent. */
@@ -196,6 +203,7 @@ export async function getDrawInstructionAsync<
   TAccountPayer extends string,
   TAccountBuyer extends string,
   TAccountUnclaimedPrizes extends string,
+  TAccountPrintFeeAccount extends string,
   TAccountSystemProgram extends string,
   TAccountRent extends string,
   TAccountRecentSlothashes extends string,
@@ -210,6 +218,7 @@ export async function getDrawInstructionAsync<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
+    TAccountPrintFeeAccount,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -226,6 +235,7 @@ export async function getDrawInstructionAsync<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
+    TAccountPrintFeeAccount,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -248,6 +258,7 @@ export async function getDrawInstructionAsync<
     payer: { value: input.payer ?? null, isWritable: true },
     buyer: { value: input.buyer ?? null, isWritable: false },
     unclaimedPrizes: { value: input.unclaimedPrizes ?? null, isWritable: true },
+    printFeeAccount: { value: input.printFeeAccount ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     rent: { value: input.rent ?? null, isWritable: false },
     recentSlothashes: {
@@ -318,6 +329,7 @@ export async function getDrawInstructionAsync<
       getAccountMeta(accounts.payer),
       getAccountMeta(accounts.buyer),
       getAccountMeta(accounts.unclaimedPrizes),
+      getAccountMeta(accounts.printFeeAccount),
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.rent),
       getAccountMeta(accounts.recentSlothashes),
@@ -334,6 +346,7 @@ export async function getDrawInstructionAsync<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
+    TAccountPrintFeeAccount,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -351,6 +364,7 @@ export type DrawInput<
   TAccountPayer extends string = string,
   TAccountBuyer extends string = string,
   TAccountUnclaimedPrizes extends string = string,
+  TAccountPrintFeeAccount extends string = string,
   TAccountSystemProgram extends string = string,
   TAccountRent extends string = string,
   TAccountRecentSlothashes extends string = string,
@@ -371,6 +385,8 @@ export type DrawInput<
   buyer: Address<TAccountBuyer>;
   /** Buyer unclaimed draws account. */
   unclaimedPrizes: Address<TAccountUnclaimedPrizes>;
+  /** Print fee account. Required if the jellybean machine has a print fee config. */
+  printFeeAccount?: Address<TAccountPrintFeeAccount>;
   /** System program. */
   systemProgram?: Address<TAccountSystemProgram>;
   /** Rent. */
@@ -392,6 +408,7 @@ export function getDrawInstruction<
   TAccountPayer extends string,
   TAccountBuyer extends string,
   TAccountUnclaimedPrizes extends string,
+  TAccountPrintFeeAccount extends string,
   TAccountSystemProgram extends string,
   TAccountRent extends string,
   TAccountRecentSlothashes extends string,
@@ -406,6 +423,7 @@ export function getDrawInstruction<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
+    TAccountPrintFeeAccount,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -421,6 +439,7 @@ export function getDrawInstruction<
   TAccountPayer,
   TAccountBuyer,
   TAccountUnclaimedPrizes,
+  TAccountPrintFeeAccount,
   TAccountSystemProgram,
   TAccountRent,
   TAccountRecentSlothashes,
@@ -442,6 +461,7 @@ export function getDrawInstruction<
     payer: { value: input.payer ?? null, isWritable: true },
     buyer: { value: input.buyer ?? null, isWritable: false },
     unclaimedPrizes: { value: input.unclaimedPrizes ?? null, isWritable: true },
+    printFeeAccount: { value: input.printFeeAccount ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     rent: { value: input.rent ?? null, isWritable: false },
     recentSlothashes: {
@@ -506,6 +526,7 @@ export function getDrawInstruction<
       getAccountMeta(accounts.payer),
       getAccountMeta(accounts.buyer),
       getAccountMeta(accounts.unclaimedPrizes),
+      getAccountMeta(accounts.printFeeAccount),
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.rent),
       getAccountMeta(accounts.recentSlothashes),
@@ -522,6 +543,7 @@ export function getDrawInstruction<
     TAccountPayer,
     TAccountBuyer,
     TAccountUnclaimedPrizes,
+    TAccountPrintFeeAccount,
     TAccountSystemProgram,
     TAccountRent,
     TAccountRecentSlothashes,
@@ -553,18 +575,20 @@ export type ParsedDrawInstruction<
     buyer: TAccountMetas[4];
     /** Buyer unclaimed draws account. */
     unclaimedPrizes: TAccountMetas[5];
+    /** Print fee account. Required if the jellybean machine has a print fee config. */
+    printFeeAccount?: TAccountMetas[6] | undefined;
     /** System program. */
-    systemProgram: TAccountMetas[6];
+    systemProgram: TAccountMetas[7];
     /** Rent. */
-    rent: TAccountMetas[7];
+    rent: TAccountMetas[8];
     /**
      * SlotHashes sysvar cluster data.
      *
      */
 
-    recentSlothashes: TAccountMetas[8];
-    eventAuthority: TAccountMetas[9];
-    program: TAccountMetas[10];
+    recentSlothashes: TAccountMetas[9];
+    eventAuthority: TAccountMetas[10];
+    program: TAccountMetas[11];
   };
   data: DrawInstructionData;
 };
@@ -577,7 +601,7 @@ export function parseDrawInstruction<
     IInstructionWithAccounts<TAccountMetas> &
     IInstructionWithData<Uint8Array>
 ): ParsedDrawInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 11) {
+  if (instruction.accounts.length < 12) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -586,6 +610,12 @@ export function parseDrawInstruction<
     const accountMeta = instruction.accounts![accountIndex]!;
     accountIndex += 1;
     return accountMeta;
+  };
+  const getNextOptionalAccount = () => {
+    const accountMeta = getNextAccount();
+    return accountMeta.address === MALLOW_JELLYBEAN_PROGRAM_ADDRESS
+      ? undefined
+      : accountMeta;
   };
   return {
     programAddress: instruction.programAddress,
@@ -596,6 +626,7 @@ export function parseDrawInstruction<
       payer: getNextAccount(),
       buyer: getNextAccount(),
       unclaimedPrizes: getNextAccount(),
+      printFeeAccount: getNextOptionalAccount(),
       systemProgram: getNextAccount(),
       rent: getNextAccount(),
       recentSlothashes: getNextAccount(),

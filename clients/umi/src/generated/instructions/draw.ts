@@ -53,6 +53,8 @@ export type DrawInstructionAccounts = {
   buyer?: PublicKey | Pda;
   /** Buyer unclaimed draws account. */
   unclaimedPrizes?: PublicKey | Pda;
+  /** Print fee account. Required if the jellybean machine has a print fee config. */
+  printFeeAccount?: PublicKey | Pda;
   /** System program. */
   systemProgram?: PublicKey | Pda;
   /** Rent. */
@@ -142,24 +144,29 @@ export function draw(
       isWritable: true as boolean,
       value: input.unclaimedPrizes ?? null,
     },
-    systemProgram: {
+    printFeeAccount: {
       index: 6,
+      isWritable: true as boolean,
+      value: input.printFeeAccount ?? null,
+    },
+    systemProgram: {
+      index: 7,
       isWritable: false as boolean,
       value: input.systemProgram ?? null,
     },
-    rent: { index: 7, isWritable: false as boolean, value: input.rent ?? null },
+    rent: { index: 8, isWritable: false as boolean, value: input.rent ?? null },
     recentSlothashes: {
-      index: 8,
+      index: 9,
       isWritable: false as boolean,
       value: input.recentSlothashes ?? null,
     },
     eventAuthority: {
-      index: 9,
+      index: 10,
       isWritable: false as boolean,
       value: input.eventAuthority ?? null,
     },
     program: {
-      index: 10,
+      index: 11,
       isWritable: false as boolean,
       value: input.program ?? null,
     },

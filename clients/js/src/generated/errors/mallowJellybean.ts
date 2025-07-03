@@ -60,6 +60,8 @@ export const MALLOW_JELLYBEAN_ERROR__INVALID_FEE_ACCOUNT_BASIS_POINTS = 0x1784; 
 export const MALLOW_JELLYBEAN_ERROR__ITEM_NOT_FULLY_CLAIMED = 0x1785; // 6021
 /** ItemsStillLoaded: Items still loaded */
 export const MALLOW_JELLYBEAN_ERROR__ITEMS_STILL_LOADED = 0x1786; // 6022
+/** TooManyFeeAccounts: Too many fee accounts */
+export const MALLOW_JELLYBEAN_ERROR__TOO_MANY_FEE_ACCOUNTS = 0x1787; // 6023
 
 export type MallowJellybeanError =
   | typeof MALLOW_JELLYBEAN_ERROR__INDEX_GREATER_THAN_LENGTH
@@ -83,6 +85,7 @@ export type MallowJellybeanError =
   | typeof MALLOW_JELLYBEAN_ERROR__NOT_ALL_SETTLED
   | typeof MALLOW_JELLYBEAN_ERROR__NUMERICAL_OVERFLOW_ERROR
   | typeof MALLOW_JELLYBEAN_ERROR__PUBLIC_KEY_MISMATCH
+  | typeof MALLOW_JELLYBEAN_ERROR__TOO_MANY_FEE_ACCOUNTS
   | typeof MALLOW_JELLYBEAN_ERROR__UNINITIALIZED_ACCOUNT
   | typeof MALLOW_JELLYBEAN_ERROR__URI_TOO_LONG;
 
@@ -112,6 +115,7 @@ if (process.env.NODE_ENV !== 'production') {
     [MALLOW_JELLYBEAN_ERROR__NOT_ALL_SETTLED]: `Not all items have been settled`,
     [MALLOW_JELLYBEAN_ERROR__NUMERICAL_OVERFLOW_ERROR]: `Numerical overflow error`,
     [MALLOW_JELLYBEAN_ERROR__PUBLIC_KEY_MISMATCH]: `Invalid public key`,
+    [MALLOW_JELLYBEAN_ERROR__TOO_MANY_FEE_ACCOUNTS]: `Too many fee accounts`,
     [MALLOW_JELLYBEAN_ERROR__UNINITIALIZED_ACCOUNT]: `Account not initialized`,
     [MALLOW_JELLYBEAN_ERROR__URI_TOO_LONG]: `URI too long`,
   };

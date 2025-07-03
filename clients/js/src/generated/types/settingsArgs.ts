@@ -20,6 +20,8 @@ import {
   getU32Encoder,
   getUtf8Decoder,
   getUtf8Encoder,
+  none,
+  transformEncoder,
   type Codec,
   type Decoder,
   type Encoder,
@@ -29,32 +31,43 @@ import {
 import {
   getFeeAccountDecoder,
   getFeeAccountEncoder,
+  getPrintFeeConfigDecoder,
+  getPrintFeeConfigEncoder,
   type FeeAccount,
   type FeeAccountArgs,
+  type PrintFeeConfig,
+  type PrintFeeConfigArgs,
 } from '.';
 
 /** Common arguments for settings-related operations (initialize and update_settings) */
 export type SettingsArgs = {
-  feeAccounts: Array<Option<FeeAccount>>;
   uri: string;
+  feeAccounts: Array<FeeAccount>;
+  printFeeConfig: Option<PrintFeeConfig>;
 };
 
 export type SettingsArgsArgs = {
-  feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
   uri: string;
+  feeAccounts: Array<FeeAccountArgs>;
+  printFeeConfig?: OptionOrNullable<PrintFeeConfigArgs>;
 };
 
 export function getSettingsArgsEncoder(): Encoder<SettingsArgsArgs> {
-  return getStructEncoder([
-    ['feeAccounts', getArrayEncoder(getOptionEncoder(getFeeAccountEncoder()))],
-    ['uri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
-  ]);
+  return transformEncoder(
+    getStructEncoder([
+      ['uri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['feeAccounts', getArrayEncoder(getFeeAccountEncoder())],
+      ['printFeeConfig', getOptionEncoder(getPrintFeeConfigEncoder())],
+    ]),
+    (value) => ({ ...value, printFeeConfig: value.printFeeConfig ?? none() })
+  );
 }
 
 export function getSettingsArgsDecoder(): Decoder<SettingsArgs> {
   return getStructDecoder([
-    ['feeAccounts', getArrayDecoder(getOptionDecoder(getFeeAccountDecoder()))],
     ['uri', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['feeAccounts', getArrayDecoder(getFeeAccountDecoder())],
+    ['printFeeConfig', getOptionDecoder(getPrintFeeConfigDecoder())],
   ]);
 }
 

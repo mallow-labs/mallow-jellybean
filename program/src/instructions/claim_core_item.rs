@@ -1,7 +1,6 @@
 use crate::{
     assert_keys_equal, constants::AUTHORITY_SEED, events::ClaimItemEvent, state::JellybeanMachine,
-    JellybeanError, JellybeanState, UnclaimedPrizes, BASE_JELLYBEAN_MACHINE_SIZE,
-    LOADED_ITEM_SIZE,
+    JellybeanError, JellybeanState, UnclaimedPrizes
 };
 use anchor_lang::prelude::*;
 use mpl_core::{
@@ -78,7 +77,8 @@ pub fn claim_core_item<'info>(
     index: u16,
 ) -> Result<()> {
     let unclaimed_prizes = &mut ctx.accounts.unclaimed_prizes;
-    let jellybean_machine_info = &ctx.accounts.jellybean_machine.to_account_info();
+    let jellybean_machine = &ctx.accounts.jellybean_machine;
+    let jellybean_machine_info = &jellybean_machine.to_account_info();
     let payer = &ctx.accounts.payer.to_account_info();
     let buyer = &ctx.accounts.buyer.to_account_info();
     let authority_pda = &mut ctx.accounts.authority_pda.to_account_info();
@@ -101,7 +101,7 @@ pub fn claim_core_item<'info>(
     ];
 
     let mut data = jellybean_machine_info.data.borrow_mut();
-    let loaded_item = JellybeanMachine::get_loaded_item_at_index(&data, index as usize)?;
+    let loaded_item = jellybean_machine.get_loaded_item_at_index(&data, index as usize)?;
 
     let mint = if let Some(asset) = &ctx.accounts.asset {
         // Transfer the core asset to the buyer
@@ -169,7 +169,7 @@ pub fn claim_core_item<'info>(
 
     assert_keys_equal(mint, loaded_item.mint, "Invalid mint")?;
 
-    let item_position = BASE_JELLYBEAN_MACHINE_SIZE + index as usize * LOADED_ITEM_SIZE;
+    let item_position = jellybean_machine.get_loaded_item_position(index as usize);
     let supply_claimed_slice: &mut [u8] =
         &mut data[item_position + 40..item_position + 44];
     supply_claimed_slice.copy_from_slice(&u32::to_le_bytes(loaded_item.supply_claimed + 1));

@@ -39,8 +39,11 @@ import {
   FeeAccountArgs,
   JellybeanState,
   JellybeanStateArgs,
+  PrintFeeConfig,
+  PrintFeeConfigArgs,
   getFeeAccountSerializer,
   getJellybeanStateSerializer,
+  getPrintFeeConfigSerializer,
 } from '../types';
 
 /** Jellybean machine state and config data. */
@@ -55,7 +58,9 @@ export type JellybeanMachineAccountData = {
   /** Authority address allowed to mint from the jellybean machine. */
   mintAuthority: PublicKey;
   /** Fee accounts for proceeds of each draw */
-  feeAccounts: Array<Option<FeeAccount>>;
+  feeAccounts: Array<FeeAccount>;
+  /** Print fee config */
+  printFeeConfig: Option<PrintFeeConfig>;
   /** Total unique items loaded. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
@@ -78,7 +83,9 @@ export type JellybeanMachineAccountDataArgs = {
   /** Authority address allowed to mint from the jellybean machine. */
   mintAuthority: PublicKey;
   /** Fee accounts for proceeds of each draw */
-  feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
+  feeAccounts: Array<FeeAccountArgs>;
+  /** Print fee config */
+  printFeeConfig: OptionOrNullable<PrintFeeConfigArgs>;
   /** Total unique items loaded. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
@@ -108,7 +115,8 @@ export function getJellybeanMachineAccountDataSerializer(): Serializer<
         ['version', u8()],
         ['authority', publicKeySerializer()],
         ['mintAuthority', publicKeySerializer()],
-        ['feeAccounts', array(option(getFeeAccountSerializer()), { size: 6 })],
+        ['feeAccounts', array(getFeeAccountSerializer())],
+        ['printFeeConfig', option(getPrintFeeConfigSerializer())],
         ['itemsLoaded', u16()],
         ['supplyLoaded', u64()],
         ['supplyRedeemed', u64()],
@@ -203,7 +211,8 @@ export function getJellybeanMachineGpaBuilder(
       version: number;
       authority: PublicKey;
       mintAuthority: PublicKey;
-      feeAccounts: Array<OptionOrNullable<FeeAccountArgs>>;
+      feeAccounts: Array<FeeAccountArgs>;
+      printFeeConfig: OptionOrNullable<PrintFeeConfigArgs>;
       itemsLoaded: number;
       supplyLoaded: number | bigint;
       supplyRedeemed: number | bigint;
@@ -215,7 +224,8 @@ export function getJellybeanMachineGpaBuilder(
       version: [8, u8()],
       authority: [9, publicKeySerializer()],
       mintAuthority: [41, publicKeySerializer()],
-      feeAccounts: [73, array(option(getFeeAccountSerializer()), { size: 6 })],
+      feeAccounts: [73, array(getFeeAccountSerializer())],
+      printFeeConfig: [null, option(getPrintFeeConfigSerializer())],
       itemsLoaded: [null, u16()],
       supplyLoaded: [null, u64()],
       supplyRedeemed: [null, u64()],

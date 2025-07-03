@@ -370,6 +370,15 @@
           ]
         },
         {
+          "name": "printFeeAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "Print fee account. Required if the jellybean machine has a print fee config."
+          ]
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
@@ -635,14 +644,20 @@
               "Fee accounts for proceeds of each draw"
             ],
             "type": {
-              "array": [
-                {
-                  "option": {
-                    "defined": "FeeAccount"
-                  }
-                },
-                6
-              ]
+              "vec": {
+                "defined": "FeeAccount"
+              }
+            }
+          },
+          {
+            "name": "printFeeConfig",
+            "docs": [
+              "Print fee config"
+            ],
+            "type": {
+              "option": {
+                "defined": "PrintFeeConfig"
+              }
             }
           },
           {
@@ -782,6 +797,22 @@
       }
     },
     {
+      "name": "PrintFeeConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "publicKey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "SettingsArgs",
       "docs": [
         "Common arguments for settings-related operations (initialize and update_settings)"
@@ -790,18 +821,24 @@
         "kind": "struct",
         "fields": [
           {
+            "name": "uri",
+            "type": "string"
+          },
+          {
             "name": "feeAccounts",
             "type": {
               "vec": {
-                "option": {
-                  "defined": "FeeAccount"
-                }
+                "defined": "FeeAccount"
               }
             }
           },
           {
-            "name": "uri",
-            "type": "string"
+            "name": "printFeeConfig",
+            "type": {
+              "option": {
+                "defined": "PrintFeeConfig"
+              }
+            }
           }
         ]
       }
@@ -970,6 +1007,11 @@
       "code": 6022,
       "name": "ItemsStillLoaded",
       "msg": "Items still loaded"
+    },
+    {
+      "code": 6023,
+      "name": "TooManyFeeAccounts",
+      "msg": "Too many fee accounts"
     }
   ],
   "metadata": {

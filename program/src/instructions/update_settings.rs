@@ -1,6 +1,5 @@
 use crate::{
-    state::JellybeanMachine, utils::validate_settings_args, SettingsArgs, MAX_FEE_ACCOUNTS,
-    MAX_URI_LENGTH,
+    state::JellybeanMachine, utils::validate_settings_args, SettingsArgs
 };
 use anchor_lang::prelude::*;
 
@@ -23,13 +22,10 @@ pub fn update_settings(ctx: Context<UpdateSettings>, args: SettingsArgs) -> Resu
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
 
     // Validate settings arguments
-    validate_settings_args(&args, MAX_URI_LENGTH)?;
+    validate_settings_args(&args)?;
 
-    let mut fee_accounts_array = [None; MAX_FEE_ACCOUNTS];
-    let copy_len = args.fee_accounts.len().min(MAX_FEE_ACCOUNTS);
-    fee_accounts_array[..copy_len].copy_from_slice(&args.fee_accounts[..copy_len]);
-
-    jellybean_machine.fee_accounts = fee_accounts_array;
+    jellybean_machine.fee_accounts = args.fee_accounts;
+    jellybean_machine.print_fee_config = args.print_fee_config;
     jellybean_machine.uri = args.uri;
 
     Ok(())

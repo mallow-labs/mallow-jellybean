@@ -24,6 +24,8 @@ pub struct Draw {
     pub buyer: solana_program::pubkey::Pubkey,
     /// Buyer unclaimed draws account.
     pub unclaimed_prizes: solana_program::pubkey::Pubkey,
+    /// Print fee account. Required if the jellybean machine has a print fee config.
+    pub print_fee_account: Option<solana_program::pubkey::Pubkey>,
     /// System program.
     pub system_program: solana_program::pubkey::Pubkey,
     /// Rent.
@@ -47,7 +49,7 @@ impl Draw {
         &self,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.jellybean_machine,
             false,
@@ -70,6 +72,17 @@ impl Draw {
             self.unclaimed_prizes,
             false,
         ));
+        if let Some(print_fee_account) = self.print_fee_account {
+            accounts.push(solana_program::instruction::AccountMeta::new(
+                print_fee_account,
+                false,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::MALLOW_JELLYBEAN_ID,
+                false,
+            ));
+        }
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
             self.system_program,
             false,
@@ -130,11 +143,12 @@ impl Default for DrawInstructionData {
 ///   3. `[writable, signer]` payer
 ///   4. `[]` buyer
 ///   5. `[writable]` unclaimed_prizes
-///   6. `[optional]` system_program (default to `11111111111111111111111111111111`)
-///   7. `[optional]` rent (default to `SysvarRent111111111111111111111111111111111`)
-///   8. `[optional]` recent_slothashes (default to `SysvarS1otHashes111111111111111111111111111`)
-///   9. `[]` event_authority
-///   10. `[]` program
+///   6. `[writable, optional]` print_fee_account
+///   7. `[optional]` system_program (default to `11111111111111111111111111111111`)
+///   8. `[optional]` rent (default to `SysvarRent111111111111111111111111111111111`)
+///   9. `[optional]` recent_slothashes (default to `SysvarS1otHashes111111111111111111111111111`)
+///   10. `[]` event_authority
+///   11. `[]` program
 #[derive(Clone, Debug, Default)]
 pub struct DrawBuilder {
     jellybean_machine: Option<solana_program::pubkey::Pubkey>,
@@ -143,6 +157,7 @@ pub struct DrawBuilder {
     payer: Option<solana_program::pubkey::Pubkey>,
     buyer: Option<solana_program::pubkey::Pubkey>,
     unclaimed_prizes: Option<solana_program::pubkey::Pubkey>,
+    print_fee_account: Option<solana_program::pubkey::Pubkey>,
     system_program: Option<solana_program::pubkey::Pubkey>,
     rent: Option<solana_program::pubkey::Pubkey>,
     recent_slothashes: Option<solana_program::pubkey::Pubkey>,
@@ -195,6 +210,16 @@ impl DrawBuilder {
         unclaimed_prizes: solana_program::pubkey::Pubkey,
     ) -> &mut Self {
         self.unclaimed_prizes = Some(unclaimed_prizes);
+        self
+    }
+    /// `[optional account]`
+    /// Print fee account. Required if the jellybean machine has a print fee config.
+    #[inline(always)]
+    pub fn print_fee_account(
+        &mut self,
+        print_fee_account: Option<solana_program::pubkey::Pubkey>,
+    ) -> &mut Self {
+        self.print_fee_account = print_fee_account;
         self
     }
     /// `[optional account, default to '11111111111111111111111111111111']`
@@ -264,6 +289,7 @@ impl DrawBuilder {
             payer: self.payer.expect("payer is not set"),
             buyer: self.buyer.expect("buyer is not set"),
             unclaimed_prizes: self.unclaimed_prizes.expect("unclaimed_prizes is not set"),
+            print_fee_account: self.print_fee_account,
             system_program: self
                 .system_program
                 .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
@@ -296,6 +322,8 @@ pub struct DrawCpiAccounts<'a, 'b> {
     pub buyer: &'b solana_program::account_info::AccountInfo<'a>,
     /// Buyer unclaimed draws account.
     pub unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Print fee account. Required if the jellybean machine has a print fee config.
+    pub print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// System program.
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
     /// Rent.
@@ -326,6 +354,8 @@ pub struct DrawCpi<'a, 'b> {
     pub buyer: &'b solana_program::account_info::AccountInfo<'a>,
     /// Buyer unclaimed draws account.
     pub unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
+    /// Print fee account. Required if the jellybean machine has a print fee config.
+    pub print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// System program.
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
     /// Rent.
@@ -352,6 +382,7 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
             payer: accounts.payer,
             buyer: accounts.buyer,
             unclaimed_prizes: accounts.unclaimed_prizes,
+            print_fee_account: accounts.print_fee_account,
             system_program: accounts.system_program,
             rent: accounts.rent,
             recent_slothashes: accounts.recent_slothashes,
@@ -393,7 +424,7 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.jellybean_machine.key,
             false,
@@ -418,6 +449,17 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
             *self.unclaimed_prizes.key,
             false,
         ));
+        if let Some(print_fee_account) = self.print_fee_account {
+            accounts.push(solana_program::instruction::AccountMeta::new(
+                *print_fee_account.key,
+                false,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::MALLOW_JELLYBEAN_ID,
+                false,
+            ));
+        }
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
             *self.system_program.key,
             false,
@@ -452,7 +494,7 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(12 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(13 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.jellybean_machine.clone());
         account_infos.push(self.authority_pda.clone());
@@ -460,6 +502,9 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
         account_infos.push(self.payer.clone());
         account_infos.push(self.buyer.clone());
         account_infos.push(self.unclaimed_prizes.clone());
+        if let Some(print_fee_account) = self.print_fee_account {
+            account_infos.push(print_fee_account.clone());
+        }
         account_infos.push(self.system_program.clone());
         account_infos.push(self.rent.clone());
         account_infos.push(self.recent_slothashes.clone());
@@ -487,11 +532,12 @@ impl<'a, 'b> DrawCpi<'a, 'b> {
 ///   3. `[writable, signer]` payer
 ///   4. `[]` buyer
 ///   5. `[writable]` unclaimed_prizes
-///   6. `[]` system_program
-///   7. `[]` rent
-///   8. `[]` recent_slothashes
-///   9. `[]` event_authority
-///   10. `[]` program
+///   6. `[writable, optional]` print_fee_account
+///   7. `[]` system_program
+///   8. `[]` rent
+///   9. `[]` recent_slothashes
+///   10. `[]` event_authority
+///   11. `[]` program
 #[derive(Clone, Debug)]
 pub struct DrawCpiBuilder<'a, 'b> {
     instruction: Box<DrawCpiBuilderInstruction<'a, 'b>>,
@@ -507,6 +553,7 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
             payer: None,
             buyer: None,
             unclaimed_prizes: None,
+            print_fee_account: None,
             system_program: None,
             rent: None,
             recent_slothashes: None,
@@ -562,6 +609,16 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
         unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
         self.instruction.unclaimed_prizes = Some(unclaimed_prizes);
+        self
+    }
+    /// `[optional account]`
+    /// Print fee account. Required if the jellybean machine has a print fee config.
+    #[inline(always)]
+    pub fn print_fee_account(
+        &mut self,
+        print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    ) -> &mut Self {
+        self.instruction.print_fee_account = print_fee_account;
         self
     }
     /// System program.
@@ -673,6 +730,8 @@ impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
                 .unclaimed_prizes
                 .expect("unclaimed_prizes is not set"),
 
+            print_fee_account: self.instruction.print_fee_account,
+
             system_program: self
                 .instruction
                 .system_program
@@ -708,6 +767,7 @@ struct DrawCpiBuilderInstruction<'a, 'b> {
     payer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     buyer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     unclaimed_prizes: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     rent: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     recent_slothashes: Option<&'b solana_program::account_info::AccountInfo<'a>>,

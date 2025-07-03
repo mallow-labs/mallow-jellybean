@@ -23,7 +23,7 @@ import {
   JellybeanMachineAccountData as BaseJellybeanMachineAccountData,
   JellybeanMachineAccountDataArgs as BaseJellybeanMachineAccountDataArgs,
 } from '../generated/accounts/jellybeanMachine';
-import { JELLYBEAN_MACHINE_BASE_SIZE } from './createJellybeanMachine';
+import { getJellybeanMachineBaseSize } from './createJellybeanMachine';
 
 export type JellybeanMachineWithItems =
   Account<JellybeanMachineAccountWithItemsData>;
@@ -108,7 +108,9 @@ export function getJellybeanMachineAccountWithItemsDataSerializer(): Serializer<
     baseGetJellybeanMachineAccountDataSerializer(),
     (args) => args,
     (base, bytes, offset) => {
-      const slice = bytes.slice(offset + JELLYBEAN_MACHINE_BASE_SIZE);
+      const slice = bytes.slice(
+        offset + getJellybeanMachineBaseSize(base.feeAccounts.length)
+      );
       const hiddenSection = getHiddenSection(
         base.version,
         base.itemsLoaded,

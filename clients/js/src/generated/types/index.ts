@@ -8,5 +8,6 @@
 
 export * from './feeAccount';
 export * from './jellybeanState';
+export * from './printFeeConfig';
 export * from './prize';
 export * from './settingsArgs';

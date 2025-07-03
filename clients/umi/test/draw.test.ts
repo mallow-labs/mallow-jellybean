@@ -1,5 +1,11 @@
 import { drawJellybean } from '@mallow-labs/mallow-gumball';
-import { addAmounts, sameAmounts, some } from '@metaplex-foundation/umi';
+import {
+  addAmounts,
+  generateSigner,
+  isEqualToAmount,
+  lamports,
+  some,
+} from '@metaplex-foundation/umi';
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
@@ -551,7 +557,7 @@ test('it transfers funds to the correct user', async (t) => {
     sellerUmi.identity.publicKey
   );
   t.true(
-    sameAmounts(
+    isEqualToAmount(
       finalBalance,
       addAmounts(initialBalance, DEFAULT_SOL_PAYMENT_LAMPORTS)
     )
@@ -615,5 +621,96 @@ test('it fails when fee account is incorrect', async (t) => {
         },
       }).sendAndConfirm(buyerUmi),
     { message: /Invalid fee account address/ }
+  );
+});
+
+test('it transfers print fee to the correct account', async (t) => {
+  const sellerUmi = await createUmi();
+  const collectionSigner = await createMasterEdition(sellerUmi);
+  const feeAccount = generateSigner(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    args: {
+      uri: 'https://example.com',
+      feeAccounts: [
+        {
+          address: sellerUmi.identity.publicKey,
+          basisPoints: 10000,
+        },
+      ],
+      printFeeConfig: {
+        address: feeAccount.publicKey,
+        amount: 11_000_000,
+      },
+    },
+    items: [
+      {
+        collection: collectionSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+    printFeeAccount: feeAccount.publicKey,
+  }).sendAndConfirm(buyerUmi);
+
+  const feeAccountBalance = await sellerUmi.rpc.getBalance(
+    feeAccount.publicKey
+  );
+  t.true(isEqualToAmount(feeAccountBalance, lamports(11_000_000)));
+});
+
+test('it fails when providing the wrong print fee account', async (t) => {
+  const sellerUmi = await createUmi();
+  const collectionSigner = await createMasterEdition(sellerUmi);
+  const feeAccount = generateSigner(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    args: {
+      uri: 'https://example.com',
+      feeAccounts: [
+        {
+          address: sellerUmi.identity.publicKey,
+          basisPoints: 10000,
+        },
+      ],
+      printFeeConfig: {
+        address: feeAccount.publicKey,
+        amount: 11_000_000,
+      },
+    },
+    items: [
+      {
+        collection: collectionSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await t.throwsAsync(
+    () =>
+      drawJellybean(buyerUmi, {
+        jellybeanMachine,
+        mintArgs: {
+          solPayment: some({
+            feeAccounts: [sellerUmi.identity.publicKey],
+          }),
+        },
+        printFeeAccount: sellerUmi.identity.publicKey,
+      }).sendAndConfirm(buyerUmi),
+    { message: /Invalid print fee account/ }
   );
 });

@@ -1,4 +1,4 @@
-import { generateSigner, none, sol, some } from '@metaplex-foundation/umi';
+import { generateSigner, sol } from '@metaplex-foundation/umi';
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
@@ -43,15 +43,10 @@ test('it can initialize a jellybean machine with basic parameters', async (t) =>
     state: JellybeanState.None,
     uri,
     feeAccounts: [
-      some({
+      {
         address: umi.identity.publicKey,
         basisPoints: 10000,
-      }),
-      none(),
-      none(),
-      none(),
-      none(),
-      none(),
+      },
     ],
   });
 });
@@ -89,18 +84,14 @@ test('it can initialize a jellybean machine with multiple fee accounts', async (
     state: JellybeanState.None,
     uri,
     feeAccounts: [
-      some({
+      {
         address: marketplaceFeeAccount,
         basisPoints: DEFAULT_MARKETPLACE_FEE_BASIS_POINTS,
-      }),
-      some({
+      },
+      {
         address: umi.identity.publicKey,
         basisPoints: 10000 - DEFAULT_MARKETPLACE_FEE_BASIS_POINTS,
-      }),
-      none(),
-      none(),
-      none(),
-      none(),
+      },
     ],
   });
 });
@@ -136,15 +127,10 @@ test('it can initialize a jellybean machine with custom authority', async (t) =>
     state: JellybeanState.None,
     uri,
     feeAccounts: [
-      some({
+      {
         address: customAuthority.publicKey,
         basisPoints: 10000,
-      }),
-      none(),
-      none(),
-      none(),
-      none(),
-      none(),
+      },
     ],
   });
 });
@@ -177,7 +163,7 @@ test('it can initialize a jellybean machine with empty fee accounts', async (t) 
     supplyRedeemed: 0n,
     state: JellybeanState.None,
     uri,
-    feeAccounts: [none(), none(), none(), none(), none(), none()],
+    feeAccounts: [],
   });
 });
 
@@ -387,21 +373,18 @@ test('it allows initialization with properly distributed fee accounts', async (t
 
   t.like(jellybeanMachineAccount, {
     feeAccounts: [
-      some({
+      {
         address: account1,
         basisPoints: 3000,
-      }),
-      some({
+      },
+      {
         address: account2,
         basisPoints: 3000,
-      }),
-      some({
+      },
+      {
         address: account3,
         basisPoints: 4000,
-      }),
-      none(),
-      none(),
-      none(),
+      },
     ],
   });
 });

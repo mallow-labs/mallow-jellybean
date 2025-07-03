@@ -1,11 +1,12 @@
 use crate::{
     constants::AUTHORITY_SEED, state::JellybeanMachine, utils::validate_settings_args,
-    JellybeanState, SettingsArgs, BASE_JELLYBEAN_MACHINE_SIZE, MAX_FEE_ACCOUNTS, MAX_URI_LENGTH,
+    JellybeanState, SettingsArgs
 };
 use anchor_lang::{prelude::*, Discriminator};
 
 /// Initializes a new jellybean machine.
 #[derive(Accounts)]
+#[instruction(args: SettingsArgs)]
 pub struct Initialize<'info> {
     /// Jellybean machine account.
     ///
@@ -13,7 +14,7 @@ pub struct Initialize<'info> {
     #[account(
         zero,
         rent_exempt = skip,
-        constraint = jellybean_machine.to_account_info().owner == __program_id && jellybean_machine.to_account_info().data_len() >= BASE_JELLYBEAN_MACHINE_SIZE
+        constraint = jellybean_machine.to_account_info().owner == __program_id && jellybean_machine.to_account_info().data_len() >= JellybeanMachine::get_base_size_with_fee_accounts(args.fee_accounts.len())
     )]
     jellybean_machine: UncheckedAccount<'info>,
 
@@ -46,17 +47,14 @@ pub fn initialize(ctx: Context<Initialize>, args: SettingsArgs) -> Result<()> {
     let jellybean_machine_account = &mut ctx.accounts.jellybean_machine;
 
     // Validate settings arguments
-    validate_settings_args(&args, MAX_URI_LENGTH)?;
-
-    let mut fee_accounts_array = [None; MAX_FEE_ACCOUNTS];
-    let copy_len = args.fee_accounts.len().min(MAX_FEE_ACCOUNTS);
-    fee_accounts_array[..copy_len].copy_from_slice(&args.fee_accounts[..copy_len]);
+    validate_settings_args(&args)?;
 
     let jellybean_machine = JellybeanMachine {
         version: JellybeanMachine::CURRENT_VERSION,
         authority: ctx.accounts.authority.key(),
         mint_authority: ctx.accounts.authority.key(),
-        fee_accounts: fee_accounts_array,
+        fee_accounts: args.fee_accounts,
+        print_fee_config: args.print_fee_config,
         items_loaded: 0,
         supply_loaded: 0,
         supply_redeemed: 0,

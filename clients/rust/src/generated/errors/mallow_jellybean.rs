@@ -79,6 +79,9 @@ pub enum MallowJellybeanError {
     /// 6022 - Items still loaded
     #[error("Items still loaded")]
     ItemsStillLoaded = 0x1786,
+    /// 6023 - Too many fee accounts
+    #[error("Too many fee accounts")]
+    TooManyFeeAccounts = 0x1787,
 }
 
 impl solana_program::program_error::PrintProgramError for MallowJellybeanError {
