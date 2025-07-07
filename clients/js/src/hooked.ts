@@ -41,3 +41,30 @@ export const resolveAuthorityPda = async ({
     )[0],
   };
 };
+
+export const resolveEventAuthorityPda = async ({
+  programAddress,
+}: {
+  programAddress: Address;
+  accounts: Record<string, ResolvedAccount>;
+}): Promise<{ value: Address }> => {
+  return {
+    value: (
+      await getProgramDerivedAddress({
+        programAddress,
+        seeds: [getUtf8Encoder().encode('__event_authority')],
+      })
+    )[0],
+  };
+};
+
+export const resolveProgram = ({
+  programAddress,
+}: {
+  programAddress: Address;
+  accounts: Record<string, ResolvedAccount>;
+}): { value: Address } => {
+  return {
+    value: programAddress,
+  };
+};

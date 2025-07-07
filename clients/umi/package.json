@@ -78,7 +78,7 @@
   },
   "packageManager": "pnpm@9.1.0",
   "dependencies": {
-    "@mallow-labs/mallow-gumball": "link:../../../mallow-gumball/clients/js",
+    "@mallow-labs/mallow-gumball": "workspace:*",
     "@metaplex-foundation/mpl-core": "^1.4.1",
     "@metaplex-foundation/mpl-toolbox": "^0.10.0",
     "@metaplex-foundation/umi": "^1.2.0"
