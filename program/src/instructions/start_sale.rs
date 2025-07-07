@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 pub struct StartSale<'info> {
     /// Jellybean machine account.
     #[account(
-        mut, 
+        mut,
         constraint = authority.key() == jellybean_machine.authority || authority.key() == jellybean_machine.mint_authority @ JellybeanError::InvalidAuthority,
         constraint = jellybean_machine.state == JellybeanState::None @ JellybeanError::InvalidState,
         constraint = jellybean_machine.items_loaded > 0 @ JellybeanError::JellybeanMachineEmpty

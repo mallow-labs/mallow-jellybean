@@ -27,7 +27,7 @@ pub struct ClaimCoreItem<'info> {
     #[account(
         mut,
         seeds = [
-            AUTHORITY_SEED.as_bytes(), 
+            AUTHORITY_SEED.as_bytes(),
             jellybean_machine.key().as_ref()
         ],
         bump
@@ -140,7 +140,7 @@ pub fn claim_core_item<'info>(
         CreateV1CpiBuilder::new(mpl_core_program)
             .asset(print_asset)
             .collection(Some(collection_account))
-            .payer(&payer)
+            .payer(payer)
             .name(if let Some(name) = plugin.master_edition.name {
                 name
             } else {

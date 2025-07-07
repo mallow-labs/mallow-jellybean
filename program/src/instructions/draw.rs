@@ -15,7 +15,7 @@ use solana_program::sysvar;
 pub struct Draw<'info> {
     /// Jellybean machine account.
     #[account(
-        mut, 
+        mut,
         has_one = mint_authority,
         constraint = jellybean_machine.state == JellybeanState::SaleLive @ JellybeanError::InvalidState
     )]
@@ -25,7 +25,7 @@ pub struct Draw<'info> {
     #[account(
         mut,
         seeds = [
-            AUTHORITY_SEED.as_bytes(), 
+            AUTHORITY_SEED.as_bytes(),
             jellybean_machine.key().as_ref()
         ],
         bump

@@ -6,7 +6,7 @@ use anchor_spl::associated_token::get_associated_token_address;
 use anchor_spl::token::spl_token::{native_mint, state::Account as SplAccount, ID as SPL_TOKEN_ID};
 
 pub fn is_native_mint(key: Pubkey) -> bool {
-    return key == native_mint::ID;
+    key == native_mint::ID;
 }
 
 pub fn assert_keys_equal(key1: Pubkey, key2: Pubkey, error_message: &str) -> Result<()> {
@@ -57,7 +57,7 @@ pub fn validate_uri_length(uri: &str) -> Result<()> {
 }
 
 /// Validates fee account basis points
-pub fn validate_fee_accounts(fee_accounts: &Vec<FeeAccount>) -> Result<()> {
+pub fn validate_fee_accounts(fee_accounts: &[FeeAccount]) -> Result<()> {
     if fee_accounts.len() > MAX_FEE_ACCOUNTS {
         return err!(JellybeanError::TooManyFeeAccounts);
     }

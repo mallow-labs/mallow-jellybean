@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 pub struct UpdateSettings<'info> {
     /// Gumball machine account.
     #[account(
-        mut, 
+        mut,
         has_one = authority
     )]
     jellybean_machine: Box<Account<'info, JellybeanMachine>>,

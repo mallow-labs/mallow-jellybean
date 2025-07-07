@@ -6,7 +6,7 @@ use anchor_lang::prelude::*;
 pub struct EndSale<'info> {
     /// Gumball machine account.
     #[account(
-        mut, 
+        mut,
         has_one = authority,
         constraint = jellybean_machine.state != JellybeanState::SaleEnded @ JellybeanError::InvalidState
     )]

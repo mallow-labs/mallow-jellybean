@@ -20,7 +20,7 @@ pub struct AddCoreItem<'info> {
     #[account(
         mut,
         seeds = [
-            AUTHORITY_SEED.as_bytes(), 
+            AUTHORITY_SEED.as_bytes(),
             jellybean_machine.key().as_ref()
         ],
         bump
@@ -116,9 +116,9 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
                 };
 
                 // We escrow funds from the buyer to cover printing fees, this allows the buyer or seller to settle the sale
-                let escrow_amount = 
+                let escrow_amount =
                 // AssetV1 + Edition plugin base size + name + uri size
-                    rent.minimum_balance(108_usize + name.len() + uri.len()) 
+                    rent.minimum_balance(108_usize + name.len() + uri.len())
                         + 1_500_000; // Metaplex fee
 
                 LoadedItem {

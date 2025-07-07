@@ -20,7 +20,7 @@ pub struct RemoveCoreItem<'info> {
     #[account(
         mut,
         seeds = [
-            AUTHORITY_SEED.as_bytes(), 
+            AUTHORITY_SEED.as_bytes(),
             jellybean_machine.key().as_ref()
         ],
         bump

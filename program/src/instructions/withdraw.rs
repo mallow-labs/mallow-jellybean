@@ -6,8 +6,8 @@ use anchor_lang::prelude::*;
 pub struct Withdraw<'info> {
     /// Gumball Machine acccount.
     #[account(
-        mut, 
-        close = authority, 
+        mut,
+        close = authority,
         has_one = authority @ JellybeanError::InvalidAuthority,
         has_one = mint_authority @ JellybeanError::InvalidMintAuthority,
         constraint = jellybean_machine.items_loaded == 0 @ JellybeanError::ItemsStillLoaded,
