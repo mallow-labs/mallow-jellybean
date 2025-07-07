@@ -1,3 +1,4 @@
+import { createV1 } from '@metaplex-foundation/mpl-core';
 import { generateSigner } from '@metaplex-foundation/umi';
 import test from 'ava';
 import {
@@ -203,5 +204,38 @@ test('it cannot add a master edition with infinite supply', async (t) => {
 
   await t.throwsAsync(promise, {
     message: /InvalidMasterEditionSupply/,
+  });
+});
+
+test('it cannot add a master edition with existing prints', async (t) => {
+  const umi = await createUmi();
+  const jellybeanMachine = generateSigner(umi);
+  const uri = 'https://example.com/metadata.json';
+  const feeAccounts = getDefaultFeeAccounts(umi.identity.publicKey);
+
+  await (
+    await createJellybeanMachine(umi, {
+      jellybeanMachine,
+      args: { feeAccounts, uri },
+    })
+  ).sendAndConfirm(umi);
+
+  const collection = await createMasterEdition(umi);
+
+  // Mint a print from the master edition
+  await createV1(umi, {
+    asset: generateSigner(umi),
+    collection: collection.publicKey,
+    name: 'My Asset',
+    uri: 'https://example.com/my-asset.json',
+  }).sendAndConfirm(umi);
+
+  const promise = addCoreItem(umi, {
+    jellybeanMachine: jellybeanMachine.publicKey,
+    collection: collection.publicKey,
+  }).sendAndConfirm(umi);
+
+  await t.throwsAsync(promise, {
+    message: /MasterEditionNotEmpty/,
   });
 });

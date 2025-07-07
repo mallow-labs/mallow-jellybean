@@ -111,6 +111,37 @@ test('it can close a jellybean machine after removing all items', async (t) => {
   t.falsy(jellybeanMachineAccount);
 });
 
+test('it fails to withdraw when there are unclaimed prizes', async (t) => {
+  const umi = await createUmi();
+  const assetSigner = await createCoreAsset(umi);
+
+  const jellybeanMachine = await create(umi, {
+    startSale: true,
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+  });
+
+  const buyerUmi = await createUmi();
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [umi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  // The prize is drawn but not claimed.
+  const promise = closeJellybeanMachine(umi, {
+    jellybeanMachine,
+  }).sendAndConfirm(umi);
+
+  await t.throwsAsync(promise, { message: /ItemsStillLoaded/ });
+});
+
 test('it can close a jellybean machine after settling all items', async (t) => {
   const umi = await createUmi();
   const assetSigner = await createCoreAsset(umi);

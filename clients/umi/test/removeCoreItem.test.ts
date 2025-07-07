@@ -1,11 +1,12 @@
 import { drawJellybean } from '@mallow-labs/mallow-gumball';
 import { fetchAsset, fetchCollection } from '@metaplex-foundation/mpl-core';
-import { isGreaterThanAmount } from '@metaplex-foundation/umi';
+import { isGreaterThanAmount, some } from '@metaplex-foundation/umi';
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
   addCoreItem,
   claimCoreItem,
+  endSale,
   fetchJellybeanMachineWithItems,
   JellybeanState,
   removeCoreItem,
@@ -584,4 +585,41 @@ test('it can remove the first item when there are multiple items', async (t) => 
   t.is(jellybeanMachineAccount.supplyLoaded, 1n);
   t.is(jellybeanMachineAccount.items.length, 1);
   t.is(jellybeanMachineAccount.items[0].mint, assetSigners[1].publicKey);
+});
+
+test('it fails when trying to remove a master edition before being fully claimed', async (t) => {
+  const umi = await createUmi();
+  const collectionSigner = await createMasterEdition(umi);
+
+  const jellybeanMachine = await create(umi, {
+    items: [
+      {
+        collection: collectionSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyerUmi = await createUmi();
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [umi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  await endSale(umi, {
+    jellybeanMachine,
+  }).sendAndConfirm(umi);
+
+  await t.throwsAsync(
+    removeCoreItem(umi, {
+      jellybeanMachine,
+      collection: collectionSigner.publicKey,
+      index: 0,
+    }).sendAndConfirm(umi),
+    { message: /ItemNotFullyClaimed/ }
+  );
 });
