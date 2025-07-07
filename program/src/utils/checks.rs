@@ -6,7 +6,7 @@ use anchor_spl::associated_token::get_associated_token_address;
 use anchor_spl::token::spl_token::{native_mint, state::Account as SplAccount, ID as SPL_TOKEN_ID};
 
 pub fn is_native_mint(key: Pubkey) -> bool {
-    key == native_mint::ID;
+    key == native_mint::ID
 }
 
 pub fn assert_keys_equal(key1: Pubkey, key2: Pubkey, error_message: &str) -> Result<()> {

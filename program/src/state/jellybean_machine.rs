@@ -91,7 +91,7 @@ impl JellybeanMachine {
     ) -> Result<LoadedItem> {
         let item_position = self.get_loaded_item_position(index);
         let item_data = &mut &account_data[item_position..item_position + LOADED_ITEM_SIZE];
-        Ok(LoadedItem::deserialize(item_data)?);
+        Ok(LoadedItem::deserialize(item_data)?)
     }
 }
 
