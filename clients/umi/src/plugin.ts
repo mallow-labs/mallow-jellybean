@@ -25,11 +25,13 @@ import {
   tokenPaymentGuardManifest,
 } from '@mallow-labs/mallow-gumball';
 import { mplCore } from '@metaplex-foundation/mpl-core';
+import { mplToolbox } from '@metaplex-foundation/mpl-toolbox';
 import { UmiPlugin } from '@metaplex-foundation/umi';
 import { createMallowJellybeanProgram } from './generated/programs';
 
 export const mallowJellybean = (): UmiPlugin => ({
   install(umi) {
+    umi.use(mplToolbox());
     umi.use(mplCore());
 
     // Programs.
