@@ -7,7 +7,7 @@ A generated JavaScript library for the Mallow Jellybean program.
 To build and test your JavaScript client from the root of the repository, you may use the following command.
 
 ```sh
-pnpm clients:js:test
+pnpm clients:umi:test
 ```
 
 This will start a new local validator, if one is not already running, and run the tests for your JavaScript client.
@@ -19,7 +19,7 @@ Alternatively, you can go into the client directory and run the tests directly.
 ```sh
 # Build your programs and start the validator.
 pnpm programs:build
-pnpm validator:restart
+pnpm validator
 
 # Go into the client directory and run the tests.
 cd clients/js

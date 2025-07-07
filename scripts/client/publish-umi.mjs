@@ -8,7 +8,7 @@ if (!level) {
 }
 
 // Go to the client directory and install the dependencies.
-cd(path.join(workingDirectory, 'clients', 'js'));
+cd(path.join(workingDirectory, 'clients', 'umi'));
 await $`pnpm install`;
 
 // Update the version.
@@ -29,7 +29,7 @@ if (process.env.CI) {
 await $`pnpm publish --no-git-checks --tag ${tag}`;
 
 // Commit the new version.
-await $`git commit -am "Publish JS client v${newVersion}"`;
+await $`git commit -am "Publish Umi client v${newVersion}"`;
 
 // Tag the new version.
-await $`git tag -a js@v${newVersion} -m "JS client v${newVersion}"`;
+await $`git tag -a js@v${newVersion} -m "Umi client v${newVersion}"`;

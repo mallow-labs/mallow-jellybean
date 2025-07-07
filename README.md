@@ -70,10 +70,10 @@ The following script is available to start your local validator.
 pnpm validator:start
 ```
 
-By default, if a local validator is already running, the script will be skipped. You may use the `validator:restart` script instead to force the validator to restart.
+By default, if a local validator is already running, the script will be skipped. You may use the `validator` script instead to force the validator to restart.
 
 ```sh
-pnpm validator:restart
+pnpm validator
 ```
 
 Finally, you may stop the local validator using the following command.
@@ -99,5 +99,5 @@ Next time you build your program and run your validator, these external programs
 
 ```sh
 pnpm programs:build
-pnpm validator:restart
+pnpm validator
 ```

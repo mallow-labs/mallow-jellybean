@@ -28,8 +28,8 @@ on:
         default: true
 
 jobs:
-  test_js:
-    name: Test JS client
+  test_umi:
+    name: Test Umi client
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout
@@ -42,22 +42,22 @@ jobs:
           solana: true
           anchor: true
 
-      - name: Format JS Client
-        run: pnpm clients:js:format
+      - name: Format Umi Client
+        run: pnpm clients:umi:format
 
-      - name: Lint JS Client
-        run: pnpm clients:js:lint
+      - name: Lint Umi Client
+        run: pnpm clients:umi:lint
 
       - name: Build Programs
         run: pnpm programs:build
 
-      - name: Test JS Client
-        run: pnpm clients:js:test
+      - name: Test Umi Client
+        run: pnpm clients:umi:test
 
-  publish_js:
-    name: Publish JS client
+  publish_umi:
+    name: Publish Umi client
     runs-on: ubuntu-latest
-    needs: test_js
+    needs: test_umi
     permissions:
       contents: write
     steps:
@@ -86,9 +86,9 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
-      - name: Publish JS Client
+      - name: Publish Umi Client
         id: publish
-        run: pnpm clients:js:publish ${{ inputs.level }} ${{ inputs.tag }}
+        run: pnpm clients:umi:publish ${{ inputs.level }} ${{ inputs.tag }}
 
       - name: Push Commit and Tag
         run: git push origin --follow-tags
