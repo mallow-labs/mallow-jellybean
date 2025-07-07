@@ -1,0 +1,32 @@
+# Project Overview
+
+Mallow Jellybean is a random sales tool built on the Solana blockchain. It is primarily used with Master Edition nfts with a limited supply to allow drawing a random print with rarity. For example, the creator can add a Master Edition of 10 supply, and one of 100 supply. When a buyer draws an item, they're more like to get a print from the 100 supply. 1 of 1 nfts can also be added, where the supply is 1.
+
+All nfts used with this program use the Metaplex Core token standard. When documentation is required, use the library id `/metaplex-foundation/mpl-core` with context7 to get relavent documentation.
+
+# Project Configuration
+
+## Tech Stack
+
+- Solana 1.18.26
+- Anchor 0.29.0
+- Codama 1.3.0 for generating clients
+- Ava for js client tests
+- Umi 1.2.0 for umi client
+
+## Project Structure
+
+/clients # Clients for the Solana program
+
+- /js # @solana/kit based js client
+- /rust # Rust based client used by other Solana programs
+- /umi # Umi based js client
+
+/program # mallow jellybean Solana program code
+
+/scripts # helper scripts to manage and test the project
+
+## Security
+
+- Always mantain a high focus on security, preventing any potential exploits or loss of user funds or assets
+- Think holistically about the flow of the program, preventing exploits from state manipulation
