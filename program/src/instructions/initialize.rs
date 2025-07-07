@@ -1,6 +1,6 @@
 use crate::{
     constants::AUTHORITY_SEED, state::JellybeanMachine, utils::validate_settings_args,
-    JellybeanState, SettingsArgs
+    JellybeanState, SettingsArgs,
 };
 use anchor_lang::{prelude::*, Discriminator};
 

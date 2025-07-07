@@ -76,13 +76,11 @@ pub fn remove_multiple_items_span<'info>(
     // Refund excess rent to authority
     let excess_lamports = current_lamports - new_rent_minimum;
 
-    if excess_lamports > 0 {
-        // Transfer excess lamports to authority
-        **jellybean_machine
-            .to_account_info()
-            .try_borrow_mut_lamports()? -= excess_lamports;
-        **authority.try_borrow_mut_lamports()? += excess_lamports;
-    }
+    // Transfer excess lamports to authority
+    **jellybean_machine
+        .to_account_info()
+        .try_borrow_mut_lamports()? -= excess_lamports;
+    **authority.try_borrow_mut_lamports()? += excess_lamports;
 
     msg!(
         "Items removed: span from {} to {}, new items_loaded={}, new supply_loaded={}",

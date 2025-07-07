@@ -1,8 +1,14 @@
 import { drawJellybean } from '@mallow-labs/mallow-gumball';
-import { chunk, some, transactionBuilder } from '@metaplex-foundation/umi';
+import {
+  chunk,
+  generateSigner,
+  some,
+  transactionBuilder,
+} from '@metaplex-foundation/umi';
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
+  claimCoreItem,
   fetchJellybeanMachineWithItems,
   fetchUnclaimedPrizesFromSeeds,
   JellybeanMachineAccountWithItemsData,
@@ -184,4 +190,19 @@ test('it can draw with many master editions', async (t) => {
     supplyRedeemed: BigInt(drawCount),
     state: JellybeanState.SaleLive,
   });
+
+  // Can claim final index
+  const unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+  });
+  const index =
+    unclaimedPrizes.prizes[unclaimedPrizes.prizes.length - 1].itemIndex;
+  const printAsset = generateSigner(buyerUmi);
+  await claimCoreItem(buyerUmi, {
+    jellybeanMachine,
+    index,
+    collection: collectionSigners[0].publicKey,
+    printAsset,
+  }).sendAndConfirm(buyerUmi);
 });

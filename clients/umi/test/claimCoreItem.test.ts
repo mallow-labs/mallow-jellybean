@@ -1,6 +1,13 @@
 import { drawJellybean } from '@mallow-labs/mallow-gumball';
 import { AssetV1, fetchAsset } from '@metaplex-foundation/mpl-core';
-import { generateSigner, some } from '@metaplex-foundation/umi';
+import {
+  generateSigner,
+  isEqualToAmount,
+  isGreaterThanAmount,
+  lamports,
+  some,
+  subtractAmounts,
+} from '@metaplex-foundation/umi';
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
@@ -10,6 +17,7 @@ import {
   JellybeanMachineAccountWithItemsData,
   JellybeanState,
   safeFetchUnclaimedPrizesFromSeeds,
+  UnclaimedPrizes,
 } from '../src';
 import {
   create,
@@ -250,6 +258,101 @@ test('it can claim a one of one asset in a collection', async (t) => {
     updateAuthority: {
       type: 'Collection',
       address: collectionSigner.publicKey,
+    },
+  });
+});
+
+test('it can claim an edition with a different payer', async (t) => {
+  const sellerUmi = await createUmi();
+  const collectionSigner = await createMasterEdition(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        collection: collectionSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  const payerUmi = await createUmi();
+
+  const printAsset = generateSigner(buyerUmi);
+  const beforeBalance = await payerUmi.rpc.getBalance(
+    payerUmi.identity.publicKey
+  );
+
+  await claimCoreItem(payerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+    collection: collectionSigner.publicKey,
+    index: 0,
+    printAsset,
+  }).sendAndConfirm(payerUmi);
+
+  const afterBalance = await payerUmi.rpc.getBalance(
+    payerUmi.identity.publicKey
+  );
+
+  // Should only charge the tx fee as payer gets escrowed funds
+  t.true(
+    isEqualToAmount(
+      afterBalance,
+      subtractAmounts(beforeBalance, lamports(10_000))
+    )
+  );
+
+  t.falsy(
+    await safeFetchUnclaimedPrizesFromSeeds(sellerUmi, {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    })
+  );
+
+  const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
+    sellerUmi,
+    jellybeanMachine
+  );
+  t.like(jellybeanMachineAccount, <JellybeanMachineAccountWithItemsData>{
+    itemsLoaded: 1,
+    supplyLoaded: BigInt(DEFAULT_MAX_SUPPLY),
+    supplyRedeemed: 1n,
+    state: JellybeanState.SaleLive,
+    items: [
+      {
+        index: 0,
+        mint: collectionSigner.publicKey,
+        supplyLoaded: DEFAULT_MAX_SUPPLY,
+        supplyRedeemed: 1,
+        escrowAmount: 3427920n,
+      },
+    ],
+  });
+
+  const printedAsset = await fetchAsset(sellerUmi, printAsset.publicKey);
+  const assetData = defaultAssetData();
+  t.like(printedAsset, <AssetV1>{
+    name: assetData.name,
+    uri: assetData.uri,
+    owner: buyer.publicKey,
+    updateAuthority: {
+      type: 'Collection',
+      address: collectionSigner.publicKey,
+    },
+    edition: {
+      number: 1,
     },
   });
 });
@@ -510,5 +613,95 @@ test('it can claim then draw then claim again', async (t) => {
     supplyLoaded: 2n,
     supplyRedeemed: 2n,
     state: JellybeanState.SaleEnded,
+  });
+});
+
+test('it reallocates the unclaimed prizes account when it is not empty', async (t) => {
+  const sellerUmi = await createUmi();
+  const collectionSigner = await createMasterEdition(sellerUmi, {
+    maxSupply: 2,
+  });
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        collection: collectionSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  })
+    .add(
+      drawJellybean(buyerUmi, {
+        jellybeanMachine,
+        mintArgs: {
+          solPayment: some({
+            feeAccounts: [sellerUmi.identity.publicKey],
+          }),
+        },
+      })
+    )
+    .sendAndConfirm(buyerUmi);
+
+  const printAsset = generateSigner(buyerUmi);
+
+  let unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+  });
+
+  const preBalance = await buyerUmi.rpc.getBalance(buyer.publicKey);
+  await claimCoreItem(buyerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+    collection: collectionSigner.publicKey,
+    index: 0,
+    printAsset,
+  }).sendAndConfirm(buyerUmi);
+
+  const postBalance = await buyerUmi.rpc.getBalance(buyer.publicKey);
+  t.true(isGreaterThanAmount(postBalance, preBalance));
+
+  unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+  });
+  t.like(unclaimedPrizes, <UnclaimedPrizes>{
+    prizes: [
+      {
+        itemIndex: 0,
+        editionNumber: 2,
+      },
+    ],
+  });
+
+  const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
+    sellerUmi,
+    jellybeanMachine
+  );
+  t.like(jellybeanMachineAccount, <JellybeanMachineAccountWithItemsData>{
+    itemsLoaded: 1,
+    supplyLoaded: 2n,
+    supplyRedeemed: 2n,
+    state: JellybeanState.SaleEnded,
+    items: [
+      {
+        index: 0,
+        mint: collectionSigner.publicKey,
+        supplyLoaded: 2,
+        supplyRedeemed: 2,
+      },
+    ],
   });
 });

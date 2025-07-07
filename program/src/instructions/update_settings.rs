@@ -1,6 +1,4 @@
-use crate::{
-    state::JellybeanMachine, utils::validate_settings_args, SettingsArgs
-};
+use crate::{state::JellybeanMachine, utils::validate_settings_args, SettingsArgs};
 use anchor_lang::prelude::*;
 
 /// Initializes a new jellybean machine.

@@ -1,6 +1,6 @@
 use crate::{
     assert_keys_equal, constants::AUTHORITY_SEED, events::ClaimItemEvent, state::JellybeanMachine,
-    JellybeanError, JellybeanState, UnclaimedPrizes
+    JellybeanError, JellybeanState, UnclaimedPrizes,
 };
 use anchor_lang::prelude::*;
 use mpl_core::{
@@ -170,8 +170,7 @@ pub fn claim_core_item<'info>(
     assert_keys_equal(mint, loaded_item.mint, "Invalid mint")?;
 
     let item_position = jellybean_machine.get_loaded_item_position(index as usize);
-    let supply_claimed_slice: &mut [u8] =
-        &mut data[item_position + 40..item_position + 44];
+    let supply_claimed_slice: &mut [u8] = &mut data[item_position + 40..item_position + 44];
     supply_claimed_slice.copy_from_slice(&u32::to_le_bytes(loaded_item.supply_claimed + 1));
 
     drop(data);
@@ -179,6 +178,25 @@ pub fn claim_core_item<'info>(
     // Close unclaimed_prize account back to the buyer if it's empty
     if unclaimed_prizes.prizes.is_empty() {
         unclaimed_prizes.close(buyer.to_account_info())?;
+    } else {
+        // Calculate new space needed and reallocate if smaller
+        let new_space = UnclaimedPrizes::space(unclaimed_prizes.prizes.len());
+        let rent = Rent::get()?;
+        let new_rent_minimum = rent.minimum_balance(new_space);
+        let current_lamports = unclaimed_prizes.to_account_info().lamports();
+
+        // Reallocate the account
+        unclaimed_prizes
+            .to_account_info()
+            .realloc(new_space, false)?;
+
+        // Refund excess rent to buyer
+        let excess_lamports = current_lamports - new_rent_minimum;
+        // Transfer excess lamports to buyer
+        **unclaimed_prizes
+            .to_account_info()
+            .try_borrow_mut_lamports()? -= excess_lamports;
+        **buyer.try_borrow_mut_lamports()? += excess_lamports;
     }
 
     emit_cpi!(ClaimItemEvent {

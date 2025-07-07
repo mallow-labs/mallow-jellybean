@@ -1,7 +1,11 @@
 use crate::{
-    assert_keys_equal, constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError, JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedPrizes
+    assert_keys_equal, constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError,
+    JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedPrizes,
 };
-use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
+use anchor_lang::{
+    prelude::*,
+    system_program::{transfer, Transfer},
+};
 use arrayref::array_ref;
 use solana_program::sysvar;
 
@@ -122,7 +126,11 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
         authority_pda: ctx.accounts.authority_pda.to_account_info(),
-        print_fee_account: ctx.accounts.print_fee_account.as_ref().map(|a| a.to_account_info()),
+        print_fee_account: ctx
+            .accounts
+            .print_fee_account
+            .as_ref()
+            .map(|a| a.to_account_info()),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
 
@@ -191,13 +199,16 @@ pub(crate) fn process_draw<'a>(
 
     if item.escrow_amount > 0 {
         // Escrow any additional amount required
-        transfer(CpiContext::new(
-            accounts.system_program.to_account_info(),
-            Transfer {
-                from: accounts.payer.to_account_info(),
-                to: accounts.authority_pda,
-            },
-        ), item.escrow_amount)?;
+        transfer(
+            CpiContext::new(
+                accounts.system_program.to_account_info(),
+                Transfer {
+                    from: accounts.payer.to_account_info(),
+                    to: accounts.authority_pda,
+                },
+            ),
+            item.escrow_amount,
+        )?;
     }
 
     // Is master edition?
@@ -205,15 +216,22 @@ pub(crate) fn process_draw<'a>(
         if let Some(print_fee_config) = &jellybean_machine.print_fee_config {
             if print_fee_config.amount > 0 {
                 let fee_account = accounts.print_fee_account.as_ref().unwrap();
-                assert_keys_equal(fee_account.key(), print_fee_config.address, "Invalid print fee account")?;
+                assert_keys_equal(
+                    fee_account.key(),
+                    print_fee_config.address,
+                    "Invalid print fee account",
+                )?;
                 // Send print fee to the print fee config address
-                transfer(CpiContext::new(
-                    accounts.system_program.to_account_info(),
-                    Transfer {
-                        from: accounts.payer.to_account_info(),
-                        to: fee_account.to_account_info(),
-                    },
-                ), print_fee_config.amount)?;
+                transfer(
+                    CpiContext::new(
+                        accounts.system_program.to_account_info(),
+                        Transfer {
+                            from: accounts.payer.to_account_info(),
+                            to: fee_account.to_account_info(),
+                        },
+                    ),
+                    print_fee_config.amount,
+                )?;
             }
         }
     }
@@ -259,10 +277,13 @@ fn get_prize_and_update_supply_redeemed(
             let supply_redeemed_slice = &mut account_data[item_position + 36..item_position + 40];
             supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(new_supply_redeemed));
 
-            return Ok((Prize {
-                item_index: i,
-                edition_number: new_supply_redeemed,
-            }, item));
+            return Ok((
+                Prize {
+                    item_index: i,
+                    edition_number: new_supply_redeemed,
+                },
+                item,
+            ));
         }
 
         remaining_supply_covered += remaining_supply as usize;

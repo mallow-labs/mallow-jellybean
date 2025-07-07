@@ -1,6 +1,6 @@
 use crate::{
     assert_keys_equal, constants::AUTHORITY_SEED, processors, state::JellybeanMachine,
-    JellybeanError
+    JellybeanError,
 };
 use anchor_lang::prelude::*;
 use mpl_core::instructions::{TransferV1CpiBuilder, UpdateCollectionV1CpiBuilder};

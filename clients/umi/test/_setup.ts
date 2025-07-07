@@ -115,10 +115,8 @@ export const createCoreAsset = async (
 
 export const createMasterEdition = async (
   umi: Umi,
-  input: Partial<Parameters<typeof createCollection>[1]> & {
+  input?: Partial<Parameters<typeof createCollection>[1]> & {
     maxSupply?: number | undefined;
-  } = {
-    maxSupply: DEFAULT_MAX_SUPPLY,
   }
 ): Promise<Signer> => {
   const collection = generateSigner(umi);
@@ -141,7 +139,10 @@ export const createMasterEdition = async (
       },
       {
         type: 'MasterEdition',
-        maxSupply: input.maxSupply,
+        maxSupply:
+          input != null && 'maxSupply' in input
+            ? input.maxSupply
+            : DEFAULT_MAX_SUPPLY,
       },
     ],
     ...input,
