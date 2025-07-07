@@ -126,23 +126,11 @@ codama.update(
 
 // Render JavaScript.
 const jsClient = path.join(__dirname, '..', 'clients', 'js');
-codama.accept(
-  renderJavaScriptVisitor(path.join(jsClient, 'src', 'generated'), {
-    prettierOptions: require(
-      path.join(__dirname, 'client', '.prettierrc.json')
-    ),
-  })
-);
+codama.accept(renderJavaScriptVisitor(path.join(jsClient, 'src', 'generated')));
 
 // Render JavaScript.
 const umiClient = path.join(__dirname, '..', 'clients', 'umi');
-codama.accept(
-  renderUmiVisitor(path.join(umiClient, 'src', 'generated'), {
-    prettierOptions: require(
-      path.join(__dirname, 'client', '.prettierrc.json')
-    ),
-  })
-);
+codama.accept(renderUmiVisitor(path.join(umiClient, 'src', 'generated')));
 
 // Render Rust.
 const rustClient = path.join(__dirname, '..', 'clients', 'rust');

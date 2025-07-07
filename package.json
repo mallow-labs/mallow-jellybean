@@ -12,7 +12,7 @@
     "solana:link": "zx ./scripts/link-solana-version.mjs",
     "rust:link": "zx ./scripts/link-rust-version.mjs",
     "generate": "pnpm generate:idls && pnpm generate:clients",
-    "generate:clients": "zx ./scripts/generate-clients.mjs",
+    "generate:clients": "zx ./scripts/generate-clients.mjs && pnpm clients:js:format --write",
     "validator": "pnpm validator:start --restart",
     "validator:debug": "amman start --config ./validator.cjs",
     "validator:start": "zx ./scripts/start-validator.mjs",
