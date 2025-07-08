@@ -1,5 +1,5 @@
 {
-  "name": "mallow-jellybean-umi",
+  "name": "@mallow-labs/mallow-jellybean-umi",
   "version": "0.0.0",
   "description": "Umi client for the Mallow Jellybean program",
   "sideEffects": false,

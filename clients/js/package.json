@@ -1,5 +1,5 @@
 {
-  "name": "mallow-jellybean",
+  "name": "@mallow-labs/mallow-jellybean",
   "version": "0.0.0",
   "description": "JavaScript client for the Mallow Jellybean program",
   "sideEffects": false,
