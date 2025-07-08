@@ -43,9 +43,6 @@
   },
   "homepage": "https://github.com/mallow-labs/mallow-jellybean#readme",
   "license": "MIT",
-  "peerDependencies": {
-    "@solana/web3.js": "^2.0.0"
-  },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",
     "@metaplex-foundation/umi-bundle-tests": "^1.2.0",
@@ -78,7 +75,7 @@
   },
   "packageManager": "pnpm@9.1.0",
   "dependencies": {
-    "@mallow-labs/mallow-gumball": "workspace:*",
+    "@mallow-labs/mallow-gumball": "1.0.0-beta.1",
     "@metaplex-foundation/mpl-core": "^1.4.1",
     "@metaplex-foundation/mpl-toolbox": "^0.10.0",
     "@metaplex-foundation/umi": "^1.2.0"
