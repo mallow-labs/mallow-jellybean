@@ -1,3 +1,9 @@
+---
+description: Project overview and structure
+globs:
+alwaysApply: true
+---
+
 # Project Overview
 
 Mallow Jellybean is a random sales tool built on the Solana blockchain. It is primarily used with Master Edition nfts with a limited supply to allow drawing a random print with rarity. For example, the creator can add a Master Edition of 10 supply, and one of 100 supply. When a buyer draws an item, they're more like to get a print from the 100 supply. 1 of 1 nfts can also be added, where the supply is 1.
