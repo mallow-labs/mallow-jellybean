@@ -14,8 +14,8 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
+  getU8Decoder,
+  getU8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -101,7 +101,7 @@ export function getRemoveCoreItemInstructionDataEncoder(): Encoder<RemoveCoreIte
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['index', getU32Encoder()],
+      ['index', getU8Encoder()],
     ]),
     (value) => ({ ...value, discriminator: REMOVE_CORE_ITEM_DISCRIMINATOR })
   );
@@ -110,7 +110,7 @@ export function getRemoveCoreItemInstructionDataEncoder(): Encoder<RemoveCoreIte
 export function getRemoveCoreItemInstructionDataDecoder(): Decoder<RemoveCoreItemInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['index', getU32Decoder()],
+    ['index', getU8Decoder()],
   ]);
 }
 

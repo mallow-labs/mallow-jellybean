@@ -11,6 +11,6 @@ use borsh::BorshSerialize;
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Prize {
-    pub item_index: u16,
+    pub item_index: u8,
     pub edition_number: u32,
 }

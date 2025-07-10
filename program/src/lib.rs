@@ -72,7 +72,7 @@ pub mod mallow_jellybean {
     ///   6. `[writable, optional]` Collection account if asset is part of one.
     ///   7. `[]` MPL Core program.
     ///   8. `[]` System program.
-    pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> {
+    pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u8) -> Result<()> {
         instructions::remove_core_item(ctx, index)
     }
 
@@ -127,7 +127,7 @@ pub mod mallow_jellybean {
     ///   8. `[]` MPL Core program.
     pub fn claim_core_item<'info>(
         ctx: Context<'_, '_, '_, 'info, ClaimCoreItem<'info>>,
-        index: u16,
+        index: u8,
     ) -> Result<()> {
         instructions::claim_core_item(ctx, index)
     }

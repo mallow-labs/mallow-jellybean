@@ -246,7 +246,7 @@ pub(crate) fn process_draw<'a>(
 /// The target supply index is the index of the item in the remaining supply across all items.
 fn get_prize_and_update_supply_redeemed(
     jellybean_machine: &mut Box<Account<'_, JellybeanMachine>>,
-    items_loaded: u16,
+    items_loaded: u8,
     target_supply_index: usize,
 ) -> Result<(Prize, LoadedItem)> {
     let account_info = jellybean_machine.to_account_info();

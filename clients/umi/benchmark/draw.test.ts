@@ -1,4 +1,5 @@
 import { drawJellybean } from '@mallow-labs/mallow-gumball';
+import { setComputeUnitLimit } from '@metaplex-foundation/mpl-toolbox';
 import {
   chunk,
   generateSigner,
@@ -8,11 +9,13 @@ import {
 import { generateSignerWithSol } from '@metaplex-foundation/umi-bundle-tests';
 import test from 'ava';
 import {
+  addCoreItem,
   claimCoreItem,
   fetchJellybeanMachineWithItems,
   fetchUnclaimedPrizesFromSeeds,
   JellybeanMachineAccountWithItemsData,
   JellybeanState,
+  startSale,
 } from '../src';
 import {
   create,
@@ -139,10 +142,10 @@ test('it draws items with reasonable randomness distribution', async (t) => {
   t.is(totalItemsRedeemed, drawCount);
 });
 
-test('it can draw with many master editions', async (t) => {
+test('it can draw from 255 master editions', async (t) => {
   t.timeout(60_000);
 
-  const count = 256;
+  const count = 255;
   const drawCount = 100;
   const sellerUmi = await createUmi();
   const promises = Array.from({ length: count }, () =>
@@ -153,18 +156,36 @@ test('it can draw with many master editions', async (t) => {
     items: collectionSigners.map((signer) => ({
       collection: signer.publicKey,
     })),
-    startSale: true,
   });
+
+  // Should fail to add the 256th item
+  await t.throwsAsync(
+    addCoreItem(sellerUmi, {
+      jellybeanMachine,
+      collection: (await createMasterEdition(sellerUmi)).publicKey,
+    }).sendAndConfirm(sellerUmi),
+    {
+      message: /NumericalOverflowError/,
+    }
+  );
+
+  await startSale(sellerUmi, {
+    jellybeanMachine,
+  }).sendAndConfirm(sellerUmi);
 
   const buyer = await generateSignerWithSol(sellerUmi);
   const buyerUmi = await createUmi(buyer);
 
   const batches = chunk(
     Array.from({ length: drawCount }, () => null),
-    8
+    10
   );
   for (const batch of batches) {
-    let builder = transactionBuilder();
+    let builder = transactionBuilder().add(
+      setComputeUnitLimit(buyerUmi, {
+        units: 1_400_000,
+      })
+    );
     batch.forEach(() => {
       builder = builder.add(
         drawJellybean(buyerUmi, {
@@ -202,7 +223,69 @@ test('it can draw with many master editions', async (t) => {
   await claimCoreItem(buyerUmi, {
     jellybeanMachine,
     index,
-    collection: collectionSigners[0].publicKey,
+    collection: collectionSigners[index].publicKey,
+    printAsset,
+  }).sendAndConfirm(buyerUmi);
+});
+
+test('it can print 500 editions', async (t) => {
+  t.timeout(60_000);
+
+  const drawCount = 500;
+  const sellerUmi = await createUmi();
+  const collectionSigner = await createMasterEdition(sellerUmi, {
+    maxSupply: drawCount,
+  });
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [{ collection: collectionSigner.publicKey }],
+    startSale: true,
+  });
+
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  const batches = chunk(
+    Array.from({ length: drawCount }, () => null),
+    10
+  );
+
+  for (const batch of batches) {
+    let builder = transactionBuilder().add(
+      setComputeUnitLimit(buyerUmi, {
+        units: 1_400_000,
+      })
+    );
+    batch.forEach(() => {
+      builder = builder.add(
+        drawJellybean(buyerUmi, {
+          jellybeanMachine,
+          mintArgs: {
+            solPayment: some({
+              feeAccounts: [sellerUmi.identity.publicKey],
+            }),
+          },
+        })
+      );
+    });
+    await builder.sendAndConfirm(buyerUmi);
+  }
+
+  const jellybeanMachineAccount = await fetchJellybeanMachineWithItems(
+    sellerUmi,
+    jellybeanMachine
+  );
+  t.like(jellybeanMachineAccount, <JellybeanMachineAccountWithItemsData>{
+    itemsLoaded: 1,
+    supplyLoaded: BigInt(drawCount),
+    supplyRedeemed: BigInt(drawCount),
+    state: JellybeanState.SaleEnded,
+  });
+
+  const printAsset = generateSigner(buyerUmi);
+  await claimCoreItem(buyerUmi, {
+    jellybeanMachine,
+    index: 0,
+    collection: collectionSigner.publicKey,
     printAsset,
   }).sendAndConfirm(buyerUmi);
 });

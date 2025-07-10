@@ -74,7 +74,7 @@ pub struct ClaimCoreItem<'info> {
 
 pub fn claim_core_item<'info>(
     ctx: Context<'_, '_, '_, 'info, ClaimCoreItem<'info>>,
-    index: u16,
+    index: u8,
 ) -> Result<()> {
     let unclaimed_prizes = &mut ctx.accounts.unclaimed_prizes;
     let jellybean_machine = &ctx.accounts.jellybean_machine;

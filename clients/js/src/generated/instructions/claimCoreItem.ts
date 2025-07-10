@@ -14,8 +14,8 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
+  getU8Decoder,
+  getU8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -131,7 +131,7 @@ export function getClaimCoreItemInstructionDataEncoder(): Encoder<ClaimCoreItemI
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['index', getU16Encoder()],
+      ['index', getU8Encoder()],
     ]),
     (value) => ({ ...value, discriminator: CLAIM_CORE_ITEM_DISCRIMINATOR })
   );
@@ -140,7 +140,7 @@ export function getClaimCoreItemInstructionDataEncoder(): Encoder<ClaimCoreItemI
 export function getClaimCoreItemInstructionDataDecoder(): Decoder<ClaimCoreItemInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['index', getU16Decoder()],
+    ['index', getU8Decoder()],
   ]);
 }
 

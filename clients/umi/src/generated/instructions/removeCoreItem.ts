@@ -19,7 +19,7 @@ import {
   bytes,
   mapSerializer,
   struct,
-  u32,
+  u8,
 } from '@metaplex-foundation/umi/serializers';
 import { resolveAuthorityPda } from '../../hooked';
 import {
@@ -62,7 +62,7 @@ export function getRemoveCoreItemInstructionDataSerializer(): Serializer<
     struct<RemoveCoreItemInstructionData>(
       [
         ['discriminator', bytes({ size: 8 })],
-        ['index', u32()],
+        ['index', u8()],
       ],
       { description: 'RemoveCoreItemInstructionData' }
     ),

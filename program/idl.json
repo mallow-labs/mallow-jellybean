@@ -243,7 +243,7 @@
       "args": [
         {
           "name": "index",
-          "type": "u32"
+          "type": "u8"
         }
       ]
     },
@@ -514,7 +514,7 @@
       "args": [
         {
           "name": "index",
-          "type": "u16"
+          "type": "u8"
         }
       ]
     },
@@ -663,9 +663,9 @@
           {
             "name": "itemsLoaded",
             "docs": [
-              "Total unique items loaded."
+              "Total unique items loaded. Up to 255 items."
             ],
-            "type": "u16"
+            "type": "u8"
           },
           {
             "name": "supplyLoaded",
@@ -850,7 +850,7 @@
         "fields": [
           {
             "name": "itemIndex",
-            "type": "u16"
+            "type": "u8"
           },
           {
             "name": "editionNumber",

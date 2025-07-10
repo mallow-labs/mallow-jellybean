@@ -19,7 +19,7 @@ export const JELLYBEAN_MACHINE_BASE_SIZE =
   32 + // mint authority
   4 + // fee account vec size
   41 + // print fee config
-  2 + // items loaded
+  1 + // items loaded
   8 + // supply loaded
   8 + // supply redeemed
   8 + // supply settled

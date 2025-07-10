@@ -151,7 +151,7 @@ impl Default for ClaimCoreItemInstructionData {
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ClaimCoreItemInstructionArgs {
-    pub index: u16,
+    pub index: u8,
 }
 
 /// Instruction builder for `ClaimCoreItem`.
@@ -184,7 +184,7 @@ pub struct ClaimCoreItemBuilder {
     system_program: Option<solana_program::pubkey::Pubkey>,
     event_authority: Option<solana_program::pubkey::Pubkey>,
     program: Option<solana_program::pubkey::Pubkey>,
-    index: Option<u16>,
+    index: Option<u8>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -277,7 +277,7 @@ impl ClaimCoreItemBuilder {
         self
     }
     #[inline(always)]
-    pub fn index(&mut self, index: u16) -> &mut Self {
+    pub fn index(&mut self, index: u8) -> &mut Self {
         self.index = Some(index);
         self
     }
@@ -703,7 +703,7 @@ impl<'a, 'b> ClaimCoreItemCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn index(&mut self, index: u16) -> &mut Self {
+    pub fn index(&mut self, index: u8) -> &mut Self {
         self.instruction.index = Some(index);
         self
     }
@@ -819,7 +819,7 @@ struct ClaimCoreItemCpiBuilderInstruction<'a, 'b> {
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     event_authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    index: Option<u16>,
+    index: Option<u8>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

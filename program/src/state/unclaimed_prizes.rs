@@ -18,11 +18,11 @@ pub struct UnclaimedPrizes {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone, Copy)]
 pub struct Prize {
-    pub item_index: u16,
+    pub item_index: u8,
     pub edition_number: u32,
 }
 
-pub const PRIZE_SIZE: usize = 6;
+pub const PRIZE_SIZE: usize = 5;
 
 impl UnclaimedPrizes {
     pub const CURRENT_VERSION: u8 = 0;
@@ -40,7 +40,7 @@ impl UnclaimedPrizes {
         Self::BASE_SIZE + (prize_count * PRIZE_SIZE)
     }
 
-    pub fn claim_item(&mut self, item_index: u16) -> Result<Prize> {
+    pub fn claim_item(&mut self, item_index: u8) -> Result<Prize> {
         let position = self
             .prizes
             .iter()

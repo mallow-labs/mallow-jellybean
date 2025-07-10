@@ -19,7 +19,7 @@ import {
   bytes,
   mapSerializer,
   struct,
-  u16,
+  u8,
 } from '@metaplex-foundation/umi/serializers';
 import {
   resolveAuthorityPda,
@@ -74,7 +74,7 @@ export function getClaimCoreItemInstructionDataSerializer(): Serializer<
     struct<ClaimCoreItemInstructionData>(
       [
         ['discriminator', bytes({ size: 8 })],
-        ['index', u16()],
+        ['index', u8()],
       ],
       { description: 'ClaimCoreItemInstructionData' }
     ),

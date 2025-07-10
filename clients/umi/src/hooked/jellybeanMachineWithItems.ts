@@ -59,6 +59,8 @@ export type JellybeanMachineItem = {
   readonly escrowAmount: bigint;
 };
 
+export const JELLYBEAN_MACHINE_ITEM_SIZE = 32 + 4 + 4 + 4 + 8;
+
 type JellybeanMachineHiddenSection = {
   items: Omit<JellybeanMachineItem, 'index'>[];
 };

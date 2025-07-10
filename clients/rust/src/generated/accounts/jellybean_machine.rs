@@ -36,8 +36,8 @@ pub struct JellybeanMachine {
     pub fee_accounts: Vec<FeeAccount>,
     /// Print fee config
     pub print_fee_config: Option<PrintFeeConfig>,
-    /// Total unique items loaded.
-    pub items_loaded: u16,
+    /// Total unique items loaded. Up to 255 items.
+    pub items_loaded: u8,
     /// Total supply_loaded of all items added.
     pub supply_loaded: u64,
     /// Number of times items have been redeemed.

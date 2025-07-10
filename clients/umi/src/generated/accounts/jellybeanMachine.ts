@@ -30,7 +30,6 @@ import {
   publicKey as publicKeySerializer,
   string,
   struct,
-  u16,
   u64,
   u8,
 } from '@metaplex-foundation/umi/serializers';
@@ -61,7 +60,7 @@ export type JellybeanMachineAccountData = {
   feeAccounts: Array<FeeAccount>;
   /** Print fee config */
   printFeeConfig: Option<PrintFeeConfig>;
-  /** Total unique items loaded. */
+  /** Total unique items loaded. Up to 255 items. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
   supplyLoaded: bigint;
@@ -86,7 +85,7 @@ export type JellybeanMachineAccountDataArgs = {
   feeAccounts: Array<FeeAccountArgs>;
   /** Print fee config */
   printFeeConfig: OptionOrNullable<PrintFeeConfigArgs>;
-  /** Total unique items loaded. */
+  /** Total unique items loaded. Up to 255 items. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
   supplyLoaded: number | bigint;
@@ -117,7 +116,7 @@ export function getJellybeanMachineAccountDataSerializer(): Serializer<
         ['mintAuthority', publicKeySerializer()],
         ['feeAccounts', array(getFeeAccountSerializer())],
         ['printFeeConfig', option(getPrintFeeConfigSerializer())],
-        ['itemsLoaded', u16()],
+        ['itemsLoaded', u8()],
         ['supplyLoaded', u64()],
         ['supplyRedeemed', u64()],
         ['state', getJellybeanStateSerializer()],
@@ -226,7 +225,7 @@ export function getJellybeanMachineGpaBuilder(
       mintAuthority: [41, publicKeySerializer()],
       feeAccounts: [73, array(getFeeAccountSerializer())],
       printFeeConfig: [null, option(getPrintFeeConfigSerializer())],
-      itemsLoaded: [null, u16()],
+      itemsLoaded: [null, u8()],
       supplyLoaded: [null, u64()],
       supplyRedeemed: [null, u64()],
       state: [null, getJellybeanStateSerializer()],

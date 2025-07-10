@@ -4,8 +4,8 @@ use arrayref::array_ref;
 
 pub fn remove_multiple_items_span<'info>(
     jellybean_machine: &mut Account<'info, JellybeanMachine>,
-    start_index: u32,
-    end_index: u32,
+    start_index: u8,
+    end_index: u8,
     authority: &AccountInfo<'info>,
 ) -> Result<()> {
     if start_index > end_index {
@@ -17,7 +17,7 @@ pub fn remove_multiple_items_span<'info>(
     let items_loaded = jellybean_machine.items_loaded;
 
     // Validate indices are within bounds
-    if end_index >= items_loaded as u32 {
+    if end_index >= items_loaded {
         return err!(JellybeanError::IndexGreaterThanLength);
     }
 
@@ -39,7 +39,7 @@ pub fn remove_multiple_items_span<'info>(
     // Update the jellybean machine counters (reverse of add_item logic)
     jellybean_machine.items_loaded = jellybean_machine
         .items_loaded
-        .checked_sub(items_to_remove as u16)
+        .checked_sub(items_to_remove)
         .ok_or(JellybeanError::NumericalOverflowError)?;
 
     jellybean_machine.supply_loaded = jellybean_machine
@@ -48,8 +48,8 @@ pub fn remove_multiple_items_span<'info>(
         .ok_or(JellybeanError::NumericalOverflowError)?;
 
     // Move remaining items to fill the gap if we're not removing from the end
-    if end_index < (items_loaded - 1) as u32 {
-        let items_after_removal = items_loaded as u32 - end_index - 1;
+    if end_index < (items_loaded - 1) {
+        let items_after_removal = items_loaded - end_index - 1;
 
         if items_after_removal > 0 {
             let source_start = jellybean_machine.get_loaded_item_position((end_index + 1) as usize);

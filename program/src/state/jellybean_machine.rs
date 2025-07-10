@@ -12,7 +12,7 @@ const BASE_JELLYBEAN_MACHINE_SIZE: usize = 8 // discriminator
     + 32                                      // mint authority
     + 4                                       // fee account vec size
     + 41                                      // print fee config
-    + 2                                       // items loaded
+    + 1                                       // items loaded
     + 8                                       // supply loaded
     + 8                                       // supply redeemed
     + 8                                       // supply settled
@@ -34,8 +34,8 @@ pub struct JellybeanMachine {
     pub fee_accounts: Vec<FeeAccount>,
     /// Print fee config
     pub print_fee_config: Option<PrintFeeConfig>,
-    /// Total unique items loaded.
-    pub items_loaded: u16,
+    /// Total unique items loaded. Up to 255 items.
+    pub items_loaded: u8,
     /// Total supply_loaded of all items added.
     pub supply_loaded: u64,
     /// Number of times items have been redeemed.
@@ -58,7 +58,7 @@ impl JellybeanMachine {
     }
 
     pub fn get_base_size_with_fee_accounts(fee_accounts_len: usize) -> usize {
-        BASE_JELLYBEAN_MACHINE_SIZE + fee_accounts_len * 34
+        BASE_JELLYBEAN_MACHINE_SIZE + fee_accounts_len * FEE_ACCOUNT_SIZE
     }
 
     pub fn get_loaded_item_position(&self, index: usize) -> usize {
@@ -94,6 +94,8 @@ impl JellybeanMachine {
         Ok(LoadedItem::deserialize(item_data)?)
     }
 }
+
+pub const FEE_ACCOUNT_SIZE: usize = 32 + 2;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug)]
 pub struct FeeAccount {

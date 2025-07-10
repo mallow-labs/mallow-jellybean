@@ -10,10 +10,10 @@ import {
   combineCodec,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
   getU32Decoder,
   getU32Encoder,
+  getU8Decoder,
+  getU8Encoder,
   type Codec,
   type Decoder,
   type Encoder,
@@ -25,14 +25,14 @@ export type PrizeArgs = Prize;
 
 export function getPrizeEncoder(): Encoder<PrizeArgs> {
   return getStructEncoder([
-    ['itemIndex', getU16Encoder()],
+    ['itemIndex', getU8Encoder()],
     ['editionNumber', getU32Encoder()],
   ]);
 }
 
 export function getPrizeDecoder(): Decoder<Prize> {
   return getStructDecoder([
-    ['itemIndex', getU16Decoder()],
+    ['itemIndex', getU8Decoder()],
     ['editionNumber', getU32Decoder()],
   ]);
 }

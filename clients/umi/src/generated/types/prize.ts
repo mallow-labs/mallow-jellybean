@@ -9,8 +9,8 @@
 import {
   Serializer,
   struct,
-  u16,
   u32,
+  u8,
 } from '@metaplex-foundation/umi/serializers';
 
 export type Prize = { itemIndex: number; editionNumber: number };
@@ -20,7 +20,7 @@ export type PrizeArgs = Prize;
 export function getPrizeSerializer(): Serializer<PrizeArgs, Prize> {
   return struct<Prize>(
     [
-      ['itemIndex', u16()],
+      ['itemIndex', u8()],
       ['editionNumber', u32()],
     ],
     { description: 'Prize' }

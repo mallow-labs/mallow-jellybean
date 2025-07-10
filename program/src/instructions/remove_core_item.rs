@@ -47,7 +47,7 @@ pub struct RemoveCoreItem<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u32) -> Result<()> {
+pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u8) -> Result<()> {
     let authority = &ctx.accounts.authority.to_account_info();
     let mpl_core_program = &ctx.accounts.mpl_core_program.to_account_info();
     let system_program = &ctx.accounts.system_program.to_account_info();

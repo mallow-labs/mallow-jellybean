@@ -27,8 +27,6 @@ import {
   getOptionEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
   getU32Decoder,
   getU32Encoder,
   getU64Decoder,
@@ -89,7 +87,7 @@ export type JellybeanMachine = {
   feeAccounts: Array<FeeAccount>;
   /** Print fee config */
   printFeeConfig: Option<PrintFeeConfig>;
-  /** Total unique items loaded. */
+  /** Total unique items loaded. Up to 255 items. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
   supplyLoaded: bigint;
@@ -114,7 +112,7 @@ export type JellybeanMachineArgs = {
   feeAccounts: Array<FeeAccountArgs>;
   /** Print fee config */
   printFeeConfig: OptionOrNullable<PrintFeeConfigArgs>;
-  /** Total unique items loaded. */
+  /** Total unique items loaded. Up to 255 items. */
   itemsLoaded: number;
   /** Total supply_loaded of all items added. */
   supplyLoaded: number | bigint;
@@ -137,7 +135,7 @@ export function getJellybeanMachineEncoder(): Encoder<JellybeanMachineArgs> {
       ['mintAuthority', getAddressEncoder()],
       ['feeAccounts', getArrayEncoder(getFeeAccountEncoder())],
       ['printFeeConfig', getOptionEncoder(getPrintFeeConfigEncoder())],
-      ['itemsLoaded', getU16Encoder()],
+      ['itemsLoaded', getU8Encoder()],
       ['supplyLoaded', getU64Encoder()],
       ['supplyRedeemed', getU64Encoder()],
       ['state', getJellybeanStateEncoder()],
@@ -156,7 +154,7 @@ export function getJellybeanMachineDecoder(): Decoder<JellybeanMachine> {
     ['mintAuthority', getAddressDecoder()],
     ['feeAccounts', getArrayDecoder(getFeeAccountDecoder())],
     ['printFeeConfig', getOptionDecoder(getPrintFeeConfigDecoder())],
-    ['itemsLoaded', getU16Decoder()],
+    ['itemsLoaded', getU8Decoder()],
     ['supplyLoaded', getU64Decoder()],
     ['supplyRedeemed', getU64Decoder()],
     ['state', getJellybeanStateDecoder()],
