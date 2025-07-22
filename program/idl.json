@@ -865,11 +865,6 @@
       "name": "ClaimItemEvent",
       "fields": [
         {
-          "name": "mint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
           "name": "authority",
           "type": "publicKey",
           "index": false

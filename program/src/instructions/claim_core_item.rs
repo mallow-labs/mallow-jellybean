@@ -200,7 +200,6 @@ pub fn claim_core_item<'info>(
     }
 
     emit_cpi!(ClaimItemEvent {
-        mint,
         authority: ctx.accounts.jellybean_machine.authority.key(),
     });
 

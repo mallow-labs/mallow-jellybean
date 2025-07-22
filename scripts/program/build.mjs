@@ -18,4 +18,8 @@ for (const folder of getProgramFolders()) {
   const manifestPath = path.join(workingDirectory, folder, 'Cargo.toml');
 
   await $`cargo-build-sbf --manifest-path ${manifestPath} ${buildArgs}`;
+  // Generate anchor types
+  await $`cd program && anchor build && cd ..`;
+
+  await $`cp target/types/mallow_jellybean.ts clients/umi/src/anchorIdls/mallow_jellybean.ts`;
 }
