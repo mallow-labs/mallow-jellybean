@@ -868,6 +868,11 @@
           "name": "authority",
           "type": "publicKey",
           "index": false
+        },
+        {
+          "name": "editionNumber",
+          "type": "u32",
+          "index": false
         }
       ]
     },
@@ -881,6 +886,11 @@
         },
         {
           "name": "index",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "editionNumber",
           "type": "u32",
           "index": false
         }

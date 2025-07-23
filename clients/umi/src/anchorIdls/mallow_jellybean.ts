@@ -769,6 +769,11 @@ export type MallowJellybean = {
           type: 'publicKey';
           index: false;
         },
+        {
+          name: 'editionNumber';
+          type: 'u32';
+          index: false;
+        },
       ];
     },
     {
@@ -781,6 +786,11 @@ export type MallowJellybean = {
         },
         {
           name: 'index';
+          type: 'u32';
+          index: false;
+        },
+        {
+          name: 'editionNumber';
           type: 'u32';
           index: false;
         },
@@ -1682,6 +1692,11 @@ export const IDL: MallowJellybean = {
           type: 'publicKey',
           index: false,
         },
+        {
+          name: 'editionNumber',
+          type: 'u32',
+          index: false,
+        },
       ],
     },
     {
@@ -1694,6 +1709,11 @@ export const IDL: MallowJellybean = {
         },
         {
           name: 'index',
+          type: 'u32',
+          index: false,
+        },
+        {
+          name: 'editionNumber',
           type: 'u32',
           index: false,
         },

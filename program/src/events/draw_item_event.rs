@@ -5,4 +5,5 @@ use solana_program::pubkey::Pubkey;
 pub struct DrawItemEvent {
     pub authority: Pubkey,
     pub index: u32,
+    pub edition_number: u32,
 }

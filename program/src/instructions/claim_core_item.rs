@@ -201,6 +201,7 @@ pub fn claim_core_item<'info>(
 
     emit_cpi!(ClaimItemEvent {
         authority: ctx.accounts.jellybean_machine.authority.key(),
+        edition_number: prize.edition_number,
     });
 
     Ok(())

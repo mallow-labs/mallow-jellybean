@@ -147,6 +147,7 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
     emit_cpi!(DrawItemEvent {
         authority: ctx.accounts.jellybean_machine.authority.key(),
         index: prize.item_index as u32,
+        edition_number: prize.edition_number,
     });
 
     Ok(())
