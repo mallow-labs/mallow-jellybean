@@ -1,6 +1,6 @@
 [package]
 name = "mallow-jellybean-sdk"
-version = "0.0.0"
+version = "0.1.0"
 description = "A generated Rust library for the Mallow Jellybean program"
 repository = "https://github.com/mallow-labs/mallow-jellybean"
 edition = "2021"

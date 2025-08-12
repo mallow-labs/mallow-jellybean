@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@mallow-labs/mallow-gumball':
-        specifier: 1.0.0-beta.1
-        version: 1.0.0-beta.1(@metaplex-foundation/umi@1.2.0)
+        specifier: ^1.0.0
+        version: 1.0.0(@metaplex-foundation/umi@1.2.0)
       '@metaplex-foundation/mpl-core':
         specifier: ^1.4.1
         version: 1.4.1(@metaplex-foundation/umi@1.2.0)(@noble/hashes@1.8.0)
@@ -287,8 +287,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
-  '@mallow-labs/mallow-gumball@1.0.0-beta.1':
-    resolution: {integrity: sha512-TX1+9d98T86piSksMrm6LIvh7iWN9dRuai8Htug0YgXPrnVQYnsbbvFOAKTtJwOzM8hMtCm8PwtJ3M6YAc0KeA==}
+  '@mallow-labs/mallow-gumball@1.0.0':
+    resolution: {integrity: sha512-FipvacSHAUmxpVZN6Nf0lMK0N/vDbdismFqoWnsSYgwGbgDwKkS/2BMjHTolL0/vME5WGJOfaA7jjAVbY8TocQ==}
     peerDependencies:
       '@metaplex-foundation/umi': ^1.2.0
 
@@ -2209,7 +2209,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@mallow-labs/mallow-gumball@1.0.0-beta.1(@metaplex-foundation/umi@1.2.0)':
+  '@mallow-labs/mallow-gumball@1.0.0(@metaplex-foundation/umi@1.2.0)':
     dependencies:
       '@metaplex-foundation/mpl-core': 1.4.1(@metaplex-foundation/umi@1.2.0)(@noble/hashes@1.8.0)
       '@metaplex-foundation/mpl-token-metadata': 3.4.0(@metaplex-foundation/umi@1.2.0)

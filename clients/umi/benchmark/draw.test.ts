@@ -178,7 +178,7 @@ test('it can draw from 255 master editions', async (t) => {
 
   const batches = chunk(
     Array.from({ length: drawCount }, () => null),
-    10
+    8
   );
   for (const batch of batches) {
     let builder = transactionBuilder().add(

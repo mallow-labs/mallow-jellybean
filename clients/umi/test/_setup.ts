@@ -222,11 +222,13 @@ export const create = async (
     })
   );
 
-  const guards = input.guards ?? {
-    solPayment: {
-      lamports: DEFAULT_SOL_PAYMENT_LAMPORTS,
-    },
-  };
+  const guards = input.groups
+    ? {}
+    : (input.guards ?? {
+        solPayment: {
+          lamports: DEFAULT_SOL_PAYMENT_LAMPORTS,
+        },
+      });
 
   if (Object.keys(guards).length > 0 || input.groups !== undefined) {
     const gumballGuard = findGumballGuardPda(umi, {

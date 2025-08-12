@@ -1,6 +1,6 @@
 {
   "name": "@mallow-labs/mallow-jellybean-umi",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Umi client for the Mallow Jellybean program",
   "sideEffects": false,
   "module": "./dist/src/index.mjs",
@@ -75,7 +75,7 @@
   },
   "packageManager": "pnpm@9.1.0",
   "dependencies": {
-    "@mallow-labs/mallow-gumball": "1.0.0-beta.1",
+    "@mallow-labs/mallow-gumball": "^1.0.0",
     "@metaplex-foundation/mpl-core": "^1.4.1",
     "@metaplex-foundation/mpl-toolbox": "^0.10.0",
     "@metaplex-foundation/umi": "^1.2.0"
