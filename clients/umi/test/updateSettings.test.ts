@@ -22,10 +22,7 @@ test('it can update the settings', async (t) => {
     })
   ).sendAndConfirm(umi);
 
-  const newFeeAccounts = getDefaultFeeAccounts(
-    umi.identity.publicKey,
-    generateSigner(umi).publicKey
-  );
+  const newFeeAccounts = getDefaultFeeAccounts(generateSigner(umi).publicKey);
   const newUri = 'https://new.example.com/metadata.json';
   const newPrintFeeConfig = some({
     address: generateSigner(umi).publicKey,
@@ -83,6 +80,41 @@ test('it can update only the uri', async (t) => {
   );
   t.is(jellybeanMachineAccount.uri, newUri);
   t.deepEqual(jellybeanMachineAccount.feeAccounts, originalFeeAccounts);
+});
+
+test('it can update only the fee account address', async (t) => {
+  const umi = await createUmi();
+  const jellybeanMachine = generateSigner(umi);
+  const originalFeeAccounts = getDefaultFeeAccounts(umi.identity.publicKey);
+  const uri = 'https://example.com/metadata.json';
+
+  await (
+    await createJellybeanMachine(umi, {
+      jellybeanMachine,
+      args: {
+        uri,
+        feeAccounts: originalFeeAccounts,
+        printFeeConfig: none(),
+      },
+    })
+  ).sendAndConfirm(umi);
+
+  const newFeeAccounts = getDefaultFeeAccounts(generateSigner(umi).publicKey);
+  await updateSettings(umi, {
+    jellybeanMachine: jellybeanMachine.publicKey,
+    args: {
+      uri,
+      feeAccounts: newFeeAccounts,
+      printFeeConfig: none(),
+    },
+  }).sendAndConfirm(umi);
+
+  const jellybeanMachineAccount = await fetchJellybeanMachine(
+    umi,
+    jellybeanMachine.publicKey
+  );
+  t.is(jellybeanMachineAccount.uri, uri);
+  t.deepEqual(jellybeanMachineAccount.feeAccounts, newFeeAccounts);
 });
 
 test('it fails to update settings with an invalid authority', async (t) => {
@@ -148,6 +180,41 @@ test('it fails to update settings with invalid fee accounts', async (t) => {
 
   await t.throwsAsync(promise, {
     message: /InvalidFeeAccountBasisPoints/,
+  });
+});
+
+test('it fails to update settings with invalid fee account length', async (t) => {
+  const umi = await createUmi();
+  const jellybeanMachine = generateSigner(umi);
+
+  await (
+    await createJellybeanMachine(umi, {
+      jellybeanMachine,
+      args: {
+        uri: 'https://example.com/metadata.json',
+        feeAccounts: getDefaultFeeAccounts(umi.identity.publicKey),
+      },
+    })
+  ).sendAndConfirm(umi);
+
+  const invalidFeeAccounts = getDefaultFeeAccounts(umi.identity.publicKey);
+  invalidFeeAccounts.push({
+    address: generateSigner(umi).publicKey,
+    basisPoints: 5000,
+  });
+  invalidFeeAccounts[1].basisPoints -= 5000;
+
+  const promise = updateSettings(umi, {
+    jellybeanMachine: jellybeanMachine.publicKey,
+    args: {
+      uri: 'https://new.example.com/metadata.json',
+      feeAccounts: invalidFeeAccounts,
+      printFeeConfig: none(),
+    },
+  }).sendAndConfirm(umi);
+
+  await t.throwsAsync(promise, {
+    message: /InvalidFeeAccountsLength/,
   });
 });
 

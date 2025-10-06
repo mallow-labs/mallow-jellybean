@@ -52,4 +52,6 @@ pub enum JellybeanError {
     TooManyFeeAccounts,
     #[msg("Too many items")]
     TooManyItems,
+    #[msg("Invalid fee accounts length")]
+    InvalidFeeAccountsLength,
 }

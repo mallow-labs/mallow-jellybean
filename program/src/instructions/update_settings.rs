@@ -23,6 +23,12 @@ pub struct UpdateSettings<'info> {
 pub fn update_settings(ctx: Context<UpdateSettings>, args: SettingsArgs) -> Result<()> {
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
 
+    // TODO: Allow adding/removing fee accounts by reallocating space and shifting loaded item data
+    require!(
+        args.fee_accounts.len() == jellybean_machine.fee_accounts.len(),
+        JellybeanError::InvalidFeeAccountsLength
+    );
+
     // Validate settings arguments
     validate_settings_args(&args)?;
 

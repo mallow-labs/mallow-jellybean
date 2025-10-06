@@ -346,6 +346,19 @@ export class TooManyItemsError extends ProgramError {
 codeToErrorMap.set(0x1788, TooManyItemsError);
 nameToErrorMap.set('TooManyItems', TooManyItemsError);
 
+/** InvalidFeeAccountsLength: Invalid fee accounts length */
+export class InvalidFeeAccountsLengthError extends ProgramError {
+  override readonly name: string = 'InvalidFeeAccountsLength';
+
+  readonly code: number = 0x1789; // 6025
+
+  constructor(program: Program, cause?: Error) {
+    super('Invalid fee accounts length', program, cause);
+  }
+}
+codeToErrorMap.set(0x1789, InvalidFeeAccountsLengthError);
+nameToErrorMap.set('InvalidFeeAccountsLength', InvalidFeeAccountsLengthError);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors

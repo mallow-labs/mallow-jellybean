@@ -85,6 +85,9 @@ pub enum MallowJellybeanError {
     /// 6024 - Too many items
     #[error("Too many items")]
     TooManyItems = 0x1788,
+    /// 6025 - Invalid fee accounts length
+    #[error("Invalid fee accounts length")]
+    InvalidFeeAccountsLength = 0x1789,
 }
 
 impl solana_program::program_error::PrintProgramError for MallowJellybeanError {
