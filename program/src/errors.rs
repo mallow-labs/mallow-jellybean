@@ -50,4 +50,6 @@ pub enum JellybeanError {
     ItemsStillLoaded,
     #[msg("Too many fee accounts")]
     TooManyFeeAccounts,
+    #[msg("Too many items")]
+    TooManyItems,
 }

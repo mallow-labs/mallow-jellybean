@@ -1,6 +1,7 @@
 use crate::{
     assert_keys_equal, constants::AUTHORITY_SEED, events::DrawItemEvent, JellybeanError,
     JellybeanMachine, JellybeanState, LoadedItem, Prize, UnclaimedPrizes,
+    LOADED_ITEM_SUPPLY_REDEMED_OFFSET,
 };
 use anchor_lang::{
     prelude::*,
@@ -104,18 +105,20 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
     let new_rent_minimum = rent.minimum_balance(new_space);
     let current_lamports = unclaimed_prizes.to_account_info().lamports();
 
-    let additional_lamports = new_rent_minimum - current_lamports;
-    // Transfer additional lamports from payer
-    anchor_lang::system_program::transfer(
-        anchor_lang::context::CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            anchor_lang::system_program::Transfer {
-                from: ctx.accounts.payer.to_account_info(),
-                to: unclaimed_prizes.to_account_info(),
-            },
-        ),
-        additional_lamports,
-    )?;
+    let additional_lamports = new_rent_minimum.saturating_sub(current_lamports);
+    if additional_lamports > 0 {
+        // Transfer additional lamports from payer
+        anchor_lang::system_program::transfer(
+            anchor_lang::context::CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.payer.to_account_info(),
+                    to: unclaimed_prizes.to_account_info(),
+                },
+            ),
+            additional_lamports,
+        )?;
+    }
 
     // Reallocate the account
     unclaimed_prizes
@@ -275,7 +278,9 @@ fn get_prize_and_update_supply_redeemed(
 
             let item_position = jellybean_machine.get_loaded_item_position(i as usize);
             // 36 is the offset of the supply_redeemed field in the LoadedItem struct
-            let supply_redeemed_slice = &mut account_data[item_position + 36..item_position + 40];
+            let supply_redeemed_slice = &mut account_data[item_position
+                + LOADED_ITEM_SUPPLY_REDEMED_OFFSET
+                ..item_position + LOADED_ITEM_SUPPLY_REDEMED_OFFSET + 4];
             supply_redeemed_slice.copy_from_slice(&u32::to_le_bytes(new_supply_redeemed));
 
             return Ok((

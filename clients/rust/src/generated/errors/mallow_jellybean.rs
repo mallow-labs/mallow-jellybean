@@ -82,6 +82,9 @@ pub enum MallowJellybeanError {
     /// 6023 - Too many fee accounts
     #[error("Too many fee accounts")]
     TooManyFeeAccounts = 0x1787,
+    /// 6024 - Too many items
+    #[error("Too many items")]
+    TooManyItems = 0x1788,
 }
 
 impl solana_program::program_error::PrintProgramError for MallowJellybeanError {

@@ -1,4 +1,7 @@
-use crate::{state::JellybeanMachine, utils::validate_settings_args, SettingsArgs};
+use crate::{
+    state::JellybeanMachine, utils::validate_settings_args, JellybeanError, JellybeanState,
+    SettingsArgs,
+};
 use anchor_lang::prelude::*;
 
 /// Initializes a new jellybean machine.
@@ -7,7 +10,8 @@ pub struct UpdateSettings<'info> {
     /// Gumball machine account.
     #[account(
         mut,
-        has_one = authority
+        has_one = authority,
+        constraint = jellybean_machine.state != JellybeanState::SaleEnded @ JellybeanError::InvalidState
     )]
     jellybean_machine: Box<Account<'info, JellybeanMachine>>,
 

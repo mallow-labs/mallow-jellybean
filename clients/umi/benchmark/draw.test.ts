@@ -165,7 +165,7 @@ test('it can draw from 255 master editions', async (t) => {
       collection: (await createMasterEdition(sellerUmi)).publicKey,
     }).sendAndConfirm(sellerUmi),
     {
-      message: /NumericalOverflowError/,
+      message: /TooManyItems/,
     }
   );
 

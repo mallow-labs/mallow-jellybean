@@ -333,6 +333,19 @@ export class TooManyFeeAccountsError extends ProgramError {
 codeToErrorMap.set(0x1787, TooManyFeeAccountsError);
 nameToErrorMap.set('TooManyFeeAccounts', TooManyFeeAccountsError);
 
+/** TooManyItems: Too many items */
+export class TooManyItemsError extends ProgramError {
+  override readonly name: string = 'TooManyItems';
+
+  readonly code: number = 0x1788; // 6024
+
+  constructor(program: Program, cause?: Error) {
+    super('Too many items', program, cause);
+  }
+}
+codeToErrorMap.set(0x1788, TooManyItemsError);
+nameToErrorMap.set('TooManyItems', TooManyItemsError);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors

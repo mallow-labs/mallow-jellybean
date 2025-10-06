@@ -1,4 +1,4 @@
-use crate::{JellybeanError, JellybeanMachine, LoadedItem, LOADED_ITEM_SIZE};
+use crate::{JellybeanError, JellybeanMachine, LoadedItem, LOADED_ITEM_SIZE, MAX_ITEMS};
 use anchor_lang::prelude::*;
 
 pub fn add_item<'info>(
@@ -38,6 +38,11 @@ pub fn add_item<'info>(
     let account_info = jellybean_machine.to_account_info();
     let mut data = account_info.data.borrow_mut();
     let new_item_index = current_items_loaded;
+
+    require!(
+        jellybean_machine.items_loaded < MAX_ITEMS,
+        JellybeanError::TooManyItems
+    );
 
     jellybean_machine.items_loaded = jellybean_machine
         .items_loaded

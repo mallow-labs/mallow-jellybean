@@ -10,7 +10,7 @@ pub struct Withdraw<'info> {
         close = authority,
         has_one = authority @ JellybeanError::InvalidAuthority,
         has_one = mint_authority @ JellybeanError::InvalidMintAuthority,
-        constraint = jellybean_machine.items_loaded == 0 @ JellybeanError::ItemsStillLoaded,
+        constraint = jellybean_machine.items_loaded == 0 @ JellybeanError::ItemsStillLoaded
     )]
     jellybean_machine: Account<'info, JellybeanMachine>,
 

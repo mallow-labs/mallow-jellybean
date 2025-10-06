@@ -74,7 +74,9 @@ pub fn remove_multiple_items_span<'info>(
         .realloc(new_space, false)?;
 
     // Refund excess rent to authority
-    let excess_lamports = current_lamports - new_rent_minimum;
+    let excess_lamports = current_lamports
+        .checked_sub(new_rent_minimum)
+        .ok_or(JellybeanError::NumericalOverflowError)?;
 
     // Transfer excess lamports to authority
     **jellybean_machine

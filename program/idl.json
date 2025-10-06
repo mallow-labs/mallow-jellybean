@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0",
+  "version": "0.1.1",
   "name": "mallow_jellybean",
   "instructions": [
     {
@@ -1017,6 +1017,11 @@
       "code": 6023,
       "name": "TooManyFeeAccounts",
       "msg": "Too many fee accounts"
+    },
+    {
+      "code": 6024,
+      "name": "TooManyItems",
+      "msg": "Too many items"
     }
   ],
   "metadata": {

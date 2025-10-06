@@ -5,6 +5,7 @@ use anchor_lang::prelude::{
 
 pub const MAX_URI_LENGTH: usize = 196;
 pub const MAX_FEE_ACCOUNTS: usize = 6;
+pub const MAX_ITEMS: u8 = 255;
 
 const BASE_JELLYBEAN_MACHINE_SIZE: usize = 8 // discriminator
     + 1                                       // version
@@ -110,6 +111,8 @@ pub const LOADED_ITEM_SIZE: usize = 32 + // mint
     4 + // supply_redeemed
     4 + // supply_claimed
     8; // escrow_amount
+
+pub const LOADED_ITEM_SUPPLY_REDEMED_OFFSET: usize = 32 + 4;
 
 /// Config line struct for storing asset (NFT) data pre-mint.
 #[derive(BorshSerialize, BorshDeserialize, Debug)]

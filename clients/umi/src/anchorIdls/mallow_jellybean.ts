@@ -1,5 +1,5 @@
 export type MallowJellybean = {
-  version: '0.0.0';
+  version: '0.1.1';
   name: 'mallow_jellybean';
   instructions: [
     {
@@ -918,11 +918,16 @@ export type MallowJellybean = {
       name: 'TooManyFeeAccounts';
       msg: 'Too many fee accounts';
     },
+    {
+      code: 6024;
+      name: 'TooManyItems';
+      msg: 'Too many items';
+    },
   ];
 };
 
 export const IDL: MallowJellybean = {
-  version: '0.0.0',
+  version: '0.1.1',
   name: 'mallow_jellybean',
   instructions: [
     {
@@ -1840,6 +1845,11 @@ export const IDL: MallowJellybean = {
       code: 6023,
       name: 'TooManyFeeAccounts',
       msg: 'Too many fee accounts',
+    },
+    {
+      code: 6024,
+      name: 'TooManyItems',
+      msg: 'Too many items',
     },
   ],
 };
