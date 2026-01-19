@@ -1,5 +1,5 @@
 export type MallowJellybean = {
-  version: '0.1.2';
+  version: '0.1.3';
   name: 'mallow_jellybean';
   instructions: [
     {
@@ -932,7 +932,7 @@ export type MallowJellybean = {
 };
 
 export const IDL: MallowJellybean = {
-  version: '0.1.2',
+  version: '0.1.3',
   name: 'mallow_jellybean',
   instructions: [
     {

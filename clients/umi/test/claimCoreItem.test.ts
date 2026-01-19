@@ -1,5 +1,6 @@
 import { drawJellybean } from '@mallow-labs/mallow-gumball';
 import { AssetV1, fetchAsset } from '@metaplex-foundation/mpl-core';
+import { transferSol } from '@metaplex-foundation/mpl-toolbox';
 import {
   generateSigner,
   isEqualToAmount,
@@ -704,4 +705,149 @@ test('it reallocates the unclaimed prizes account when it is not empty', async (
       },
     ],
   });
+});
+
+test('it refunds rent to payer when buyer account is closed (single claim)', async (t) => {
+  const sellerUmi = await createUmi();
+  const assetSigner = await createCoreAsset(sellerUmi);
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        asset: assetSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  // Create buyer and draw
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  }).sendAndConfirm(buyerUmi);
+
+  // Drain remaining balance
+  const remainingBalance = await buyerUmi.rpc.getBalance(buyer.publicKey);
+  if (remainingBalance.basisPoints > 5000n) {
+    await transferSol(buyerUmi, {
+      source: buyer,
+      destination: sellerUmi.identity.publicKey,
+      amount: lamports(remainingBalance.basisPoints - 5000n),
+    }).sendAndConfirm(buyerUmi);
+  }
+
+  // Verify buyer has very little or 0 lamports
+  const finalBuyerBalance = await sellerUmi.rpc.getBalance(buyer.publicKey);
+  t.true(finalBuyerBalance.basisPoints < 10000n);
+
+  // Claim the asset with seller as payer - this should succeed
+  // The rent from unclaimed_prizes should go to seller (payer), not buyer
+  await claimCoreItem(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+    asset: assetSigner.publicKey,
+    index: 0,
+  }).sendAndConfirm(sellerUmi);
+
+  // Verify claim succeeded
+  t.falsy(
+    await safeFetchUnclaimedPrizesFromSeeds(sellerUmi, {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    })
+  );
+
+  // Verify asset transferred to buyer
+  const asset = await fetchAsset(sellerUmi, assetSigner.publicKey);
+  t.is(asset.owner, buyer.publicKey);
+});
+
+test('it refunds excess rent to payer when buyer account is closed (partial claim)', async (t) => {
+  const sellerUmi = await createUmi();
+  const collectionSigner = await createMasterEdition(sellerUmi, {
+    maxSupply: 2,
+  });
+
+  const jellybeanMachine = await create(sellerUmi, {
+    items: [
+      {
+        collection: collectionSigner.publicKey,
+      },
+    ],
+    startSale: true,
+  });
+
+  // Create buyer and draw twice
+  const buyer = await generateSignerWithSol(sellerUmi);
+  const buyerUmi = await createUmi(buyer);
+
+  await drawJellybean(buyerUmi, {
+    jellybeanMachine,
+    mintArgs: {
+      solPayment: some({
+        feeAccounts: [sellerUmi.identity.publicKey],
+      }),
+    },
+  })
+    .add(
+      drawJellybean(buyerUmi, {
+        jellybeanMachine,
+        mintArgs: {
+          solPayment: some({
+            feeAccounts: [sellerUmi.identity.publicKey],
+          }),
+        },
+      })
+    )
+    .sendAndConfirm(buyerUmi);
+
+  // Verify buyer has 2 unclaimed prizes
+  let unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+  });
+  t.is(unclaimedPrizes.prizes.length, 2);
+
+  // Drain remaining balance
+  const remainingBalance = await buyerUmi.rpc.getBalance(buyer.publicKey);
+  if (remainingBalance.basisPoints > 5000n) {
+    await transferSol(buyerUmi, {
+      source: buyer,
+      destination: sellerUmi.identity.publicKey,
+      amount: lamports(remainingBalance.basisPoints - 5000n),
+    }).sendAndConfirm(buyerUmi);
+  }
+
+  // Verify buyer has very little or 0 lamports
+  const finalBuyerBalance = await sellerUmi.rpc.getBalance(buyer.publicKey);
+  t.true(finalBuyerBalance.basisPoints < 10000n);
+
+  const printAsset = generateSigner(sellerUmi);
+
+  // Partial claim with seller as payer - excess rent should go to seller (payer)
+  await claimCoreItem(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+    collection: collectionSigner.publicKey,
+    index: 0,
+    printAsset,
+  }).sendAndConfirm(sellerUmi);
+
+  // Verify partial claim succeeded - one prize remaining
+  unclaimedPrizes = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+    jellybeanMachine,
+    buyer: buyer.publicKey,
+  });
+  t.is(unclaimedPrizes.prizes.length, 1);
+
+  // Verify the edition was printed to the buyer
+  const printedAsset = await fetchAsset(sellerUmi, printAsset.publicKey);
+  t.is(printedAsset.owner, buyer.publicKey);
 });

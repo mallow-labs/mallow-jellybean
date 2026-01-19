@@ -176,8 +176,14 @@ pub fn claim_core_item<'info>(
     drop(data);
 
     // Close unclaimed_prize account back to the buyer if it's empty
+    // If buyer account is closed (0 lamports), refund to payer instead
     if unclaimed_prizes.prizes.is_empty() {
-        unclaimed_prizes.close(buyer.to_account_info())?;
+        let refund_destination = if buyer.lamports() > 0 {
+            buyer.to_account_info()
+        } else {
+            payer.to_account_info()
+        };
+        unclaimed_prizes.close(refund_destination)?;
     } else {
         // Calculate new space needed and reallocate if smaller
         let new_space = UnclaimedPrizes::space(unclaimed_prizes.prizes.len());
@@ -190,13 +196,15 @@ pub fn claim_core_item<'info>(
             .to_account_info()
             .realloc(new_space, false)?;
 
-        // Refund excess rent to buyer
+        // Refund excess rent to buyer, or payer if buyer account is closed
         let excess_lamports = current_lamports - new_rent_minimum;
-        // Transfer excess lamports to buyer
-        **unclaimed_prizes
-            .to_account_info()
-            .try_borrow_mut_lamports()? -= excess_lamports;
-        **buyer.try_borrow_mut_lamports()? += excess_lamports;
+        if excess_lamports > 0 {
+            let refund_destination = if buyer.lamports() > 0 { buyer } else { payer };
+            **unclaimed_prizes
+                .to_account_info()
+                .try_borrow_mut_lamports()? -= excess_lamports;
+            **refund_destination.try_borrow_mut_lamports()? += excess_lamports;
+        }
     }
 
     emit_cpi!(ClaimItemEvent {
