@@ -68,6 +68,15 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/setup
 
+      - name: Setup Node.js for NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Set Git Author
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -76,8 +85,6 @@ jobs:
       - name: Publish Umi Client
         id: publish
         run: pnpm clients:umi:publish ${{ inputs.level }} ${{ inputs.tag }}
-        env:
-          NPM_CONFIG_PROVENANCE: true
 
       - name: Push Commit and Tag
         run: git push origin --follow-tags
