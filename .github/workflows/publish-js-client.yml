@@ -74,9 +74,6 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Update npm
-        run: npm install -g npm@latest
-
       - name: Set Git Author
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
