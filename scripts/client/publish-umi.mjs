@@ -26,7 +26,8 @@ if (process.env.CI) {
 
 // Publish the package.
 // This will also build the package before publishing (see prepublishOnly script).
-await $`pnpm publish --no-git-checks --tag ${tag}`;
+// npm publish is required (not pnpm) to support OIDC trusted publishing in CI.
+await $`npm publish --tag ${tag}`;
 
 // Commit the new version.
 await $`git commit -am "Publish Umi client v${newVersion}"`;
