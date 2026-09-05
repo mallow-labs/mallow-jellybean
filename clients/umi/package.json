@@ -1,6 +1,6 @@
 {
   "name": "@mallow-labs/mallow-jellybean-umi",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0",
   "description": "Umi client for the Mallow Jellybean program",
   "sideEffects": false,
   "module": "./dist/src/index.mjs",
