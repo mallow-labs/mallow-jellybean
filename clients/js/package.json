@@ -1,6 +1,6 @@
 {
   "name": "@mallow-labs/mallow-jellybean",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Solana Kit client for the Mallow Jellybean program",
   "sideEffects": false,
   "module": "./dist/src/index.mjs",
