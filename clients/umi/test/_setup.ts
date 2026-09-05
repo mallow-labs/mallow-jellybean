@@ -36,8 +36,10 @@ import {
   TransactionSignature,
   Umi,
 } from '@metaplex-foundation/umi';
-import { createUmi as basecreateUmi } from '@metaplex-foundation/umi-bundle-tests';
+import { testPlugins } from '@metaplex-foundation/umi-bundle-tests';
+import { createUmi as baseCreateUmi } from '@metaplex-foundation/umi';
 import { Assertions } from 'ava';
+import { LiteSVMConnection } from './litesvm/connection';
 import { chunk } from 'lodash';
 import {
   addCoreItem,
@@ -77,7 +79,18 @@ export const getDefaultFeeAccounts = (
       ];
 
 export const createUmi = async (signer?: Signer) => {
-  const umi = (await basecreateUmi()).use(mallowJellybean());
+  // Back umi with the in-process LiteSVM instead of a live validator. umi's
+  // web3JsRpc accepts a Connection object directly, so `testPlugins` (the same
+  // plugin set as umi-bundle-tests' createUmi, minus the live-endpoint airdrop)
+  // wires straight to the shim. AVA runs each test file in its own process, so
+  // the LiteSVM singleton is isolated per file.
+  const connection = new LiteSVMConnection();
+  const umi = baseCreateUmi()
+    .use(testPlugins(connection as any))
+    .use(mallowJellybean());
+  // testPlugins installs a fresh generated identity; fund it (the validator-based
+  // createUmi airdropped 100 SOL on startup).
+  await umi.rpc.airdrop(umi.identity.publicKey, sol(100));
   if (signer) {
     umi.use(signerIdentity(signer));
   }

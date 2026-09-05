@@ -107,7 +107,7 @@ pub mod mallow_jellybean {
     ///   3. `[]` Buyer account
     ///   4. `[]` System program
     ///   5. `[]` SlotHashes sysvar cluster data
-    pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
+    pub fn draw<'info>(ctx: Context<'info, Draw<'info>>) -> Result<()> {
         instructions::draw(ctx)
     }
 
@@ -126,7 +126,7 @@ pub mod mallow_jellybean {
     ///   7. `[writable, optional]` Collection account if asset is part of one.
     ///   8. `[]` MPL Core program.
     pub fn claim_core_item<'info>(
-        ctx: Context<'_, '_, '_, 'info, ClaimCoreItem<'info>>,
+        ctx: Context<'info, ClaimCoreItem<'info>>,
         index: u8,
     ) -> Result<()> {
         instructions::claim_core_item(ctx, index)
@@ -161,7 +161,7 @@ pub mod mallow_jellybean {
     ///     - `[]` Associated Token program
     ///     - `[]` System program
     ///     - `[]` Rent sysvar
-    pub fn withdraw<'info>(ctx: Context<'_, '_, '_, 'info, Withdraw<'info>>) -> Result<()> {
+    pub fn withdraw<'info>(ctx: Context<'info, Withdraw<'info>>) -> Result<()> {
         instructions::withdraw(ctx)
     }
 }

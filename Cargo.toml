@@ -1,17 +1,28 @@
 [workspace]
+members = ["program"]
+# The Codama-generated Rust client lives in `clients/rust/` with its own
+# workspace (resolver = "2"). It's an off-chain consumer — keeping it out of this
+# workspace avoids resolver/feature-unification clashes.
+exclude = ["clients"]
 resolver = "2"
-members = ["clients/rust", "program"]
 
 [profile.release]
 overflow-checks = true
+lto = "fat"
+codegen-units = 1
 
+[profile.release.build-override]
+opt-level = 3
+incremental = false
+codegen-units = 1
+
+# Consumed by the CI setup action (scripts/ci/set-env.mjs) to pin the toolchain.
 [workspace.metadata.cli]
-anchor = "0.29.0"
-solana = "1.18.26"
+anchor = "1.1.2"
+solana = "4.1.2"
 
-# Specify Rust toolchains for rustfmt, clippy, and build.
-# Any unprovided toolchains default to stable.
+# Rust toolchains for rustfmt, clippy, and build.
 [workspace.metadata.toolchains]
-format = "1.85.0"
-lint = "1.85.0"
-build = "1.85.0"
+format = "1.92.0"
+lint = "1.92.0"
+build = "1.92.0"

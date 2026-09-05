@@ -54,4 +54,6 @@ pub enum JellybeanError {
     TooManyItems,
     #[msg("Invalid fee accounts length")]
     InvalidFeeAccountsLength,
+    #[msg("Account already initialized")]
+    AccountAlreadyInitialized,
 }

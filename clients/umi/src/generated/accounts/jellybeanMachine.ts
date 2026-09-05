@@ -45,7 +45,6 @@ import {
   getPrintFeeConfigSerializer,
 } from '../types';
 
-/** Jellybean machine state and config data. */
 export type JellybeanMachine = Account<JellybeanMachineAccountData>;
 
 export type JellybeanMachineAccountData = {

@@ -31,7 +31,6 @@ import {
 } from '@metaplex-foundation/umi/serializers';
 import { Prize, PrizeArgs, getPrizeSerializer } from '../types';
 
-/** Jellybean machine state and config data. */
 export type UnclaimedPrizes = Account<UnclaimedPrizesAccountData>;
 
 export type UnclaimedPrizesAccountData = {

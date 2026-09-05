@@ -87,7 +87,7 @@ pub(crate) struct DrawAccounts<'info> {
     pub system_program: AccountInfo<'info>,
 }
 
-pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
+pub fn draw<'info>(ctx: Context<'info, Draw<'info>>) -> Result<()> {
     let jellybean_machine = &mut ctx.accounts.jellybean_machine;
     let unclaimed_prizes = &mut ctx.accounts.unclaimed_prizes;
 
@@ -110,7 +110,7 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
         // Transfer additional lamports from payer
         anchor_lang::system_program::transfer(
             anchor_lang::context::CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.system_program.key(),
                 anchor_lang::system_program::Transfer {
                     from: ctx.accounts.payer.to_account_info(),
                     to: unclaimed_prizes.to_account_info(),
@@ -121,9 +121,7 @@ pub fn draw<'info>(ctx: Context<'_, '_, '_, 'info, Draw<'info>>) -> Result<()> {
     }
 
     // Reallocate the account
-    unclaimed_prizes
-        .to_account_info()
-        .realloc(new_space, false)?;
+    unclaimed_prizes.to_account_info().resize(new_space)?;
 
     let accounts = DrawAccounts {
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
@@ -205,7 +203,7 @@ pub(crate) fn process_draw<'a>(
         // Escrow any additional amount required
         transfer(
             CpiContext::new(
-                accounts.system_program.to_account_info(),
+                *accounts.system_program.key,
                 Transfer {
                     from: accounts.payer.to_account_info(),
                     to: accounts.authority_pda,
@@ -228,7 +226,7 @@ pub(crate) fn process_draw<'a>(
                 // Send print fee to the print fee config address
                 transfer(
                     CpiContext::new(
-                        accounts.system_program.to_account_info(),
+                        *accounts.system_program.key,
                         Transfer {
                             from: accounts.payer.to_account_info(),
                             to: fee_account.to_account_info(),

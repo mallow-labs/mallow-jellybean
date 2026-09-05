@@ -5,381 +5,346 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
+use borsh::BorshDeserialize;
+
+pub const WITHDRAW_DISCRIMINATOR: [u8; 8] = [183, 18, 70, 156, 148, 109, 161, 34];
 
 /// Accounts.
 #[derive(Debug)]
 pub struct Withdraw {
-    /// Gumball Machine acccount.
-    pub jellybean_machine: solana_program::pubkey::Pubkey,
-    /// Authority of the jellybean machine.
-    pub authority: solana_program::pubkey::Pubkey,
-    /// Mint authority of the jellybean machine.
-    pub mint_authority: solana_program::pubkey::Pubkey,
-}
+            /// Gumball Machine acccount.
+
+    
+              
+          pub jellybean_machine: solana_address::Address,
+                /// Authority of the jellybean machine.
+
+    
+              
+          pub authority: solana_address::Address,
+                /// Mint authority of the jellybean machine.
+
+    
+              
+          pub mint_authority: solana_address::Address,
+      }
 
 impl Withdraw {
-    pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        self.instruction_with_remaining_accounts(&[])
-    }
-    #[allow(clippy::arithmetic_side_effects)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn instruction_with_remaining_accounts(
-        &self,
-        remaining_accounts: &[solana_program::instruction::AccountMeta],
-    ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
+  pub fn instruction(&self) -> solana_instruction::Instruction {
+    self.instruction_with_remaining_accounts(&[])
+  }
+  #[allow(clippy::arithmetic_side_effects)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn instruction_with_remaining_accounts(&self, remaining_accounts: &[solana_instruction::AccountMeta]) -> solana_instruction::Instruction {
+    let mut accounts = Vec::with_capacity(3+ remaining_accounts.len());
+                            accounts.push(solana_instruction::AccountMeta::new(
             self.jellybean_machine,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             self.authority,
-            true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             self.mint_authority,
-            true,
-        ));
-        accounts.extend_from_slice(remaining_accounts);
-        let data = borsh::to_vec(&WithdrawInstructionData::new()).unwrap();
-
-        solana_program::instruction::Instruction {
-            program_id: crate::MALLOW_JELLYBEAN_ID,
-            accounts,
-            data,
-        }
+            true
+          ));
+                      accounts.extend_from_slice(remaining_accounts);
+    let data = WithdrawInstructionData::new().try_to_vec().unwrap();
+    
+    solana_instruction::Instruction {
+      program_id: crate::MALLOW_JELLYBEAN_ID,
+      accounts,
+      data,
     }
+  }
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct WithdrawInstructionData {
-    discriminator: [u8; 8],
-}
+ pub struct WithdrawInstructionData {
+            discriminator: [u8; 8],
+      }
 
 impl WithdrawInstructionData {
-    pub fn new() -> Self {
-        Self {
-            discriminator: [183, 18, 70, 156, 148, 109, 161, 34],
-        }
-    }
-}
+  pub fn new() -> Self {
+    Self {
+                        discriminator: [183, 18, 70, 156, 148, 109, 161, 34],
+                  }
+  }
+
+    pub(crate) fn try_to_vec(&self) -> Result<Vec<u8>, std::io::Error> {
+    borsh::to_vec(self)
+  }
+  }
 
 impl Default for WithdrawInstructionData {
-    fn default() -> Self {
-        Self::new()
-    }
+  fn default() -> Self {
+    Self::new()
+  }
 }
+
+
 
 /// Instruction builder for `Withdraw`.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` jellybean_machine
-///   1. `[writable, signer]` authority
-///   2. `[writable, signer]` mint_authority
+                ///   0. `[writable]` jellybean_machine
+                      ///   1. `[writable, signer]` authority
+                      ///   2. `[writable, signer]` mint_authority
 #[derive(Clone, Debug, Default)]
 pub struct WithdrawBuilder {
-    jellybean_machine: Option<solana_program::pubkey::Pubkey>,
-    authority: Option<solana_program::pubkey::Pubkey>,
-    mint_authority: Option<solana_program::pubkey::Pubkey>,
-    __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
+            jellybean_machine: Option<solana_address::Address>,
+                authority: Option<solana_address::Address>,
+                mint_authority: Option<solana_address::Address>,
+                __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
 impl WithdrawBuilder {
-    pub fn new() -> Self {
-        Self::default()
+  pub fn new() -> Self {
+    Self::default()
+  }
+            /// Gumball Machine acccount.
+#[inline(always)]
+    pub fn jellybean_machine(&mut self, jellybean_machine: solana_address::Address) -> &mut Self {
+                        self.jellybean_machine = Some(jellybean_machine);
+                    self
     }
-    /// Gumball Machine acccount.
-    #[inline(always)]
-    pub fn jellybean_machine(
-        &mut self,
-        jellybean_machine: solana_program::pubkey::Pubkey,
-    ) -> &mut Self {
-        self.jellybean_machine = Some(jellybean_machine);
-        self
+            /// Authority of the jellybean machine.
+#[inline(always)]
+    pub fn authority(&mut self, authority: solana_address::Address) -> &mut Self {
+                        self.authority = Some(authority);
+                    self
     }
-    /// Authority of the jellybean machine.
-    #[inline(always)]
-    pub fn authority(&mut self, authority: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.authority = Some(authority);
-        self
+            /// Mint authority of the jellybean machine.
+#[inline(always)]
+    pub fn mint_authority(&mut self, mint_authority: solana_address::Address) -> &mut Self {
+                        self.mint_authority = Some(mint_authority);
+                    self
     }
-    /// Mint authority of the jellybean machine.
-    #[inline(always)]
-    pub fn mint_authority(&mut self, mint_authority: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.mint_authority = Some(mint_authority);
-        self
-    }
-    /// Add an additional account to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_account(
-        &mut self,
-        account: solana_program::instruction::AccountMeta,
-    ) -> &mut Self {
-        self.__remaining_accounts.push(account);
-        self
-    }
-    /// Add additional accounts to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_accounts(
-        &mut self,
-        accounts: &[solana_program::instruction::AccountMeta],
-    ) -> &mut Self {
-        self.__remaining_accounts.extend_from_slice(accounts);
-        self
-    }
-    #[allow(clippy::clone_on_copy)]
-    pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        let accounts = Withdraw {
-            jellybean_machine: self
-                .jellybean_machine
-                .expect("jellybean_machine is not set"),
-            authority: self.authority.expect("authority is not set"),
-            mint_authority: self.mint_authority.expect("mint_authority is not set"),
-        };
-
-        accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
-    }
+            /// Add an additional account to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_account(&mut self, account: solana_instruction::AccountMeta) -> &mut Self {
+    self.__remaining_accounts.push(account);
+    self
+  }
+  /// Add additional accounts to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_accounts(&mut self, accounts: &[solana_instruction::AccountMeta]) -> &mut Self {
+    self.__remaining_accounts.extend_from_slice(accounts);
+    self
+  }
+  #[allow(clippy::clone_on_copy)]
+  pub fn instruction(&self) -> solana_instruction::Instruction {
+    let accounts = Withdraw {
+                              jellybean_machine: self.jellybean_machine.expect("jellybean_machine is not set"),
+                                        authority: self.authority.expect("authority is not set"),
+                                        mint_authority: self.mint_authority.expect("mint_authority is not set"),
+                      };
+    
+    accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
+  }
 }
 
-/// `withdraw` CPI accounts.
-pub struct WithdrawCpiAccounts<'a, 'b> {
-    /// Gumball Machine acccount.
-    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Authority of the jellybean machine.
-    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Mint authority of the jellybean machine.
-    pub mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-}
+  /// `withdraw` CPI accounts.
+  pub struct WithdrawCpiAccounts<'a, 'b> {
+                  /// Gumball Machine acccount.
+
+      
+                    
+              pub jellybean_machine: &'b solana_account_info::AccountInfo<'a>,
+                        /// Authority of the jellybean machine.
+
+      
+                    
+              pub authority: &'b solana_account_info::AccountInfo<'a>,
+                        /// Mint authority of the jellybean machine.
+
+      
+                    
+              pub mint_authority: &'b solana_account_info::AccountInfo<'a>,
+            }
 
 /// `withdraw` CPI instruction.
 pub struct WithdrawCpi<'a, 'b> {
-    /// The program to invoke.
-    pub __program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Gumball Machine acccount.
-    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Authority of the jellybean machine.
-    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Mint authority of the jellybean machine.
-    pub mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-}
+  /// The program to invoke.
+  pub __program: &'b solana_account_info::AccountInfo<'a>,
+            /// Gumball Machine acccount.
+
+    
+              
+          pub jellybean_machine: &'b solana_account_info::AccountInfo<'a>,
+                /// Authority of the jellybean machine.
+
+    
+              
+          pub authority: &'b solana_account_info::AccountInfo<'a>,
+                /// Mint authority of the jellybean machine.
+
+    
+              
+          pub mint_authority: &'b solana_account_info::AccountInfo<'a>,
+        }
 
 impl<'a, 'b> WithdrawCpi<'a, 'b> {
-    pub fn new(
-        program: &'b solana_program::account_info::AccountInfo<'a>,
-        accounts: WithdrawCpiAccounts<'a, 'b>,
-    ) -> Self {
-        Self {
-            __program: program,
-            jellybean_machine: accounts.jellybean_machine,
-            authority: accounts.authority,
-            mint_authority: accounts.mint_authority,
-        }
-    }
-    #[inline(always)]
-    pub fn invoke(&self) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(&[], &[])
-    }
-    #[inline(always)]
-    pub fn invoke_with_remaining_accounts(
-        &self,
-        remaining_accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(&[], remaining_accounts)
-    }
-    #[inline(always)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(signers_seeds, &[])
-    }
-    #[allow(clippy::arithmetic_side_effects)]
-    #[allow(clippy::clone_on_copy)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn invoke_signed_with_remaining_accounts(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-        remaining_accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(3 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
+  pub fn new(
+    program: &'b solana_account_info::AccountInfo<'a>,
+          accounts: WithdrawCpiAccounts<'a, 'b>,
+          ) -> Self {
+    Self {
+      __program: program,
+              jellybean_machine: accounts.jellybean_machine,
+              authority: accounts.authority,
+              mint_authority: accounts.mint_authority,
+                }
+  }
+  #[inline(always)]
+  pub fn invoke(&self) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(&[], &[])
+  }
+  #[inline(always)]
+  pub fn invoke_with_remaining_accounts(&self, remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(&[], remaining_accounts)
+  }
+  #[inline(always)]
+  pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(signers_seeds, &[])
+  }
+  #[allow(clippy::arithmetic_side_effects)]
+  #[allow(clippy::clone_on_copy)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn invoke_signed_with_remaining_accounts(
+    &self,
+    signers_seeds: &[&[&[u8]]],
+    remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]
+  ) -> solana_program_error::ProgramResult {
+    let mut accounts = Vec::with_capacity(3+ remaining_accounts.len());
+                            accounts.push(solana_instruction::AccountMeta::new(
             *self.jellybean_machine.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             *self.authority.key,
-            true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             *self.mint_authority.key,
-            true,
-        ));
-        remaining_accounts.iter().for_each(|remaining_account| {
-            accounts.push(solana_program::instruction::AccountMeta {
-                pubkey: *remaining_account.0.key,
-                is_signer: remaining_account.1,
-                is_writable: remaining_account.2,
-            })
-        });
-        let data = borsh::to_vec(&WithdrawInstructionData::new()).unwrap();
+            true
+          ));
+                      remaining_accounts.iter().for_each(|remaining_account| {
+      accounts.push(solana_instruction::AccountMeta {
+          pubkey: *remaining_account.0.key,
+          is_signer: remaining_account.1,
+          is_writable: remaining_account.2,
+      })
+    });
+    let data = WithdrawInstructionData::new().try_to_vec().unwrap();
+    
+    let instruction = solana_instruction::Instruction {
+      program_id: crate::MALLOW_JELLYBEAN_ID,
+      accounts,
+      data,
+    };
+    let mut account_infos = Vec::with_capacity(4 + remaining_accounts.len());
+    account_infos.push(self.__program.clone());
+                  account_infos.push(self.jellybean_machine.clone());
+                        account_infos.push(self.authority.clone());
+                        account_infos.push(self.mint_authority.clone());
+              remaining_accounts.iter().for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
 
-        let instruction = solana_program::instruction::Instruction {
-            program_id: crate::MALLOW_JELLYBEAN_ID,
-            accounts,
-            data,
-        };
-        let mut account_infos = Vec::with_capacity(4 + remaining_accounts.len());
-        account_infos.push(self.__program.clone());
-        account_infos.push(self.jellybean_machine.clone());
-        account_infos.push(self.authority.clone());
-        account_infos.push(self.mint_authority.clone());
-        remaining_accounts
-            .iter()
-            .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
-
-        if signers_seeds.is_empty() {
-            solana_program::program::invoke(&instruction, &account_infos)
-        } else {
-            solana_program::program::invoke_signed(&instruction, &account_infos, signers_seeds)
-        }
+    if signers_seeds.is_empty() {
+      solana_cpi::invoke(&instruction, &account_infos)
+    } else {
+      solana_cpi::invoke_signed(&instruction, &account_infos, signers_seeds)
     }
+  }
 }
 
 /// Instruction builder for `Withdraw` via CPI.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` jellybean_machine
-///   1. `[writable, signer]` authority
-///   2. `[writable, signer]` mint_authority
+                ///   0. `[writable]` jellybean_machine
+                      ///   1. `[writable, signer]` authority
+                      ///   2. `[writable, signer]` mint_authority
 #[derive(Clone, Debug)]
 pub struct WithdrawCpiBuilder<'a, 'b> {
-    instruction: Box<WithdrawCpiBuilderInstruction<'a, 'b>>,
+  instruction: Box<WithdrawCpiBuilderInstruction<'a, 'b>>,
 }
 
 impl<'a, 'b> WithdrawCpiBuilder<'a, 'b> {
-    pub fn new(program: &'b solana_program::account_info::AccountInfo<'a>) -> Self {
-        let instruction = Box::new(WithdrawCpiBuilderInstruction {
-            __program: program,
-            jellybean_machine: None,
-            authority: None,
-            mint_authority: None,
-            __remaining_accounts: Vec::new(),
-        });
-        Self { instruction }
+  pub fn new(program: &'b solana_account_info::AccountInfo<'a>) -> Self {
+    let instruction = Box::new(WithdrawCpiBuilderInstruction {
+      __program: program,
+              jellybean_machine: None,
+              authority: None,
+              mint_authority: None,
+                                __remaining_accounts: Vec::new(),
+    });
+    Self { instruction }
+  }
+      /// Gumball Machine acccount.
+#[inline(always)]
+    pub fn jellybean_machine(&mut self, jellybean_machine: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.jellybean_machine = Some(jellybean_machine);
+                    self
     }
-    /// Gumball Machine acccount.
-    #[inline(always)]
-    pub fn jellybean_machine(
-        &mut self,
-        jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.jellybean_machine = Some(jellybean_machine);
-        self
+      /// Authority of the jellybean machine.
+#[inline(always)]
+    pub fn authority(&mut self, authority: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.authority = Some(authority);
+                    self
     }
-    /// Authority of the jellybean machine.
-    #[inline(always)]
-    pub fn authority(
-        &mut self,
-        authority: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.authority = Some(authority);
-        self
+      /// Mint authority of the jellybean machine.
+#[inline(always)]
+    pub fn mint_authority(&mut self, mint_authority: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.mint_authority = Some(mint_authority);
+                    self
     }
-    /// Mint authority of the jellybean machine.
-    #[inline(always)]
-    pub fn mint_authority(
-        &mut self,
-        mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.mint_authority = Some(mint_authority);
-        self
-    }
-    /// Add an additional account to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_account(
-        &mut self,
-        account: &'b solana_program::account_info::AccountInfo<'a>,
-        is_writable: bool,
-        is_signer: bool,
-    ) -> &mut Self {
-        self.instruction
-            .__remaining_accounts
-            .push((account, is_writable, is_signer));
-        self
-    }
-    /// Add additional accounts to the instruction.
-    ///
-    /// Each account is represented by a tuple of the `AccountInfo`, a `bool` indicating whether the account is writable or not,
-    /// and a `bool` indicating whether the account is a signer or not.
-    #[inline(always)]
-    pub fn add_remaining_accounts(
-        &mut self,
-        accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> &mut Self {
-        self.instruction
-            .__remaining_accounts
-            .extend_from_slice(accounts);
-        self
-    }
-    #[inline(always)]
-    pub fn invoke(&self) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed(&[])
-    }
-    #[allow(clippy::clone_on_copy)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program::entrypoint::ProgramResult {
+            /// Add an additional account to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_account(&mut self, account: &'b solana_account_info::AccountInfo<'a>, is_writable: bool, is_signer: bool) -> &mut Self {
+    self.instruction.__remaining_accounts.push((account, is_writable, is_signer));
+    self
+  }
+  /// Add additional accounts to the instruction.
+  ///
+  /// Each account is represented by a tuple of the `AccountInfo`, a `bool` indicating whether the account is writable or not,
+  /// and a `bool` indicating whether the account is a signer or not.
+  #[inline(always)]
+  pub fn add_remaining_accounts(&mut self, accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]) -> &mut Self {
+    self.instruction.__remaining_accounts.extend_from_slice(accounts);
+    self
+  }
+  #[inline(always)]
+  pub fn invoke(&self) -> solana_program_error::ProgramResult {
+    self.invoke_signed(&[])
+  }
+  #[allow(clippy::clone_on_copy)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
         let instruction = WithdrawCpi {
-            __program: self.instruction.__program,
-
-            jellybean_machine: self
-                .instruction
-                .jellybean_machine
-                .expect("jellybean_machine is not set"),
-
-            authority: self.instruction.authority.expect("authority is not set"),
-
-            mint_authority: self
-                .instruction
-                .mint_authority
-                .expect("mint_authority is not set"),
-        };
-        instruction.invoke_signed_with_remaining_accounts(
-            signers_seeds,
-            &self.instruction.__remaining_accounts,
-        )
-    }
+        __program: self.instruction.__program,
+                  
+          jellybean_machine: self.instruction.jellybean_machine.expect("jellybean_machine is not set"),
+                  
+          authority: self.instruction.authority.expect("authority is not set"),
+                  
+          mint_authority: self.instruction.mint_authority.expect("mint_authority is not set"),
+                    };
+    instruction.invoke_signed_with_remaining_accounts(signers_seeds, &self.instruction.__remaining_accounts)
+  }
 }
 
 #[derive(Clone, Debug)]
 struct WithdrawCpiBuilderInstruction<'a, 'b> {
-    __program: &'b solana_program::account_info::AccountInfo<'a>,
-    jellybean_machine: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    mint_authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
-    __remaining_accounts: Vec<(
-        &'b solana_program::account_info::AccountInfo<'a>,
-        bool,
-        bool,
-    )>,
+  __program: &'b solana_account_info::AccountInfo<'a>,
+            jellybean_machine: Option<&'b solana_account_info::AccountInfo<'a>>,
+                authority: Option<&'b solana_account_info::AccountInfo<'a>>,
+                mint_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
+                /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
+  __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }
+

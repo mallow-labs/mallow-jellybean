@@ -88,16 +88,14 @@ pub enum MallowJellybeanError {
     /// 6025 - Invalid fee accounts length
     #[error("Invalid fee accounts length")]
     InvalidFeeAccountsLength = 0x1789,
+    /// 6026 - Account already initialized
+    #[error("Account already initialized")]
+    AccountAlreadyInitialized = 0x178A,
 }
 
-impl solana_program::program_error::PrintProgramError for MallowJellybeanError {
-    fn print<E>(&self) {
-        solana_program::msg!(&self.to_string());
+impl From<MallowJellybeanError> for solana_program_error::ProgramError {
+    fn from(e: MallowJellybeanError) -> Self {
+        solana_program_error::ProgramError::Custom(e as u32)
     }
 }
 
-impl<T> solana_program::decode_error::DecodeError<T> for MallowJellybeanError {
-    fn type_of() -> &'static str {
-        "MallowJellybeanError"
-    }
-}
