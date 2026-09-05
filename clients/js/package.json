@@ -61,7 +61,7 @@
     "@metaplex-foundation/umi-web3js-adapters": "^1.2.0",
     "@metaplex-foundation/mpl-core": "^1.4.1",
     "@metaplex-foundation/mpl-toolbox": "^0.10.0",
-    "@mallow-labs/mallow-gumball": "file:../../../mallow-gumball/clients/js",
+    "@mallow-labs/mallow-gumball": "^2.0.0",
     "@solana/web3.js": "^1.98.2",
     "@solana/spl-token": "^0.4.9",
     "lodash": "^4.17.21",

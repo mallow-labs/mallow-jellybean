@@ -19,8 +19,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       '@mallow-labs/mallow-gumball':
-        specifier: file:../../../mallow-gumball/clients/js
-        version: file:../../../mallow-gumball/clients/js(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3)(utf-8-validate@6.0.6)
+        specifier: ^2.0.0
+        version: 2.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3)(utf-8-validate@6.0.6)
       '@metaplex-foundation/mpl-core':
         specifier: ^1.4.1
         version: 1.10.0(@metaplex-foundation/umi@1.5.1)(@noble/hashes@1.8.0)
@@ -308,8 +308,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
-  '@mallow-labs/mallow-gumball@file:../../../mallow-gumball/clients/js':
-    resolution: {directory: ../../../mallow-gumball/clients/js, type: directory}
+  '@mallow-labs/mallow-gumball@2.0.0':
+    resolution: {integrity: sha512-us0lXKc8hGPs/mFnO1JWJNClOHo0Om4S2QqGoWZLOMyIEPEwpa8TU+0KDKaPzCmVQJxU+KNoU7GmJhWoLXgIXg==}
     engines: {node: '>=24'}
 
   '@mapbox/node-pre-gyp@2.0.0':
@@ -1833,6 +1833,7 @@ packages:
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   currently-unhandled@0.4.1:
     resolution: {integrity: sha512-/fITjgjGU50vjQ4FH6eUoYu+iUoUKIXws2hL15JJpIR+BbTxaXQsMuuyjtNh2WqsSBS5nsaZHFsFecyw5CCAng==}
@@ -3141,7 +3142,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@mallow-labs/mallow-gumball@file:../../../mallow-gumball/clients/js(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3)(utf-8-validate@6.0.6)':
+  '@mallow-labs/mallow-gumball@2.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3)(utf-8-validate@6.0.6)':
     dependencies:
       '@noble/hashes': 1.8.0
       '@solana-program/address-lookup-table': 0.8.0(@solana/kit@7.0.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.8.3)(utf-8-validate@6.0.6))
