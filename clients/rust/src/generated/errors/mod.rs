@@ -5,6 +5,7 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-pub(crate) mod mallow_jellybean;
-
-pub use self::mallow_jellybean::MallowJellybeanError;
+      pub(crate) mod mallow_jellybean;
+  
+      pub use self::mallow_jellybean::MallowJellybeanError;
+  

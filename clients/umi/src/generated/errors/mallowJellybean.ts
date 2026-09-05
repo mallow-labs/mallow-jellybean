@@ -359,6 +359,19 @@ export class InvalidFeeAccountsLengthError extends ProgramError {
 codeToErrorMap.set(0x1789, InvalidFeeAccountsLengthError);
 nameToErrorMap.set('InvalidFeeAccountsLength', InvalidFeeAccountsLengthError);
 
+/** AccountAlreadyInitialized: Account already initialized */
+export class AccountAlreadyInitializedError extends ProgramError {
+  override readonly name: string = 'AccountAlreadyInitialized';
+
+  readonly code: number = 0x178a; // 6026
+
+  constructor(program: Program, cause?: Error) {
+    super('Account already initialized', program, cause);
+  }
+}
+codeToErrorMap.set(0x178a, AccountAlreadyInitializedError);
+nameToErrorMap.set('AccountAlreadyInitialized', AccountAlreadyInitializedError);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors

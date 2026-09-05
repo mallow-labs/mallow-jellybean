@@ -9,6 +9,17 @@ pub fn is_native_mint(key: Pubkey) -> bool {
     key == native_mint::ID
 }
 
+/// Returns true if the account has never been initialized (its 8-byte
+/// discriminator is still zeroed). Mirrors the guarantee Anchor's `zero`
+/// constraint provided before Anchor 1.x required a typed `Discriminator`
+/// account for that constraint.
+pub fn is_account_uninitialized(account: &AccountInfo) -> bool {
+    account
+        .try_borrow_data()
+        .map(|data| data.len() >= 8 && data[..8] == [0u8; 8])
+        .unwrap_or(false)
+}
+
 pub fn assert_keys_equal(key1: Pubkey, key2: Pubkey, error_message: &str) -> Result<()> {
     if key1 != key2 {
         msg!("{}: actual: {} expected: {}", error_message, key1, key2);

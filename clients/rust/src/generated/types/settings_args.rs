@@ -7,14 +7,16 @@
 
 use crate::generated::types::FeeAccount;
 use crate::generated::types::PrintFeeConfig;
-use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
+use borsh::BorshDeserialize;
 
 /// Common arguments for settings-related operations (initialize and update_settings)
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SettingsArgs {
-    pub uri: String,
-    pub fee_accounts: Vec<FeeAccount>,
-    pub print_fee_config: Option<PrintFeeConfig>,
+pub uri: String,
+pub fee_accounts: Vec<FeeAccount>,
+pub print_fee_config: Option<PrintFeeConfig>,
 }
+
+

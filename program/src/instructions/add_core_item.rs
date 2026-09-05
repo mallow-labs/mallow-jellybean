@@ -1,8 +1,11 @@
 use crate::{constants::AUTHORITY_SEED, state::JellybeanMachine, JellybeanError, LoadedItem};
 use anchor_lang::prelude::*;
 use mpl_core::{
+    accounts::BaseCollectionV1,
+    errors::MplCoreError,
+    fetch_plugin,
     instructions::{TransferV1CpiBuilder, UpdateCollectionV1CpiBuilder},
-    Collection,
+    types::{MasterEdition, PluginType},
 };
 
 /// Add core asset to a jellybean machine.
@@ -85,54 +88,60 @@ pub fn add_core_item(ctx: Context<AddCoreItem>) -> Result<()> {
         }
     } else if let Some(collection_account) = &ctx.accounts.collection {
         let collection_info = collection_account.to_account_info();
-        let collection = Box::<Collection>::try_from(&collection_info)?;
+        // Read only the base collection + the MasterEdition plugin. Materializing
+        // the full `Collection` (its entire plugin list) overflows the SBF stack
+        // under mpl-core 0.12, so fetch just what we need (matches mallow-utils).
+        let base = BaseCollectionV1::from_bytes(&collection_info.data.borrow())?;
 
         require!(
-            collection.base.current_size == 0,
+            base.current_size == 0,
             JellybeanError::MasterEditionNotEmpty
         );
 
-        if let Some(master_edition) = collection.plugin_list.master_edition {
-            if let Some(max_supply) = master_edition.master_edition.max_supply {
-                // Update the master edition authority to the authority pda
-                UpdateCollectionV1CpiBuilder::new(mpl_core_program)
-                    .collection(collection_account)
-                    .payer(authority)
-                    .new_update_authority(Some(authority_pda))
-                    .system_program(system_program)
-                    .invoke()?;
-
-                let rent = Rent::get()?;
-                let name = if let Some(name) = master_edition.master_edition.name {
-                    name
-                } else {
-                    collection.base.name
-                };
-
-                let uri = if let Some(uri) = master_edition.master_edition.uri {
-                    uri
-                } else {
-                    collection.base.uri
-                };
-
-                // We escrow funds from the buyer to cover printing fees, this allows the buyer or seller to settle the sale
-                let escrow_amount =
-                // AssetV1 + Edition plugin base size + name + uri size
-                    rent.minimum_balance(108_usize + name.len() + uri.len())
-                        + 1_500_000; // Metaplex fee
-
-                LoadedItem {
-                    mint: collection_account.key(),
-                    supply_loaded: max_supply,
-                    supply_redeemed: collection.base.current_size,
-                    supply_claimed: 0,
-                    escrow_amount,
-                }
+        let master_edition = fetch_plugin::<BaseCollectionV1, MasterEdition>(
+            &collection_info,
+            PluginType::MasterEdition,
+        )
+        .map_err(|e| {
+            // Only a genuinely missing plugin maps to MissingMasterEdition; any other
+            // failure (e.g. registry deserialization under mpl-core 0.12) is propagated.
+            if e.to_string() == MplCoreError::PluginNotFound.to_string() {
+                error!(JellybeanError::MissingMasterEdition)
             } else {
-                return err!(JellybeanError::InvalidMasterEditionSupply);
+                ProgramError::from(e).into()
+            }
+        })?
+        .1;
+
+        if let Some(max_supply) = master_edition.max_supply {
+            // Update the master edition authority to the authority pda
+            UpdateCollectionV1CpiBuilder::new(mpl_core_program)
+                .collection(collection_account)
+                .payer(authority)
+                .new_update_authority(Some(authority_pda))
+                .system_program(system_program)
+                .invoke()?;
+
+            let rent = Rent::get()?;
+            let current_size = base.current_size;
+            let name = master_edition.name.unwrap_or(base.name);
+            let uri = master_edition.uri.unwrap_or(base.uri);
+
+            // We escrow funds from the buyer to cover printing fees, this allows the buyer or seller to settle the sale
+            let escrow_amount =
+            // AssetV1 + Edition plugin base size + name + uri size
+                rent.minimum_balance(108_usize + name.len() + uri.len())
+                    + 1_500_000; // Metaplex fee
+
+            LoadedItem {
+                mint: collection_account.key(),
+                supply_loaded: max_supply,
+                supply_redeemed: current_size,
+                supply_claimed: 0,
+                escrow_amount,
             }
         } else {
-            return err!(JellybeanError::MissingMasterEdition);
+            return err!(JellybeanError::InvalidMasterEditionSupply);
         }
     } else {
         return err!(JellybeanError::InvalidAsset);

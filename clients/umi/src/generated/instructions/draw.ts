@@ -13,7 +13,6 @@ import {
   PublicKey,
   Signer,
   TransactionBuilder,
-  publicKey,
   transactionBuilder,
 } from '@metaplex-foundation/umi';
 import {
@@ -213,14 +212,18 @@ export function draw(
     resolvedAccounts.systemProgram.isWritable = false;
   }
   if (!resolvedAccounts.rent.value) {
-    resolvedAccounts.rent.value = publicKey(
+    resolvedAccounts.rent.value = context.programs.getPublicKey(
+      'rent',
       'SysvarRent111111111111111111111111111111111'
     );
+    resolvedAccounts.rent.isWritable = false;
   }
   if (!resolvedAccounts.recentSlothashes.value) {
-    resolvedAccounts.recentSlothashes.value = publicKey(
+    resolvedAccounts.recentSlothashes.value = context.programs.getPublicKey(
+      'recentSlothashes',
       'SysvarS1otHashes111111111111111111111111111'
     );
+    resolvedAccounts.recentSlothashes.isWritable = false;
   }
   if (!resolvedAccounts.eventAuthority.value) {
     resolvedAccounts.eventAuthority = {

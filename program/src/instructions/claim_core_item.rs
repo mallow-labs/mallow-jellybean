@@ -4,9 +4,11 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use mpl_core::{
+    accounts::BaseCollectionV1,
+    errors::MplCoreError,
+    fetch_plugin,
     instructions::{CreateV1CpiBuilder, TransferV1CpiBuilder},
-    types::{Edition, Plugin, PluginAuthorityPair},
-    Collection,
+    types::{Edition, MasterEdition, Plugin, PluginAuthorityPair, PluginType},
 };
 
 #[event_cpi]
@@ -73,7 +75,7 @@ pub struct ClaimCoreItem<'info> {
 }
 
 pub fn claim_core_item<'info>(
-    ctx: Context<'_, '_, '_, 'info, ClaimCoreItem<'info>>,
+    ctx: Context<'info, ClaimCoreItem<'info>>,
     index: u8,
 ) -> Result<()> {
     let unclaimed_prizes = &mut ctx.accounts.unclaimed_prizes;
@@ -117,8 +119,23 @@ pub fn claim_core_item<'info>(
         asset.key()
     } else if let Some(collection_account) = &ctx.accounts.collection {
         let collection_info = collection_account.to_account_info();
-        let collection = Box::<Collection>::try_from(&collection_info)?;
-        let plugin = collection.plugin_list.master_edition.unwrap();
+        // Read only the base collection + MasterEdition plugin — materializing the
+        // full `Collection` plugin list overflows the SBF stack under mpl-core 0.12.
+        let base = BaseCollectionV1::from_bytes(&collection_info.data.borrow())?;
+        let master_edition = fetch_plugin::<BaseCollectionV1, MasterEdition>(
+            &collection_info,
+            PluginType::MasterEdition,
+        )
+        .map_err(|e| {
+            // Only a genuinely missing plugin maps to MissingMasterEdition; any other
+            // failure (e.g. registry deserialization under mpl-core 0.12) is propagated.
+            if e.to_string() == MplCoreError::PluginNotFound.to_string() {
+                error!(JellybeanError::MissingMasterEdition)
+            } else {
+                ProgramError::from(e).into()
+            }
+        })?
+        .1;
 
         let edition_number = prize.edition_number;
         let print_asset = ctx
@@ -141,16 +158,8 @@ pub fn claim_core_item<'info>(
             .asset(print_asset)
             .collection(Some(collection_account))
             .payer(payer)
-            .name(if let Some(name) = plugin.master_edition.name {
-                name
-            } else {
-                collection.base.name
-            })
-            .uri(if let Some(uri) = plugin.master_edition.uri {
-                uri
-            } else {
-                collection.base.uri
-            })
+            .name(master_edition.name.unwrap_or(base.name))
+            .uri(master_edition.uri.unwrap_or(base.uri))
             .owner(Some(buyer))
             .plugins(vec![PluginAuthorityPair {
                 authority: None,
@@ -192,9 +201,7 @@ pub fn claim_core_item<'info>(
         let current_lamports = unclaimed_prizes.to_account_info().lamports();
 
         // Reallocate the account
-        unclaimed_prizes
-            .to_account_info()
-            .realloc(new_space, false)?;
+        unclaimed_prizes.to_account_info().resize(new_space)?;
 
         // Refund excess rent to buyer, or payer if buyer account is closed
         let excess_lamports = current_lamports - new_rent_minimum;

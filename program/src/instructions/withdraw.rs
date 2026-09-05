@@ -23,6 +23,6 @@ pub struct Withdraw<'info> {
     mint_authority: Signer<'info>,
 }
 
-pub fn withdraw<'info>(_: Context<'_, '_, '_, 'info, Withdraw<'info>>) -> Result<()> {
+pub fn withdraw<'info>(_: Context<'info, Withdraw<'info>>) -> Result<()> {
     Ok(())
 }

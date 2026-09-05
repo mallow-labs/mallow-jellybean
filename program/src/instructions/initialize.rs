@@ -1,8 +1,11 @@
 use crate::{
-    constants::AUTHORITY_SEED, state::JellybeanMachine, utils::validate_settings_args,
-    JellybeanState, SettingsArgs,
+    constants::AUTHORITY_SEED, state::JellybeanMachine, utils::is_account_uninitialized,
+    utils::validate_settings_args, JellybeanError, JellybeanState, SettingsArgs,
 };
-use anchor_lang::{prelude::*, Discriminator};
+use anchor_lang::{
+    prelude::{borsh, *},
+    Discriminator,
+};
 
 /// Initializes a new jellybean machine.
 #[derive(Accounts)]
@@ -12,9 +15,12 @@ pub struct Initialize<'info> {
     ///
     /// CHECK: account constraints checked in account trait
     #[account(
-        zero,
-        rent_exempt = skip,
-        constraint = jellybean_machine.to_account_info().owner == __program_id && jellybean_machine.to_account_info().data_len() >= JellybeanMachine::get_base_size_with_fee_accounts(args.fee_accounts.len())
+        mut,
+        constraint = jellybean_machine.to_account_info().owner == __program_id
+            && jellybean_machine.to_account_info().data_len()
+                >= JellybeanMachine::get_base_size_with_fee_accounts(args.fee_accounts.len()),
+        constraint = is_account_uninitialized(&jellybean_machine.to_account_info())
+            @ JellybeanError::AccountAlreadyInitialized
     )]
     jellybean_machine: UncheckedAccount<'info>,
 
@@ -63,8 +69,8 @@ pub fn initialize(ctx: Context<Initialize>, args: SettingsArgs) -> Result<()> {
         padding: [0; 320],
     };
 
-    let mut struct_data = JellybeanMachine::discriminator().try_to_vec().unwrap();
-    struct_data.append(&mut jellybean_machine.try_to_vec().unwrap());
+    let mut struct_data = JellybeanMachine::DISCRIMINATOR.to_vec();
+    struct_data.append(&mut borsh::to_vec(&jellybean_machine).unwrap());
 
     let mut data = jellybean_machine_account.data.borrow_mut();
     data[0..struct_data.len()].copy_from_slice(&struct_data);

@@ -1,7 +1,4 @@
-use anchor_lang::prelude::{
-    borsh::{BorshDeserialize, BorshSerialize},
-    *,
-};
+use anchor_lang::prelude::*;
 
 pub const MAX_URI_LENGTH: usize = 196;
 pub const MAX_FEE_ACCOUNTS: usize = 6;
@@ -91,8 +88,9 @@ impl JellybeanMachine {
         index: usize,
     ) -> Result<LoadedItem> {
         let item_position = self.get_loaded_item_position(index);
-        let item_data = &mut &account_data[item_position..item_position + LOADED_ITEM_SIZE];
-        Ok(LoadedItem::deserialize(item_data)?)
+        Ok(LoadedItem::try_from_slice(
+            &account_data[item_position..item_position + LOADED_ITEM_SIZE],
+        )?)
     }
 }
 
@@ -115,7 +113,7 @@ pub const LOADED_ITEM_SIZE: usize = 32 + // mint
 pub const LOADED_ITEM_SUPPLY_REDEMED_OFFSET: usize = 32 + 4;
 
 /// Config line struct for storing asset (NFT) data pre-mint.
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Debug)]
 pub struct LoadedItem {
     /// Mint account of the asset.
     pub mint: Pubkey,

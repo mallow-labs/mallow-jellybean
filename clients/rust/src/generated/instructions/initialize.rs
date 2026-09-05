@@ -6,505 +6,470 @@
 //!
 
 use crate::generated::types::SettingsArgs;
-use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
+use borsh::BorshDeserialize;
+
+pub const INITIALIZE_DISCRIMINATOR: [u8; 8] = [175, 175, 109, 31, 13, 152, 155, 237];
 
 /// Accounts.
 #[derive(Debug)]
 pub struct Initialize {
-    /// Jellybean machine account.
-    ///
-    pub jellybean_machine: solana_program::pubkey::Pubkey,
-    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
-    ///
-    pub authority: solana_program::pubkey::Pubkey,
+            /// Jellybean machine account.
+/// 
 
-    pub authority_pda: solana_program::pubkey::Pubkey,
-    /// Payer of the transaction.
-    pub payer: solana_program::pubkey::Pubkey,
+    
+              
+          pub jellybean_machine: solana_address::Address,
+                /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+/// 
 
-    pub system_program: solana_program::pubkey::Pubkey,
-}
+    
+              
+          pub authority: solana_address::Address,
+          
+              
+          pub authority_pda: solana_address::Address,
+                /// Payer of the transaction.
+
+    
+              
+          pub payer: solana_address::Address,
+          
+              
+          pub system_program: solana_address::Address,
+      }
 
 impl Initialize {
-    pub fn instruction(
-        &self,
-        args: InitializeInstructionArgs,
-    ) -> solana_program::instruction::Instruction {
-        self.instruction_with_remaining_accounts(args, &[])
-    }
-    #[allow(clippy::arithmetic_side_effects)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn instruction_with_remaining_accounts(
-        &self,
-        args: InitializeInstructionArgs,
-        remaining_accounts: &[solana_program::instruction::AccountMeta],
-    ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
+  pub fn instruction(&self, args: InitializeInstructionArgs) -> solana_instruction::Instruction {
+    self.instruction_with_remaining_accounts(args, &[])
+  }
+  #[allow(clippy::arithmetic_side_effects)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn instruction_with_remaining_accounts(&self, args: InitializeInstructionArgs, remaining_accounts: &[solana_instruction::AccountMeta]) -> solana_instruction::Instruction {
+    let mut accounts = Vec::with_capacity(5+ remaining_accounts.len());
+                            accounts.push(solana_instruction::AccountMeta::new(
             self.jellybean_machine,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.authority,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             self.authority_pda,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
-            self.payer, true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
+            self.payer,
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.system_program,
-            false,
-        ));
-        accounts.extend_from_slice(remaining_accounts);
-        let mut data = borsh::to_vec(&InitializeInstructionData::new()).unwrap();
-        let mut args = borsh::to_vec(&args).unwrap();
-        data.append(&mut args);
-
-        solana_program::instruction::Instruction {
-            program_id: crate::MALLOW_JELLYBEAN_ID,
-            accounts,
-            data,
-        }
+            false
+          ));
+                      accounts.extend_from_slice(remaining_accounts);
+    let mut data = InitializeInstructionData::new().try_to_vec().unwrap();
+          let mut args = args.try_to_vec().unwrap();
+      data.append(&mut args);
+    
+    solana_instruction::Instruction {
+      program_id: crate::MALLOW_JELLYBEAN_ID,
+      accounts,
+      data,
     }
+  }
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct InitializeInstructionData {
-    discriminator: [u8; 8],
-}
+ pub struct InitializeInstructionData {
+            discriminator: [u8; 8],
+            }
 
 impl InitializeInstructionData {
-    pub fn new() -> Self {
-        Self {
-            discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
-        }
-    }
-}
+  pub fn new() -> Self {
+    Self {
+                        discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
+                                }
+  }
+
+    pub(crate) fn try_to_vec(&self) -> Result<Vec<u8>, std::io::Error> {
+    borsh::to_vec(self)
+  }
+  }
 
 impl Default for InitializeInstructionData {
-    fn default() -> Self {
-        Self::new()
-    }
+  fn default() -> Self {
+    Self::new()
+  }
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct InitializeInstructionArgs {
-    pub args: SettingsArgs,
+ pub struct InitializeInstructionArgs {
+                  pub args: SettingsArgs,
+      }
+
+impl InitializeInstructionArgs {
+  pub(crate) fn try_to_vec(&self) -> Result<Vec<u8>, std::io::Error> {
+    borsh::to_vec(self)
+  }
 }
+
 
 /// Instruction builder for `Initialize`.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` jellybean_machine
-///   1. `[]` authority
-///   2. `[writable]` authority_pda
-///   3. `[writable, signer]` payer
-///   4. `[optional]` system_program (default to `11111111111111111111111111111111`)
+                ///   0. `[writable]` jellybean_machine
+          ///   1. `[]` authority
+                ///   2. `[writable]` authority_pda
+                      ///   3. `[writable, signer]` payer
+                ///   4. `[optional]` system_program (default to `11111111111111111111111111111111`)
 #[derive(Clone, Debug, Default)]
 pub struct InitializeBuilder {
-    jellybean_machine: Option<solana_program::pubkey::Pubkey>,
-    authority: Option<solana_program::pubkey::Pubkey>,
-    authority_pda: Option<solana_program::pubkey::Pubkey>,
-    payer: Option<solana_program::pubkey::Pubkey>,
-    system_program: Option<solana_program::pubkey::Pubkey>,
-    args: Option<SettingsArgs>,
-    __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
+            jellybean_machine: Option<solana_address::Address>,
+                authority: Option<solana_address::Address>,
+                authority_pda: Option<solana_address::Address>,
+                payer: Option<solana_address::Address>,
+                system_program: Option<solana_address::Address>,
+                        args: Option<SettingsArgs>,
+        __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
 impl InitializeBuilder {
-    pub fn new() -> Self {
-        Self::default()
+  pub fn new() -> Self {
+    Self::default()
+  }
+            /// Jellybean machine account.
+/// 
+#[inline(always)]
+    pub fn jellybean_machine(&mut self, jellybean_machine: solana_address::Address) -> &mut Self {
+                        self.jellybean_machine = Some(jellybean_machine);
+                    self
     }
-    /// Jellybean machine account.
-    ///
-    #[inline(always)]
-    pub fn jellybean_machine(
-        &mut self,
-        jellybean_machine: solana_program::pubkey::Pubkey,
-    ) -> &mut Self {
-        self.jellybean_machine = Some(jellybean_machine);
-        self
+            /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+/// 
+#[inline(always)]
+    pub fn authority(&mut self, authority: solana_address::Address) -> &mut Self {
+                        self.authority = Some(authority);
+                    self
     }
-    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
-    ///
-    #[inline(always)]
-    pub fn authority(&mut self, authority: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.authority = Some(authority);
-        self
+            #[inline(always)]
+    pub fn authority_pda(&mut self, authority_pda: solana_address::Address) -> &mut Self {
+                        self.authority_pda = Some(authority_pda);
+                    self
     }
-    #[inline(always)]
-    pub fn authority_pda(&mut self, authority_pda: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.authority_pda = Some(authority_pda);
-        self
+            /// Payer of the transaction.
+#[inline(always)]
+    pub fn payer(&mut self, payer: solana_address::Address) -> &mut Self {
+                        self.payer = Some(payer);
+                    self
     }
-    /// Payer of the transaction.
-    #[inline(always)]
-    pub fn payer(&mut self, payer: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.payer = Some(payer);
-        self
+            /// `[optional account, default to '11111111111111111111111111111111']`
+#[inline(always)]
+    pub fn system_program(&mut self, system_program: solana_address::Address) -> &mut Self {
+                        self.system_program = Some(system_program);
+                    self
     }
-    /// `[optional account, default to '11111111111111111111111111111111']`
-    #[inline(always)]
-    pub fn system_program(&mut self, system_program: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.system_program = Some(system_program);
-        self
-    }
-    #[inline(always)]
-    pub fn args(&mut self, args: SettingsArgs) -> &mut Self {
+                    #[inline(always)]
+      pub fn args(&mut self, args: SettingsArgs) -> &mut Self {
         self.args = Some(args);
         self
-    }
-    /// Add an additional account to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_account(
-        &mut self,
-        account: solana_program::instruction::AccountMeta,
-    ) -> &mut Self {
-        self.__remaining_accounts.push(account);
-        self
-    }
-    /// Add additional accounts to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_accounts(
-        &mut self,
-        accounts: &[solana_program::instruction::AccountMeta],
-    ) -> &mut Self {
-        self.__remaining_accounts.extend_from_slice(accounts);
-        self
-    }
-    #[allow(clippy::clone_on_copy)]
-    pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        let accounts = Initialize {
-            jellybean_machine: self
-                .jellybean_machine
-                .expect("jellybean_machine is not set"),
-            authority: self.authority.expect("authority is not set"),
-            authority_pda: self.authority_pda.expect("authority_pda is not set"),
-            payer: self.payer.expect("payer is not set"),
-            system_program: self
-                .system_program
-                .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
-        };
-        let args = InitializeInstructionArgs {
-            args: self.args.clone().expect("args is not set"),
-        };
-
-        accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
-    }
+      }
+        /// Add an additional account to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_account(&mut self, account: solana_instruction::AccountMeta) -> &mut Self {
+    self.__remaining_accounts.push(account);
+    self
+  }
+  /// Add additional accounts to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_accounts(&mut self, accounts: &[solana_instruction::AccountMeta]) -> &mut Self {
+    self.__remaining_accounts.extend_from_slice(accounts);
+    self
+  }
+  #[allow(clippy::clone_on_copy)]
+  pub fn instruction(&self) -> solana_instruction::Instruction {
+    let accounts = Initialize {
+                              jellybean_machine: self.jellybean_machine.expect("jellybean_machine is not set"),
+                                        authority: self.authority.expect("authority is not set"),
+                                        authority_pda: self.authority_pda.expect("authority_pda is not set"),
+                                        payer: self.payer.expect("payer is not set"),
+                                        system_program: self.system_program.unwrap_or(solana_address::address!("11111111111111111111111111111111")),
+                      };
+          let args = InitializeInstructionArgs {
+                                                              args: self.args.clone().expect("args is not set"),
+                                    };
+    
+    accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
+  }
 }
 
-/// `initialize` CPI accounts.
-pub struct InitializeCpiAccounts<'a, 'b> {
-    /// Jellybean machine account.
-    ///
-    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
-    ///
-    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
+  /// `initialize` CPI accounts.
+  pub struct InitializeCpiAccounts<'a, 'b> {
+                  /// Jellybean machine account.
+/// 
 
-    pub authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Payer of the transaction.
-    pub payer: &'b solana_program::account_info::AccountInfo<'a>,
+      
+                    
+              pub jellybean_machine: &'b solana_account_info::AccountInfo<'a>,
+                        /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+/// 
 
-    pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
-}
+      
+                    
+              pub authority: &'b solana_account_info::AccountInfo<'a>,
+                
+                    
+              pub authority_pda: &'b solana_account_info::AccountInfo<'a>,
+                        /// Payer of the transaction.
+
+      
+                    
+              pub payer: &'b solana_account_info::AccountInfo<'a>,
+                
+                    
+              pub system_program: &'b solana_account_info::AccountInfo<'a>,
+            }
 
 /// `initialize` CPI instruction.
 pub struct InitializeCpi<'a, 'b> {
-    /// The program to invoke.
-    pub __program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Jellybean machine account.
-    ///
-    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
-    ///
-    pub authority: &'b solana_program::account_info::AccountInfo<'a>,
+  /// The program to invoke.
+  pub __program: &'b solana_account_info::AccountInfo<'a>,
+            /// Jellybean machine account.
+/// 
 
-    pub authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Payer of the transaction.
-    pub payer: &'b solana_program::account_info::AccountInfo<'a>,
+    
+              
+          pub jellybean_machine: &'b solana_account_info::AccountInfo<'a>,
+                /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+/// 
 
-    pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// The arguments for the instruction.
+    
+              
+          pub authority: &'b solana_account_info::AccountInfo<'a>,
+          
+              
+          pub authority_pda: &'b solana_account_info::AccountInfo<'a>,
+                /// Payer of the transaction.
+
+    
+              
+          pub payer: &'b solana_account_info::AccountInfo<'a>,
+          
+              
+          pub system_program: &'b solana_account_info::AccountInfo<'a>,
+            /// The arguments for the instruction.
     pub __args: InitializeInstructionArgs,
-}
+  }
 
 impl<'a, 'b> InitializeCpi<'a, 'b> {
-    pub fn new(
-        program: &'b solana_program::account_info::AccountInfo<'a>,
-        accounts: InitializeCpiAccounts<'a, 'b>,
-        args: InitializeInstructionArgs,
-    ) -> Self {
-        Self {
-            __program: program,
-            jellybean_machine: accounts.jellybean_machine,
-            authority: accounts.authority,
-            authority_pda: accounts.authority_pda,
-            payer: accounts.payer,
-            system_program: accounts.system_program,
-            __args: args,
-        }
-    }
-    #[inline(always)]
-    pub fn invoke(&self) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(&[], &[])
-    }
-    #[inline(always)]
-    pub fn invoke_with_remaining_accounts(
-        &self,
-        remaining_accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(&[], remaining_accounts)
-    }
-    #[inline(always)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(signers_seeds, &[])
-    }
-    #[allow(clippy::arithmetic_side_effects)]
-    #[allow(clippy::clone_on_copy)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn invoke_signed_with_remaining_accounts(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-        remaining_accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(5 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
+  pub fn new(
+    program: &'b solana_account_info::AccountInfo<'a>,
+          accounts: InitializeCpiAccounts<'a, 'b>,
+              args: InitializeInstructionArgs,
+      ) -> Self {
+    Self {
+      __program: program,
+              jellybean_machine: accounts.jellybean_machine,
+              authority: accounts.authority,
+              authority_pda: accounts.authority_pda,
+              payer: accounts.payer,
+              system_program: accounts.system_program,
+                    __args: args,
+          }
+  }
+  #[inline(always)]
+  pub fn invoke(&self) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(&[], &[])
+  }
+  #[inline(always)]
+  pub fn invoke_with_remaining_accounts(&self, remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(&[], remaining_accounts)
+  }
+  #[inline(always)]
+  pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(signers_seeds, &[])
+  }
+  #[allow(clippy::arithmetic_side_effects)]
+  #[allow(clippy::clone_on_copy)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn invoke_signed_with_remaining_accounts(
+    &self,
+    signers_seeds: &[&[&[u8]]],
+    remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]
+  ) -> solana_program_error::ProgramResult {
+    let mut accounts = Vec::with_capacity(5+ remaining_accounts.len());
+                            accounts.push(solana_instruction::AccountMeta::new(
             *self.jellybean_machine.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.authority.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             *self.authority_pda.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             *self.payer.key,
-            true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.system_program.key,
-            false,
-        ));
-        remaining_accounts.iter().for_each(|remaining_account| {
-            accounts.push(solana_program::instruction::AccountMeta {
-                pubkey: *remaining_account.0.key,
-                is_signer: remaining_account.1,
-                is_writable: remaining_account.2,
-            })
-        });
-        let mut data = borsh::to_vec(&InitializeInstructionData::new()).unwrap();
-        let mut args = borsh::to_vec(&self.__args).unwrap();
-        data.append(&mut args);
+            false
+          ));
+                      remaining_accounts.iter().for_each(|remaining_account| {
+      accounts.push(solana_instruction::AccountMeta {
+          pubkey: *remaining_account.0.key,
+          is_signer: remaining_account.1,
+          is_writable: remaining_account.2,
+      })
+    });
+    let mut data = InitializeInstructionData::new().try_to_vec().unwrap();
+          let mut args = self.__args.try_to_vec().unwrap();
+      data.append(&mut args);
+    
+    let instruction = solana_instruction::Instruction {
+      program_id: crate::MALLOW_JELLYBEAN_ID,
+      accounts,
+      data,
+    };
+    let mut account_infos = Vec::with_capacity(6 + remaining_accounts.len());
+    account_infos.push(self.__program.clone());
+                  account_infos.push(self.jellybean_machine.clone());
+                        account_infos.push(self.authority.clone());
+                        account_infos.push(self.authority_pda.clone());
+                        account_infos.push(self.payer.clone());
+                        account_infos.push(self.system_program.clone());
+              remaining_accounts.iter().for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
 
-        let instruction = solana_program::instruction::Instruction {
-            program_id: crate::MALLOW_JELLYBEAN_ID,
-            accounts,
-            data,
-        };
-        let mut account_infos = Vec::with_capacity(6 + remaining_accounts.len());
-        account_infos.push(self.__program.clone());
-        account_infos.push(self.jellybean_machine.clone());
-        account_infos.push(self.authority.clone());
-        account_infos.push(self.authority_pda.clone());
-        account_infos.push(self.payer.clone());
-        account_infos.push(self.system_program.clone());
-        remaining_accounts
-            .iter()
-            .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
-
-        if signers_seeds.is_empty() {
-            solana_program::program::invoke(&instruction, &account_infos)
-        } else {
-            solana_program::program::invoke_signed(&instruction, &account_infos, signers_seeds)
-        }
+    if signers_seeds.is_empty() {
+      solana_cpi::invoke(&instruction, &account_infos)
+    } else {
+      solana_cpi::invoke_signed(&instruction, &account_infos, signers_seeds)
     }
+  }
 }
 
 /// Instruction builder for `Initialize` via CPI.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` jellybean_machine
-///   1. `[]` authority
-///   2. `[writable]` authority_pda
-///   3. `[writable, signer]` payer
-///   4. `[]` system_program
+                ///   0. `[writable]` jellybean_machine
+          ///   1. `[]` authority
+                ///   2. `[writable]` authority_pda
+                      ///   3. `[writable, signer]` payer
+          ///   4. `[]` system_program
 #[derive(Clone, Debug)]
 pub struct InitializeCpiBuilder<'a, 'b> {
-    instruction: Box<InitializeCpiBuilderInstruction<'a, 'b>>,
+  instruction: Box<InitializeCpiBuilderInstruction<'a, 'b>>,
 }
 
 impl<'a, 'b> InitializeCpiBuilder<'a, 'b> {
-    pub fn new(program: &'b solana_program::account_info::AccountInfo<'a>) -> Self {
-        let instruction = Box::new(InitializeCpiBuilderInstruction {
-            __program: program,
-            jellybean_machine: None,
-            authority: None,
-            authority_pda: None,
-            payer: None,
-            system_program: None,
-            args: None,
-            __remaining_accounts: Vec::new(),
-        });
-        Self { instruction }
+  pub fn new(program: &'b solana_account_info::AccountInfo<'a>) -> Self {
+    let instruction = Box::new(InitializeCpiBuilderInstruction {
+      __program: program,
+              jellybean_machine: None,
+              authority: None,
+              authority_pda: None,
+              payer: None,
+              system_program: None,
+                                            args: None,
+                    __remaining_accounts: Vec::new(),
+    });
+    Self { instruction }
+  }
+      /// Jellybean machine account.
+/// 
+#[inline(always)]
+    pub fn jellybean_machine(&mut self, jellybean_machine: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.jellybean_machine = Some(jellybean_machine);
+                    self
     }
-    /// Jellybean machine account.
-    ///
-    #[inline(always)]
-    pub fn jellybean_machine(
-        &mut self,
-        jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.jellybean_machine = Some(jellybean_machine);
-        self
+      /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
+/// 
+#[inline(always)]
+    pub fn authority(&mut self, authority: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.authority = Some(authority);
+                    self
     }
-    /// Gumball Machine authority. This is the address that controls the upate of the jellybean machine.
-    ///
-    #[inline(always)]
-    pub fn authority(
-        &mut self,
-        authority: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.authority = Some(authority);
-        self
+      #[inline(always)]
+    pub fn authority_pda(&mut self, authority_pda: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.authority_pda = Some(authority_pda);
+                    self
     }
-    #[inline(always)]
-    pub fn authority_pda(
-        &mut self,
-        authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.authority_pda = Some(authority_pda);
-        self
+      /// Payer of the transaction.
+#[inline(always)]
+    pub fn payer(&mut self, payer: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.payer = Some(payer);
+                    self
     }
-    /// Payer of the transaction.
-    #[inline(always)]
-    pub fn payer(&mut self, payer: &'b solana_program::account_info::AccountInfo<'a>) -> &mut Self {
-        self.instruction.payer = Some(payer);
-        self
+      #[inline(always)]
+    pub fn system_program(&mut self, system_program: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.system_program = Some(system_program);
+                    self
     }
-    #[inline(always)]
-    pub fn system_program(
-        &mut self,
-        system_program: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.system_program = Some(system_program);
-        self
-    }
-    #[inline(always)]
-    pub fn args(&mut self, args: SettingsArgs) -> &mut Self {
+                    #[inline(always)]
+      pub fn args(&mut self, args: SettingsArgs) -> &mut Self {
         self.instruction.args = Some(args);
         self
-    }
-    /// Add an additional account to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_account(
-        &mut self,
-        account: &'b solana_program::account_info::AccountInfo<'a>,
-        is_writable: bool,
-        is_signer: bool,
-    ) -> &mut Self {
-        self.instruction
-            .__remaining_accounts
-            .push((account, is_writable, is_signer));
-        self
-    }
-    /// Add additional accounts to the instruction.
-    ///
-    /// Each account is represented by a tuple of the `AccountInfo`, a `bool` indicating whether the account is writable or not,
-    /// and a `bool` indicating whether the account is a signer or not.
-    #[inline(always)]
-    pub fn add_remaining_accounts(
-        &mut self,
-        accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> &mut Self {
-        self.instruction
-            .__remaining_accounts
-            .extend_from_slice(accounts);
-        self
-    }
-    #[inline(always)]
-    pub fn invoke(&self) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed(&[])
-    }
-    #[allow(clippy::clone_on_copy)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program::entrypoint::ProgramResult {
-        let args = InitializeInstructionArgs {
-            args: self.instruction.args.clone().expect("args is not set"),
-        };
+      }
+        /// Add an additional account to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_account(&mut self, account: &'b solana_account_info::AccountInfo<'a>, is_writable: bool, is_signer: bool) -> &mut Self {
+    self.instruction.__remaining_accounts.push((account, is_writable, is_signer));
+    self
+  }
+  /// Add additional accounts to the instruction.
+  ///
+  /// Each account is represented by a tuple of the `AccountInfo`, a `bool` indicating whether the account is writable or not,
+  /// and a `bool` indicating whether the account is a signer or not.
+  #[inline(always)]
+  pub fn add_remaining_accounts(&mut self, accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]) -> &mut Self {
+    self.instruction.__remaining_accounts.extend_from_slice(accounts);
+    self
+  }
+  #[inline(always)]
+  pub fn invoke(&self) -> solana_program_error::ProgramResult {
+    self.invoke_signed(&[])
+  }
+  #[allow(clippy::clone_on_copy)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
+          let args = InitializeInstructionArgs {
+                                                              args: self.instruction.args.clone().expect("args is not set"),
+                                    };
         let instruction = InitializeCpi {
-            __program: self.instruction.__program,
-
-            jellybean_machine: self
-                .instruction
-                .jellybean_machine
-                .expect("jellybean_machine is not set"),
-
-            authority: self.instruction.authority.expect("authority is not set"),
-
-            authority_pda: self
-                .instruction
-                .authority_pda
-                .expect("authority_pda is not set"),
-
-            payer: self.instruction.payer.expect("payer is not set"),
-
-            system_program: self
-                .instruction
-                .system_program
-                .expect("system_program is not set"),
-            __args: args,
-        };
-        instruction.invoke_signed_with_remaining_accounts(
-            signers_seeds,
-            &self.instruction.__remaining_accounts,
-        )
-    }
+        __program: self.instruction.__program,
+                  
+          jellybean_machine: self.instruction.jellybean_machine.expect("jellybean_machine is not set"),
+                  
+          authority: self.instruction.authority.expect("authority is not set"),
+                  
+          authority_pda: self.instruction.authority_pda.expect("authority_pda is not set"),
+                  
+          payer: self.instruction.payer.expect("payer is not set"),
+                  
+          system_program: self.instruction.system_program.expect("system_program is not set"),
+                          __args: args,
+            };
+    instruction.invoke_signed_with_remaining_accounts(signers_seeds, &self.instruction.__remaining_accounts)
+  }
 }
 
 #[derive(Clone, Debug)]
 struct InitializeCpiBuilderInstruction<'a, 'b> {
-    __program: &'b solana_program::account_info::AccountInfo<'a>,
-    jellybean_machine: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    authority_pda: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    payer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    args: Option<SettingsArgs>,
-    /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
-    __remaining_accounts: Vec<(
-        &'b solana_program::account_info::AccountInfo<'a>,
-        bool,
-        bool,
-    )>,
+  __program: &'b solana_account_info::AccountInfo<'a>,
+            jellybean_machine: Option<&'b solana_account_info::AccountInfo<'a>>,
+                authority: Option<&'b solana_account_info::AccountInfo<'a>>,
+                authority_pda: Option<&'b solana_account_info::AccountInfo<'a>>,
+                payer: Option<&'b solana_account_info::AccountInfo<'a>>,
+                system_program: Option<&'b solana_account_info::AccountInfo<'a>>,
+                        args: Option<SettingsArgs>,
+        /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
+  __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }
+

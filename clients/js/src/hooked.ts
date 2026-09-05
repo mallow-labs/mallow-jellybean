@@ -5,7 +5,10 @@ import {
   getUtf8Encoder,
   ProgramDerivedAddress,
 } from '@solana/kit';
-import { expectAddress, ResolvedAccount } from './generated/shared';
+import {
+  getAddressFromResolvedInstructionAccount,
+  ResolvedInstructionAccount,
+} from '@solana/program-client-core';
 
 export type AuthoritySeeds = {
   jellybeanMachine: Address;
@@ -21,7 +24,7 @@ export async function findAuthorityPda(
   return await getProgramDerivedAddress({
     programAddress,
     seeds: [
-      getUtf8Encoder().encode('authority'),
+      getUtf8Encoder().encode('jellybean_machine'),
       getAddressEncoder().encode(seeds.jellybeanMachine),
     ],
   });
@@ -31,12 +34,15 @@ export const resolveAuthorityPda = async ({
   accounts,
 }: {
   programAddress: Address;
-  accounts: Record<string, ResolvedAccount>;
+  accounts: Record<string, ResolvedInstructionAccount>;
 }): Promise<{ value: Address }> => {
   return {
     value: (
       await findAuthorityPda({
-        jellybeanMachine: expectAddress(accounts.jellybeanMachine.value),
+        jellybeanMachine: getAddressFromResolvedInstructionAccount(
+          'jellybeanMachine',
+          accounts.jellybeanMachine.value
+        ),
       })
     )[0],
   };
@@ -46,7 +52,7 @@ export const resolveEventAuthorityPda = async ({
   programAddress,
 }: {
   programAddress: Address;
-  accounts: Record<string, ResolvedAccount>;
+  accounts: Record<string, ResolvedInstructionAccount>;
 }): Promise<{ value: Address }> => {
   return {
     value: (
@@ -62,7 +68,7 @@ export const resolveProgram = ({
   programAddress,
 }: {
   programAddress: Address;
-  accounts: Record<string, ResolvedAccount>;
+  accounts: Record<string, ResolvedInstructionAccount>;
 }): { value: Address } => {
   return {
     value: programAddress,

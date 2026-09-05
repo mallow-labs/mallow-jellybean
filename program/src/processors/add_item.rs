@@ -1,5 +1,5 @@
 use crate::{JellybeanError, JellybeanMachine, LoadedItem, LOADED_ITEM_SIZE, MAX_ITEMS};
-use anchor_lang::prelude::*;
+use anchor_lang::prelude::{borsh, *};
 
 pub fn add_item<'info>(
     jellybean_machine: &mut Account<'info, JellybeanMachine>,
@@ -20,7 +20,7 @@ pub fn add_item<'info>(
         // Transfer additional lamports from payer
         anchor_lang::system_program::transfer(
             anchor_lang::context::CpiContext::new(
-                system_program.clone(),
+                *system_program.key,
                 anchor_lang::system_program::Transfer {
                     from: payer.clone(),
                     to: jellybean_machine.to_account_info(),
@@ -31,9 +31,7 @@ pub fn add_item<'info>(
     }
 
     // Reallocate the account
-    jellybean_machine
-        .to_account_info()
-        .realloc(new_space, false)?;
+    jellybean_machine.to_account_info().resize(new_space)?;
 
     let account_info = jellybean_machine.to_account_info();
     let mut data = account_info.data.borrow_mut();
@@ -62,7 +60,7 @@ pub fn add_item<'info>(
         position
     );
     let item_slice: &mut [u8] = &mut data[position..position + LOADED_ITEM_SIZE];
-    item_slice.copy_from_slice(&item.try_to_vec()?);
+    item_slice.copy_from_slice(&borsh::to_vec(&item)?);
 
     msg!(
         "Added item: mint={}, new items_loaded={}, new supply_loaded={}",

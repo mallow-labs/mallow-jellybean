@@ -5,778 +5,758 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
+use borsh::BorshDeserialize;
+
+pub const DRAW_DISCRIMINATOR: [u8; 8] = [61, 40, 62, 184, 31, 176, 24, 130];
 
 /// Accounts.
 #[derive(Debug)]
 pub struct Draw {
-    /// Jellybean machine account.
-    pub jellybean_machine: solana_program::pubkey::Pubkey,
+            /// Jellybean machine account.
 
-    pub authority_pda: solana_program::pubkey::Pubkey,
-    /// Jellybean machine mint authority (mint only allowed for the mint_authority).
-    pub mint_authority: solana_program::pubkey::Pubkey,
-    /// Payer for the transaction and account allocation (rent).
-    pub payer: solana_program::pubkey::Pubkey,
-    /// NFT account owner.
-    ///
-    pub buyer: solana_program::pubkey::Pubkey,
-    /// Buyer unclaimed draws account.
-    pub unclaimed_prizes: solana_program::pubkey::Pubkey,
-    /// Print fee account. Required if the jellybean machine has a print fee config.
-    pub print_fee_account: Option<solana_program::pubkey::Pubkey>,
-    /// System program.
-    pub system_program: solana_program::pubkey::Pubkey,
-    /// Rent.
-    pub rent: solana_program::pubkey::Pubkey,
-    /// SlotHashes sysvar cluster data.
-    ///
-    pub recent_slothashes: solana_program::pubkey::Pubkey,
+    
+              
+          pub jellybean_machine: solana_address::Address,
+          
+              
+          pub authority_pda: solana_address::Address,
+                /// Jellybean machine mint authority (mint only allowed for the mint_authority).
 
-    pub event_authority: solana_program::pubkey::Pubkey,
+    
+              
+          pub mint_authority: solana_address::Address,
+                /// Payer for the transaction and account allocation (rent).
 
-    pub program: solana_program::pubkey::Pubkey,
-}
+    
+              
+          pub payer: solana_address::Address,
+                /// NFT account owner.
+/// 
+
+    
+              
+          pub buyer: solana_address::Address,
+                /// Buyer unclaimed draws account.
+
+    
+              
+          pub unclaimed_prizes: solana_address::Address,
+                /// Print fee account. Required if the jellybean machine has a print fee config.
+
+    
+              
+          pub print_fee_account: Option<solana_address::Address>,
+                /// System program.
+
+    
+              
+          pub system_program: solana_address::Address,
+                /// Rent.
+
+    
+              
+          pub rent: solana_address::Address,
+                /// SlotHashes sysvar cluster data.
+/// 
+
+    
+              
+          pub recent_slothashes: solana_address::Address,
+          
+              
+          pub event_authority: solana_address::Address,
+          
+              
+          pub program: solana_address::Address,
+      }
 
 impl Draw {
-    pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        self.instruction_with_remaining_accounts(&[])
-    }
-    #[allow(clippy::arithmetic_side_effects)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn instruction_with_remaining_accounts(
-        &self,
-        remaining_accounts: &[solana_program::instruction::AccountMeta],
-    ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
+  pub fn instruction(&self) -> solana_instruction::Instruction {
+    self.instruction_with_remaining_accounts(&[])
+  }
+  #[allow(clippy::arithmetic_side_effects)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn instruction_with_remaining_accounts(&self, remaining_accounts: &[solana_instruction::AccountMeta]) -> solana_instruction::Instruction {
+    let mut accounts = Vec::with_capacity(12+ remaining_accounts.len());
+                            accounts.push(solana_instruction::AccountMeta::new(
             self.jellybean_machine,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             self.authority_pda,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.mint_authority,
-            true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
-            self.payer, true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            self.buyer, false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
+            self.payer,
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
+            self.buyer,
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             self.unclaimed_prizes,
-            false,
-        ));
-        if let Some(print_fee_account) = self.print_fee_account {
-            accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                                      if let Some(print_fee_account) = self.print_fee_account {
+              accounts.push(solana_instruction::AccountMeta::new(
                 print_fee_account,
                 false,
-            ));
-        } else {
-            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+              ));
+            } else {
+              accounts.push(solana_instruction::AccountMeta::new_readonly(
                 crate::MALLOW_JELLYBEAN_ID,
                 false,
-            ));
-        }
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+              ));
+            }
+                                                    accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.system_program,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            self.rent, false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
+            self.rent,
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.recent_slothashes,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.event_authority,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             self.program,
-            false,
-        ));
-        accounts.extend_from_slice(remaining_accounts);
-        let data = borsh::to_vec(&DrawInstructionData::new()).unwrap();
-
-        solana_program::instruction::Instruction {
-            program_id: crate::MALLOW_JELLYBEAN_ID,
-            accounts,
-            data,
-        }
+            false
+          ));
+                      accounts.extend_from_slice(remaining_accounts);
+    let data = DrawInstructionData::new().try_to_vec().unwrap();
+    
+    solana_instruction::Instruction {
+      program_id: crate::MALLOW_JELLYBEAN_ID,
+      accounts,
+      data,
     }
+  }
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct DrawInstructionData {
-    discriminator: [u8; 8],
-}
+ pub struct DrawInstructionData {
+            discriminator: [u8; 8],
+      }
 
 impl DrawInstructionData {
-    pub fn new() -> Self {
-        Self {
-            discriminator: [61, 40, 62, 184, 31, 176, 24, 130],
-        }
-    }
-}
+  pub fn new() -> Self {
+    Self {
+                        discriminator: [61, 40, 62, 184, 31, 176, 24, 130],
+                  }
+  }
+
+    pub(crate) fn try_to_vec(&self) -> Result<Vec<u8>, std::io::Error> {
+    borsh::to_vec(self)
+  }
+  }
 
 impl Default for DrawInstructionData {
-    fn default() -> Self {
-        Self::new()
-    }
+  fn default() -> Self {
+    Self::new()
+  }
 }
+
+
 
 /// Instruction builder for `Draw`.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` jellybean_machine
-///   1. `[writable]` authority_pda
-///   2. `[signer]` mint_authority
-///   3. `[writable, signer]` payer
-///   4. `[]` buyer
-///   5. `[writable]` unclaimed_prizes
-///   6. `[writable, optional]` print_fee_account
-///   7. `[optional]` system_program (default to `11111111111111111111111111111111`)
-///   8. `[optional]` rent (default to `SysvarRent111111111111111111111111111111111`)
-///   9. `[optional]` recent_slothashes (default to `SysvarS1otHashes111111111111111111111111111`)
-///   10. `[]` event_authority
-///   11. `[]` program
+                ///   0. `[writable]` jellybean_machine
+                ///   1. `[writable]` authority_pda
+                ///   2. `[signer]` mint_authority
+                      ///   3. `[writable, signer]` payer
+          ///   4. `[]` buyer
+                ///   5. `[writable]` unclaimed_prizes
+                      ///   6. `[writable, optional]` print_fee_account
+                ///   7. `[optional]` system_program (default to `11111111111111111111111111111111`)
+                ///   8. `[optional]` rent (default to `SysvarRent111111111111111111111111111111111`)
+                ///   9. `[optional]` recent_slothashes (default to `SysvarS1otHashes111111111111111111111111111`)
+          ///   10. `[]` event_authority
+          ///   11. `[]` program
 #[derive(Clone, Debug, Default)]
 pub struct DrawBuilder {
-    jellybean_machine: Option<solana_program::pubkey::Pubkey>,
-    authority_pda: Option<solana_program::pubkey::Pubkey>,
-    mint_authority: Option<solana_program::pubkey::Pubkey>,
-    payer: Option<solana_program::pubkey::Pubkey>,
-    buyer: Option<solana_program::pubkey::Pubkey>,
-    unclaimed_prizes: Option<solana_program::pubkey::Pubkey>,
-    print_fee_account: Option<solana_program::pubkey::Pubkey>,
-    system_program: Option<solana_program::pubkey::Pubkey>,
-    rent: Option<solana_program::pubkey::Pubkey>,
-    recent_slothashes: Option<solana_program::pubkey::Pubkey>,
-    event_authority: Option<solana_program::pubkey::Pubkey>,
-    program: Option<solana_program::pubkey::Pubkey>,
-    __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
+            jellybean_machine: Option<solana_address::Address>,
+                authority_pda: Option<solana_address::Address>,
+                mint_authority: Option<solana_address::Address>,
+                payer: Option<solana_address::Address>,
+                buyer: Option<solana_address::Address>,
+                unclaimed_prizes: Option<solana_address::Address>,
+                print_fee_account: Option<solana_address::Address>,
+                system_program: Option<solana_address::Address>,
+                rent: Option<solana_address::Address>,
+                recent_slothashes: Option<solana_address::Address>,
+                event_authority: Option<solana_address::Address>,
+                program: Option<solana_address::Address>,
+                __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
 impl DrawBuilder {
-    pub fn new() -> Self {
-        Self::default()
+  pub fn new() -> Self {
+    Self::default()
+  }
+            /// Jellybean machine account.
+#[inline(always)]
+    pub fn jellybean_machine(&mut self, jellybean_machine: solana_address::Address) -> &mut Self {
+                        self.jellybean_machine = Some(jellybean_machine);
+                    self
     }
-    /// Jellybean machine account.
-    #[inline(always)]
-    pub fn jellybean_machine(
-        &mut self,
-        jellybean_machine: solana_program::pubkey::Pubkey,
-    ) -> &mut Self {
-        self.jellybean_machine = Some(jellybean_machine);
-        self
+            #[inline(always)]
+    pub fn authority_pda(&mut self, authority_pda: solana_address::Address) -> &mut Self {
+                        self.authority_pda = Some(authority_pda);
+                    self
     }
-    #[inline(always)]
-    pub fn authority_pda(&mut self, authority_pda: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.authority_pda = Some(authority_pda);
-        self
+            /// Jellybean machine mint authority (mint only allowed for the mint_authority).
+#[inline(always)]
+    pub fn mint_authority(&mut self, mint_authority: solana_address::Address) -> &mut Self {
+                        self.mint_authority = Some(mint_authority);
+                    self
     }
-    /// Jellybean machine mint authority (mint only allowed for the mint_authority).
-    #[inline(always)]
-    pub fn mint_authority(&mut self, mint_authority: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.mint_authority = Some(mint_authority);
-        self
+            /// Payer for the transaction and account allocation (rent).
+#[inline(always)]
+    pub fn payer(&mut self, payer: solana_address::Address) -> &mut Self {
+                        self.payer = Some(payer);
+                    self
     }
-    /// Payer for the transaction and account allocation (rent).
-    #[inline(always)]
-    pub fn payer(&mut self, payer: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.payer = Some(payer);
-        self
+            /// NFT account owner.
+/// 
+#[inline(always)]
+    pub fn buyer(&mut self, buyer: solana_address::Address) -> &mut Self {
+                        self.buyer = Some(buyer);
+                    self
     }
-    /// NFT account owner.
-    ///
-    #[inline(always)]
-    pub fn buyer(&mut self, buyer: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.buyer = Some(buyer);
-        self
+            /// Buyer unclaimed draws account.
+#[inline(always)]
+    pub fn unclaimed_prizes(&mut self, unclaimed_prizes: solana_address::Address) -> &mut Self {
+                        self.unclaimed_prizes = Some(unclaimed_prizes);
+                    self
     }
-    /// Buyer unclaimed draws account.
-    #[inline(always)]
-    pub fn unclaimed_prizes(
-        &mut self,
-        unclaimed_prizes: solana_program::pubkey::Pubkey,
-    ) -> &mut Self {
-        self.unclaimed_prizes = Some(unclaimed_prizes);
-        self
+            /// `[optional account]`
+/// Print fee account. Required if the jellybean machine has a print fee config.
+#[inline(always)]
+    pub fn print_fee_account(&mut self, print_fee_account: Option<solana_address::Address>) -> &mut Self {
+                        self.print_fee_account = print_fee_account;
+                    self
     }
-    /// `[optional account]`
-    /// Print fee account. Required if the jellybean machine has a print fee config.
-    #[inline(always)]
-    pub fn print_fee_account(
-        &mut self,
-        print_fee_account: Option<solana_program::pubkey::Pubkey>,
-    ) -> &mut Self {
-        self.print_fee_account = print_fee_account;
-        self
+            /// `[optional account, default to '11111111111111111111111111111111']`
+/// System program.
+#[inline(always)]
+    pub fn system_program(&mut self, system_program: solana_address::Address) -> &mut Self {
+                        self.system_program = Some(system_program);
+                    self
     }
-    /// `[optional account, default to '11111111111111111111111111111111']`
-    /// System program.
-    #[inline(always)]
-    pub fn system_program(&mut self, system_program: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.system_program = Some(system_program);
-        self
+            /// `[optional account, default to 'SysvarRent111111111111111111111111111111111']`
+/// Rent.
+#[inline(always)]
+    pub fn rent(&mut self, rent: solana_address::Address) -> &mut Self {
+                        self.rent = Some(rent);
+                    self
     }
-    /// `[optional account, default to 'SysvarRent111111111111111111111111111111111']`
-    /// Rent.
-    #[inline(always)]
-    pub fn rent(&mut self, rent: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.rent = Some(rent);
-        self
+            /// `[optional account, default to 'SysvarS1otHashes111111111111111111111111111']`
+/// SlotHashes sysvar cluster data.
+/// 
+#[inline(always)]
+    pub fn recent_slothashes(&mut self, recent_slothashes: solana_address::Address) -> &mut Self {
+                        self.recent_slothashes = Some(recent_slothashes);
+                    self
     }
-    /// `[optional account, default to 'SysvarS1otHashes111111111111111111111111111']`
-    /// SlotHashes sysvar cluster data.
-    ///
-    #[inline(always)]
-    pub fn recent_slothashes(
-        &mut self,
-        recent_slothashes: solana_program::pubkey::Pubkey,
-    ) -> &mut Self {
-        self.recent_slothashes = Some(recent_slothashes);
-        self
+            #[inline(always)]
+    pub fn event_authority(&mut self, event_authority: solana_address::Address) -> &mut Self {
+                        self.event_authority = Some(event_authority);
+                    self
     }
-    #[inline(always)]
-    pub fn event_authority(
-        &mut self,
-        event_authority: solana_program::pubkey::Pubkey,
-    ) -> &mut Self {
-        self.event_authority = Some(event_authority);
-        self
+            #[inline(always)]
+    pub fn program(&mut self, program: solana_address::Address) -> &mut Self {
+                        self.program = Some(program);
+                    self
     }
-    #[inline(always)]
-    pub fn program(&mut self, program: solana_program::pubkey::Pubkey) -> &mut Self {
-        self.program = Some(program);
-        self
-    }
-    /// Add an additional account to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_account(
-        &mut self,
-        account: solana_program::instruction::AccountMeta,
-    ) -> &mut Self {
-        self.__remaining_accounts.push(account);
-        self
-    }
-    /// Add additional accounts to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_accounts(
-        &mut self,
-        accounts: &[solana_program::instruction::AccountMeta],
-    ) -> &mut Self {
-        self.__remaining_accounts.extend_from_slice(accounts);
-        self
-    }
-    #[allow(clippy::clone_on_copy)]
-    pub fn instruction(&self) -> solana_program::instruction::Instruction {
-        let accounts = Draw {
-            jellybean_machine: self
-                .jellybean_machine
-                .expect("jellybean_machine is not set"),
-            authority_pda: self.authority_pda.expect("authority_pda is not set"),
-            mint_authority: self.mint_authority.expect("mint_authority is not set"),
-            payer: self.payer.expect("payer is not set"),
-            buyer: self.buyer.expect("buyer is not set"),
-            unclaimed_prizes: self.unclaimed_prizes.expect("unclaimed_prizes is not set"),
-            print_fee_account: self.print_fee_account,
-            system_program: self
-                .system_program
-                .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
-            rent: self.rent.unwrap_or(solana_program::pubkey!(
-                "SysvarRent111111111111111111111111111111111"
-            )),
-            recent_slothashes: self.recent_slothashes.unwrap_or(solana_program::pubkey!(
-                "SysvarS1otHashes111111111111111111111111111"
-            )),
-            event_authority: self.event_authority.expect("event_authority is not set"),
-            program: self.program.expect("program is not set"),
-        };
-
-        accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
-    }
+            /// Add an additional account to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_account(&mut self, account: solana_instruction::AccountMeta) -> &mut Self {
+    self.__remaining_accounts.push(account);
+    self
+  }
+  /// Add additional accounts to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_accounts(&mut self, accounts: &[solana_instruction::AccountMeta]) -> &mut Self {
+    self.__remaining_accounts.extend_from_slice(accounts);
+    self
+  }
+  #[allow(clippy::clone_on_copy)]
+  pub fn instruction(&self) -> solana_instruction::Instruction {
+    let accounts = Draw {
+                              jellybean_machine: self.jellybean_machine.expect("jellybean_machine is not set"),
+                                        authority_pda: self.authority_pda.expect("authority_pda is not set"),
+                                        mint_authority: self.mint_authority.expect("mint_authority is not set"),
+                                        payer: self.payer.expect("payer is not set"),
+                                        buyer: self.buyer.expect("buyer is not set"),
+                                        unclaimed_prizes: self.unclaimed_prizes.expect("unclaimed_prizes is not set"),
+                                        print_fee_account: self.print_fee_account,
+                                        system_program: self.system_program.unwrap_or(solana_address::address!("11111111111111111111111111111111")),
+                                        rent: self.rent.unwrap_or(solana_address::address!("SysvarRent111111111111111111111111111111111")),
+                                        recent_slothashes: self.recent_slothashes.unwrap_or(solana_address::address!("SysvarS1otHashes111111111111111111111111111")),
+                                        event_authority: self.event_authority.expect("event_authority is not set"),
+                                        program: self.program.expect("program is not set"),
+                      };
+    
+    accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
+  }
 }
 
-/// `draw` CPI accounts.
-pub struct DrawCpiAccounts<'a, 'b> {
-    /// Jellybean machine account.
-    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
+  /// `draw` CPI accounts.
+  pub struct DrawCpiAccounts<'a, 'b> {
+                  /// Jellybean machine account.
 
-    pub authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Jellybean machine mint authority (mint only allowed for the mint_authority).
-    pub mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Payer for the transaction and account allocation (rent).
-    pub payer: &'b solana_program::account_info::AccountInfo<'a>,
-    /// NFT account owner.
-    ///
-    pub buyer: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Buyer unclaimed draws account.
-    pub unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Print fee account. Required if the jellybean machine has a print fee config.
-    pub print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    /// System program.
-    pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Rent.
-    pub rent: &'b solana_program::account_info::AccountInfo<'a>,
-    /// SlotHashes sysvar cluster data.
-    ///
-    pub recent_slothashes: &'b solana_program::account_info::AccountInfo<'a>,
+      
+                    
+              pub jellybean_machine: &'b solana_account_info::AccountInfo<'a>,
+                
+                    
+              pub authority_pda: &'b solana_account_info::AccountInfo<'a>,
+                        /// Jellybean machine mint authority (mint only allowed for the mint_authority).
 
-    pub event_authority: &'b solana_program::account_info::AccountInfo<'a>,
+      
+                    
+              pub mint_authority: &'b solana_account_info::AccountInfo<'a>,
+                        /// Payer for the transaction and account allocation (rent).
 
-    pub program: &'b solana_program::account_info::AccountInfo<'a>,
-}
+      
+                    
+              pub payer: &'b solana_account_info::AccountInfo<'a>,
+                        /// NFT account owner.
+/// 
+
+      
+                    
+              pub buyer: &'b solana_account_info::AccountInfo<'a>,
+                        /// Buyer unclaimed draws account.
+
+      
+                    
+              pub unclaimed_prizes: &'b solana_account_info::AccountInfo<'a>,
+                        /// Print fee account. Required if the jellybean machine has a print fee config.
+
+      
+                    
+              pub print_fee_account: Option<&'b solana_account_info::AccountInfo<'a>>,
+                        /// System program.
+
+      
+                    
+              pub system_program: &'b solana_account_info::AccountInfo<'a>,
+                        /// Rent.
+
+      
+                    
+              pub rent: &'b solana_account_info::AccountInfo<'a>,
+                        /// SlotHashes sysvar cluster data.
+/// 
+
+      
+                    
+              pub recent_slothashes: &'b solana_account_info::AccountInfo<'a>,
+                
+                    
+              pub event_authority: &'b solana_account_info::AccountInfo<'a>,
+                
+                    
+              pub program: &'b solana_account_info::AccountInfo<'a>,
+            }
 
 /// `draw` CPI instruction.
 pub struct DrawCpi<'a, 'b> {
-    /// The program to invoke.
-    pub __program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Jellybean machine account.
-    pub jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
+  /// The program to invoke.
+  pub __program: &'b solana_account_info::AccountInfo<'a>,
+            /// Jellybean machine account.
 
-    pub authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Jellybean machine mint authority (mint only allowed for the mint_authority).
-    pub mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Payer for the transaction and account allocation (rent).
-    pub payer: &'b solana_program::account_info::AccountInfo<'a>,
-    /// NFT account owner.
-    ///
-    pub buyer: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Buyer unclaimed draws account.
-    pub unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Print fee account. Required if the jellybean machine has a print fee config.
-    pub print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    /// System program.
-    pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
-    /// Rent.
-    pub rent: &'b solana_program::account_info::AccountInfo<'a>,
-    /// SlotHashes sysvar cluster data.
-    ///
-    pub recent_slothashes: &'b solana_program::account_info::AccountInfo<'a>,
+    
+              
+          pub jellybean_machine: &'b solana_account_info::AccountInfo<'a>,
+          
+              
+          pub authority_pda: &'b solana_account_info::AccountInfo<'a>,
+                /// Jellybean machine mint authority (mint only allowed for the mint_authority).
 
-    pub event_authority: &'b solana_program::account_info::AccountInfo<'a>,
+    
+              
+          pub mint_authority: &'b solana_account_info::AccountInfo<'a>,
+                /// Payer for the transaction and account allocation (rent).
 
-    pub program: &'b solana_program::account_info::AccountInfo<'a>,
-}
+    
+              
+          pub payer: &'b solana_account_info::AccountInfo<'a>,
+                /// NFT account owner.
+/// 
+
+    
+              
+          pub buyer: &'b solana_account_info::AccountInfo<'a>,
+                /// Buyer unclaimed draws account.
+
+    
+              
+          pub unclaimed_prizes: &'b solana_account_info::AccountInfo<'a>,
+                /// Print fee account. Required if the jellybean machine has a print fee config.
+
+    
+              
+          pub print_fee_account: Option<&'b solana_account_info::AccountInfo<'a>>,
+                /// System program.
+
+    
+              
+          pub system_program: &'b solana_account_info::AccountInfo<'a>,
+                /// Rent.
+
+    
+              
+          pub rent: &'b solana_account_info::AccountInfo<'a>,
+                /// SlotHashes sysvar cluster data.
+/// 
+
+    
+              
+          pub recent_slothashes: &'b solana_account_info::AccountInfo<'a>,
+          
+              
+          pub event_authority: &'b solana_account_info::AccountInfo<'a>,
+          
+              
+          pub program: &'b solana_account_info::AccountInfo<'a>,
+        }
 
 impl<'a, 'b> DrawCpi<'a, 'b> {
-    pub fn new(
-        program: &'b solana_program::account_info::AccountInfo<'a>,
-        accounts: DrawCpiAccounts<'a, 'b>,
-    ) -> Self {
-        Self {
-            __program: program,
-            jellybean_machine: accounts.jellybean_machine,
-            authority_pda: accounts.authority_pda,
-            mint_authority: accounts.mint_authority,
-            payer: accounts.payer,
-            buyer: accounts.buyer,
-            unclaimed_prizes: accounts.unclaimed_prizes,
-            print_fee_account: accounts.print_fee_account,
-            system_program: accounts.system_program,
-            rent: accounts.rent,
-            recent_slothashes: accounts.recent_slothashes,
-            event_authority: accounts.event_authority,
-            program: accounts.program,
-        }
-    }
-    #[inline(always)]
-    pub fn invoke(&self) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(&[], &[])
-    }
-    #[inline(always)]
-    pub fn invoke_with_remaining_accounts(
-        &self,
-        remaining_accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(&[], remaining_accounts)
-    }
-    #[inline(always)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed_with_remaining_accounts(signers_seeds, &[])
-    }
-    #[allow(clippy::arithmetic_side_effects)]
-    #[allow(clippy::clone_on_copy)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn invoke_signed_with_remaining_accounts(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-        remaining_accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
-        accounts.push(solana_program::instruction::AccountMeta::new(
+  pub fn new(
+    program: &'b solana_account_info::AccountInfo<'a>,
+          accounts: DrawCpiAccounts<'a, 'b>,
+          ) -> Self {
+    Self {
+      __program: program,
+              jellybean_machine: accounts.jellybean_machine,
+              authority_pda: accounts.authority_pda,
+              mint_authority: accounts.mint_authority,
+              payer: accounts.payer,
+              buyer: accounts.buyer,
+              unclaimed_prizes: accounts.unclaimed_prizes,
+              print_fee_account: accounts.print_fee_account,
+              system_program: accounts.system_program,
+              rent: accounts.rent,
+              recent_slothashes: accounts.recent_slothashes,
+              event_authority: accounts.event_authority,
+              program: accounts.program,
+                }
+  }
+  #[inline(always)]
+  pub fn invoke(&self) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(&[], &[])
+  }
+  #[inline(always)]
+  pub fn invoke_with_remaining_accounts(&self, remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(&[], remaining_accounts)
+  }
+  #[inline(always)]
+  pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
+    self.invoke_signed_with_remaining_accounts(signers_seeds, &[])
+  }
+  #[allow(clippy::arithmetic_side_effects)]
+  #[allow(clippy::clone_on_copy)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn invoke_signed_with_remaining_accounts(
+    &self,
+    signers_seeds: &[&[&[u8]]],
+    remaining_accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]
+  ) -> solana_program_error::ProgramResult {
+    let mut accounts = Vec::with_capacity(12+ remaining_accounts.len());
+                            accounts.push(solana_instruction::AccountMeta::new(
             *self.jellybean_machine.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             *self.authority_pda.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.mint_authority.key,
-            true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             *self.payer.key,
-            true,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            true
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.buyer.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new(
             *self.unclaimed_prizes.key,
-            false,
-        ));
-        if let Some(print_fee_account) = self.print_fee_account {
-            accounts.push(solana_program::instruction::AccountMeta::new(
-                *print_fee_account.key,
-                false,
+            false
+          ));
+                                          if let Some(print_fee_account) = self.print_fee_account {
+            accounts.push(solana_instruction::AccountMeta::new(
+              *print_fee_account.key,
+              false,
             ));
-        } else {
-            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-                crate::MALLOW_JELLYBEAN_ID,
-                false,
+          } else {
+            accounts.push(solana_instruction::AccountMeta::new_readonly(
+              crate::MALLOW_JELLYBEAN_ID,
+              false,
             ));
-        }
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+          }
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.system_program.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.rent.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.recent_slothashes.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.event_authority.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            false
+          ));
+                                          accounts.push(solana_instruction::AccountMeta::new_readonly(
             *self.program.key,
-            false,
-        ));
-        remaining_accounts.iter().for_each(|remaining_account| {
-            accounts.push(solana_program::instruction::AccountMeta {
-                pubkey: *remaining_account.0.key,
-                is_signer: remaining_account.1,
-                is_writable: remaining_account.2,
-            })
-        });
-        let data = borsh::to_vec(&DrawInstructionData::new()).unwrap();
-
-        let instruction = solana_program::instruction::Instruction {
-            program_id: crate::MALLOW_JELLYBEAN_ID,
-            accounts,
-            data,
-        };
-        let mut account_infos = Vec::with_capacity(13 + remaining_accounts.len());
-        account_infos.push(self.__program.clone());
-        account_infos.push(self.jellybean_machine.clone());
-        account_infos.push(self.authority_pda.clone());
-        account_infos.push(self.mint_authority.clone());
-        account_infos.push(self.payer.clone());
-        account_infos.push(self.buyer.clone());
-        account_infos.push(self.unclaimed_prizes.clone());
-        if let Some(print_fee_account) = self.print_fee_account {
-            account_infos.push(print_fee_account.clone());
+            false
+          ));
+                      remaining_accounts.iter().for_each(|remaining_account| {
+      accounts.push(solana_instruction::AccountMeta {
+          pubkey: *remaining_account.0.key,
+          is_signer: remaining_account.1,
+          is_writable: remaining_account.2,
+      })
+    });
+    let data = DrawInstructionData::new().try_to_vec().unwrap();
+    
+    let instruction = solana_instruction::Instruction {
+      program_id: crate::MALLOW_JELLYBEAN_ID,
+      accounts,
+      data,
+    };
+    let mut account_infos = Vec::with_capacity(13 + remaining_accounts.len());
+    account_infos.push(self.__program.clone());
+                  account_infos.push(self.jellybean_machine.clone());
+                        account_infos.push(self.authority_pda.clone());
+                        account_infos.push(self.mint_authority.clone());
+                        account_infos.push(self.payer.clone());
+                        account_infos.push(self.buyer.clone());
+                        account_infos.push(self.unclaimed_prizes.clone());
+                        if let Some(print_fee_account) = self.print_fee_account {
+          account_infos.push(print_fee_account.clone());
         }
-        account_infos.push(self.system_program.clone());
-        account_infos.push(self.rent.clone());
-        account_infos.push(self.recent_slothashes.clone());
-        account_infos.push(self.event_authority.clone());
-        account_infos.push(self.program.clone());
-        remaining_accounts
-            .iter()
-            .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
+                        account_infos.push(self.system_program.clone());
+                        account_infos.push(self.rent.clone());
+                        account_infos.push(self.recent_slothashes.clone());
+                        account_infos.push(self.event_authority.clone());
+                        account_infos.push(self.program.clone());
+              remaining_accounts.iter().for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
 
-        if signers_seeds.is_empty() {
-            solana_program::program::invoke(&instruction, &account_infos)
-        } else {
-            solana_program::program::invoke_signed(&instruction, &account_infos, signers_seeds)
-        }
+    if signers_seeds.is_empty() {
+      solana_cpi::invoke(&instruction, &account_infos)
+    } else {
+      solana_cpi::invoke_signed(&instruction, &account_infos, signers_seeds)
     }
+  }
 }
 
 /// Instruction builder for `Draw` via CPI.
 ///
 /// ### Accounts:
 ///
-///   0. `[writable]` jellybean_machine
-///   1. `[writable]` authority_pda
-///   2. `[signer]` mint_authority
-///   3. `[writable, signer]` payer
-///   4. `[]` buyer
-///   5. `[writable]` unclaimed_prizes
-///   6. `[writable, optional]` print_fee_account
-///   7. `[]` system_program
-///   8. `[]` rent
-///   9. `[]` recent_slothashes
-///   10. `[]` event_authority
-///   11. `[]` program
+                ///   0. `[writable]` jellybean_machine
+                ///   1. `[writable]` authority_pda
+                ///   2. `[signer]` mint_authority
+                      ///   3. `[writable, signer]` payer
+          ///   4. `[]` buyer
+                ///   5. `[writable]` unclaimed_prizes
+                      ///   6. `[writable, optional]` print_fee_account
+          ///   7. `[]` system_program
+          ///   8. `[]` rent
+          ///   9. `[]` recent_slothashes
+          ///   10. `[]` event_authority
+          ///   11. `[]` program
 #[derive(Clone, Debug)]
 pub struct DrawCpiBuilder<'a, 'b> {
-    instruction: Box<DrawCpiBuilderInstruction<'a, 'b>>,
+  instruction: Box<DrawCpiBuilderInstruction<'a, 'b>>,
 }
 
 impl<'a, 'b> DrawCpiBuilder<'a, 'b> {
-    pub fn new(program: &'b solana_program::account_info::AccountInfo<'a>) -> Self {
-        let instruction = Box::new(DrawCpiBuilderInstruction {
-            __program: program,
-            jellybean_machine: None,
-            authority_pda: None,
-            mint_authority: None,
-            payer: None,
-            buyer: None,
-            unclaimed_prizes: None,
-            print_fee_account: None,
-            system_program: None,
-            rent: None,
-            recent_slothashes: None,
-            event_authority: None,
-            program: None,
-            __remaining_accounts: Vec::new(),
-        });
-        Self { instruction }
+  pub fn new(program: &'b solana_account_info::AccountInfo<'a>) -> Self {
+    let instruction = Box::new(DrawCpiBuilderInstruction {
+      __program: program,
+              jellybean_machine: None,
+              authority_pda: None,
+              mint_authority: None,
+              payer: None,
+              buyer: None,
+              unclaimed_prizes: None,
+              print_fee_account: None,
+              system_program: None,
+              rent: None,
+              recent_slothashes: None,
+              event_authority: None,
+              program: None,
+                                __remaining_accounts: Vec::new(),
+    });
+    Self { instruction }
+  }
+      /// Jellybean machine account.
+#[inline(always)]
+    pub fn jellybean_machine(&mut self, jellybean_machine: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.jellybean_machine = Some(jellybean_machine);
+                    self
     }
-    /// Jellybean machine account.
-    #[inline(always)]
-    pub fn jellybean_machine(
-        &mut self,
-        jellybean_machine: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.jellybean_machine = Some(jellybean_machine);
-        self
+      #[inline(always)]
+    pub fn authority_pda(&mut self, authority_pda: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.authority_pda = Some(authority_pda);
+                    self
     }
-    #[inline(always)]
-    pub fn authority_pda(
-        &mut self,
-        authority_pda: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.authority_pda = Some(authority_pda);
-        self
+      /// Jellybean machine mint authority (mint only allowed for the mint_authority).
+#[inline(always)]
+    pub fn mint_authority(&mut self, mint_authority: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.mint_authority = Some(mint_authority);
+                    self
     }
-    /// Jellybean machine mint authority (mint only allowed for the mint_authority).
-    #[inline(always)]
-    pub fn mint_authority(
-        &mut self,
-        mint_authority: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.mint_authority = Some(mint_authority);
-        self
+      /// Payer for the transaction and account allocation (rent).
+#[inline(always)]
+    pub fn payer(&mut self, payer: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.payer = Some(payer);
+                    self
     }
-    /// Payer for the transaction and account allocation (rent).
-    #[inline(always)]
-    pub fn payer(&mut self, payer: &'b solana_program::account_info::AccountInfo<'a>) -> &mut Self {
-        self.instruction.payer = Some(payer);
-        self
+      /// NFT account owner.
+/// 
+#[inline(always)]
+    pub fn buyer(&mut self, buyer: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.buyer = Some(buyer);
+                    self
     }
-    /// NFT account owner.
-    ///
-    #[inline(always)]
-    pub fn buyer(&mut self, buyer: &'b solana_program::account_info::AccountInfo<'a>) -> &mut Self {
-        self.instruction.buyer = Some(buyer);
-        self
+      /// Buyer unclaimed draws account.
+#[inline(always)]
+    pub fn unclaimed_prizes(&mut self, unclaimed_prizes: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.unclaimed_prizes = Some(unclaimed_prizes);
+                    self
     }
-    /// Buyer unclaimed draws account.
-    #[inline(always)]
-    pub fn unclaimed_prizes(
-        &mut self,
-        unclaimed_prizes: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.unclaimed_prizes = Some(unclaimed_prizes);
-        self
+      /// `[optional account]`
+/// Print fee account. Required if the jellybean machine has a print fee config.
+#[inline(always)]
+    pub fn print_fee_account(&mut self, print_fee_account: Option<&'b solana_account_info::AccountInfo<'a>>) -> &mut Self {
+                        self.instruction.print_fee_account = print_fee_account;
+                    self
     }
-    /// `[optional account]`
-    /// Print fee account. Required if the jellybean machine has a print fee config.
-    #[inline(always)]
-    pub fn print_fee_account(
-        &mut self,
-        print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    ) -> &mut Self {
-        self.instruction.print_fee_account = print_fee_account;
-        self
+      /// System program.
+#[inline(always)]
+    pub fn system_program(&mut self, system_program: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.system_program = Some(system_program);
+                    self
     }
-    /// System program.
-    #[inline(always)]
-    pub fn system_program(
-        &mut self,
-        system_program: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.system_program = Some(system_program);
-        self
+      /// Rent.
+#[inline(always)]
+    pub fn rent(&mut self, rent: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.rent = Some(rent);
+                    self
     }
-    /// Rent.
-    #[inline(always)]
-    pub fn rent(&mut self, rent: &'b solana_program::account_info::AccountInfo<'a>) -> &mut Self {
-        self.instruction.rent = Some(rent);
-        self
+      /// SlotHashes sysvar cluster data.
+/// 
+#[inline(always)]
+    pub fn recent_slothashes(&mut self, recent_slothashes: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.recent_slothashes = Some(recent_slothashes);
+                    self
     }
-    /// SlotHashes sysvar cluster data.
-    ///
-    #[inline(always)]
-    pub fn recent_slothashes(
-        &mut self,
-        recent_slothashes: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.recent_slothashes = Some(recent_slothashes);
-        self
+      #[inline(always)]
+    pub fn event_authority(&mut self, event_authority: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.event_authority = Some(event_authority);
+                    self
     }
-    #[inline(always)]
-    pub fn event_authority(
-        &mut self,
-        event_authority: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.event_authority = Some(event_authority);
-        self
+      #[inline(always)]
+    pub fn program(&mut self, program: &'b solana_account_info::AccountInfo<'a>) -> &mut Self {
+                        self.instruction.program = Some(program);
+                    self
     }
-    #[inline(always)]
-    pub fn program(
-        &mut self,
-        program: &'b solana_program::account_info::AccountInfo<'a>,
-    ) -> &mut Self {
-        self.instruction.program = Some(program);
-        self
-    }
-    /// Add an additional account to the instruction.
-    #[inline(always)]
-    pub fn add_remaining_account(
-        &mut self,
-        account: &'b solana_program::account_info::AccountInfo<'a>,
-        is_writable: bool,
-        is_signer: bool,
-    ) -> &mut Self {
-        self.instruction
-            .__remaining_accounts
-            .push((account, is_writable, is_signer));
-        self
-    }
-    /// Add additional accounts to the instruction.
-    ///
-    /// Each account is represented by a tuple of the `AccountInfo`, a `bool` indicating whether the account is writable or not,
-    /// and a `bool` indicating whether the account is a signer or not.
-    #[inline(always)]
-    pub fn add_remaining_accounts(
-        &mut self,
-        accounts: &[(
-            &'b solana_program::account_info::AccountInfo<'a>,
-            bool,
-            bool,
-        )],
-    ) -> &mut Self {
-        self.instruction
-            .__remaining_accounts
-            .extend_from_slice(accounts);
-        self
-    }
-    #[inline(always)]
-    pub fn invoke(&self) -> solana_program::entrypoint::ProgramResult {
-        self.invoke_signed(&[])
-    }
-    #[allow(clippy::clone_on_copy)]
-    #[allow(clippy::vec_init_then_push)]
-    pub fn invoke_signed(
-        &self,
-        signers_seeds: &[&[&[u8]]],
-    ) -> solana_program::entrypoint::ProgramResult {
+            /// Add an additional account to the instruction.
+  #[inline(always)]
+  pub fn add_remaining_account(&mut self, account: &'b solana_account_info::AccountInfo<'a>, is_writable: bool, is_signer: bool) -> &mut Self {
+    self.instruction.__remaining_accounts.push((account, is_writable, is_signer));
+    self
+  }
+  /// Add additional accounts to the instruction.
+  ///
+  /// Each account is represented by a tuple of the `AccountInfo`, a `bool` indicating whether the account is writable or not,
+  /// and a `bool` indicating whether the account is a signer or not.
+  #[inline(always)]
+  pub fn add_remaining_accounts(&mut self, accounts: &[(&'b solana_account_info::AccountInfo<'a>, bool, bool)]) -> &mut Self {
+    self.instruction.__remaining_accounts.extend_from_slice(accounts);
+    self
+  }
+  #[inline(always)]
+  pub fn invoke(&self) -> solana_program_error::ProgramResult {
+    self.invoke_signed(&[])
+  }
+  #[allow(clippy::clone_on_copy)]
+  #[allow(clippy::vec_init_then_push)]
+  pub fn invoke_signed(&self, signers_seeds: &[&[&[u8]]]) -> solana_program_error::ProgramResult {
         let instruction = DrawCpi {
-            __program: self.instruction.__program,
-
-            jellybean_machine: self
-                .instruction
-                .jellybean_machine
-                .expect("jellybean_machine is not set"),
-
-            authority_pda: self
-                .instruction
-                .authority_pda
-                .expect("authority_pda is not set"),
-
-            mint_authority: self
-                .instruction
-                .mint_authority
-                .expect("mint_authority is not set"),
-
-            payer: self.instruction.payer.expect("payer is not set"),
-
-            buyer: self.instruction.buyer.expect("buyer is not set"),
-
-            unclaimed_prizes: self
-                .instruction
-                .unclaimed_prizes
-                .expect("unclaimed_prizes is not set"),
-
-            print_fee_account: self.instruction.print_fee_account,
-
-            system_program: self
-                .instruction
-                .system_program
-                .expect("system_program is not set"),
-
-            rent: self.instruction.rent.expect("rent is not set"),
-
-            recent_slothashes: self
-                .instruction
-                .recent_slothashes
-                .expect("recent_slothashes is not set"),
-
-            event_authority: self
-                .instruction
-                .event_authority
-                .expect("event_authority is not set"),
-
-            program: self.instruction.program.expect("program is not set"),
-        };
-        instruction.invoke_signed_with_remaining_accounts(
-            signers_seeds,
-            &self.instruction.__remaining_accounts,
-        )
-    }
+        __program: self.instruction.__program,
+                  
+          jellybean_machine: self.instruction.jellybean_machine.expect("jellybean_machine is not set"),
+                  
+          authority_pda: self.instruction.authority_pda.expect("authority_pda is not set"),
+                  
+          mint_authority: self.instruction.mint_authority.expect("mint_authority is not set"),
+                  
+          payer: self.instruction.payer.expect("payer is not set"),
+                  
+          buyer: self.instruction.buyer.expect("buyer is not set"),
+                  
+          unclaimed_prizes: self.instruction.unclaimed_prizes.expect("unclaimed_prizes is not set"),
+                  
+          print_fee_account: self.instruction.print_fee_account,
+                  
+          system_program: self.instruction.system_program.expect("system_program is not set"),
+                  
+          rent: self.instruction.rent.expect("rent is not set"),
+                  
+          recent_slothashes: self.instruction.recent_slothashes.expect("recent_slothashes is not set"),
+                  
+          event_authority: self.instruction.event_authority.expect("event_authority is not set"),
+                  
+          program: self.instruction.program.expect("program is not set"),
+                    };
+    instruction.invoke_signed_with_remaining_accounts(signers_seeds, &self.instruction.__remaining_accounts)
+  }
 }
 
 #[derive(Clone, Debug)]
 struct DrawCpiBuilderInstruction<'a, 'b> {
-    __program: &'b solana_program::account_info::AccountInfo<'a>,
-    jellybean_machine: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    authority_pda: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    mint_authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    payer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    buyer: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    unclaimed_prizes: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    print_fee_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    rent: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    recent_slothashes: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    event_authority: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
-    __remaining_accounts: Vec<(
-        &'b solana_program::account_info::AccountInfo<'a>,
-        bool,
-        bool,
-    )>,
+  __program: &'b solana_account_info::AccountInfo<'a>,
+            jellybean_machine: Option<&'b solana_account_info::AccountInfo<'a>>,
+                authority_pda: Option<&'b solana_account_info::AccountInfo<'a>>,
+                mint_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
+                payer: Option<&'b solana_account_info::AccountInfo<'a>>,
+                buyer: Option<&'b solana_account_info::AccountInfo<'a>>,
+                unclaimed_prizes: Option<&'b solana_account_info::AccountInfo<'a>>,
+                print_fee_account: Option<&'b solana_account_info::AccountInfo<'a>>,
+                system_program: Option<&'b solana_account_info::AccountInfo<'a>>,
+                rent: Option<&'b solana_account_info::AccountInfo<'a>>,
+                recent_slothashes: Option<&'b solana_account_info::AccountInfo<'a>>,
+                event_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
+                program: Option<&'b solana_account_info::AccountInfo<'a>>,
+                /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
+  __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }
+

@@ -5,7 +5,9 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-use solana_program::{pubkey, pubkey::Pubkey};
+use solana_address::{address, Address};
 
-/// `mallow_jellybean` program ID.
-pub const MALLOW_JELLYBEAN_ID: Pubkey = pubkey!("J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq");
+
+  /// `mallow_jellybean` program ID.
+  pub const MALLOW_JELLYBEAN_ID: Address = address!("J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq");
+

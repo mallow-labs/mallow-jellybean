@@ -1,6 +1,6 @@
 [package]
-name = "mallow-jellybean-sdk"
-version = "0.1.1"
+name = "mallow-jellybean-client"
+version = "1.0.0-alpha.0"
 description = "A generated Rust library for the Mallow Jellybean program"
 repository = "https://github.com/mallow-labs/mallow-jellybean"
 edition = "2021"
@@ -8,21 +8,34 @@ readme = "README.md"
 license-file = "../../LICENSE"
 
 [features]
+default = []
+# Codama emits `#[cfg(feature = "fetch")]` / `#[cfg(feature = "anchor")]`
+# / `#[cfg(feature = "anchor-idl-build")]` blocks. The `fetch` blocks reference
+# `solana_rpc_client::*` and `solana_account::Account`, so the feature must pull
+# in those crates as optional dependencies for the off-chain account fetch
+# helpers to compile.
+fetch = ["dep:solana-rpc-client", "dep:solana-account"]
+# Codama's `anchor` / `anchor-idl-build` blocks reference `anchor_lang::*`
+# (Account(De)Serialize, Owner, Discriminator, IdlBuild). They must pull in
+# anchor-lang as an optional dependency, or any consumer enabling these
+# features (e.g. gumball-guard's typed `Account<JellybeanMachine>` + its
+# `idl-build`) fails to compile with unresolved-`anchor_lang` errors.
 anchor = ["dep:anchor-lang"]
-test-sbf = []
+anchor-idl-build = ["dep:anchor-lang", "anchor-lang/idl-build"]
 serde = ["dep:serde", "dep:serde_with"]
 
 [dependencies]
-anchor-lang = { version = "0.29.0", optional = true }
-borsh = "^0.10"
-num-derive = "^0.3"
-num-traits = "^0.2"
+anchor-lang = { version = "1.1.2", optional = true }
+borsh = { version = "1", features = ["derive"] }
+num-derive = "0.4"
+num-traits = "0.2"
 serde = { version = "^1.0", features = ["derive"], optional = true }
 serde_with = { version = "^3.0", optional = true }
-solana-program = "~1.18"
-thiserror = "^1.0"
-
-[dev-dependencies]
-assert_matches = "1.5.0"
-solana-program-test = "~1.18"
-solana-sdk = "~1.18"
+thiserror = "2"
+solana-address = { version = "2", features = ["borsh", "curve25519"] }
+solana-account = { version = "3", optional = true }
+solana-account-info = "3"
+solana-cpi = "3"
+solana-instruction = "3"
+solana-program-error = "3"
+solana-rpc-client = { version = "3", optional = true }

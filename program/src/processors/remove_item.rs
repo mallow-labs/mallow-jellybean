@@ -69,9 +69,7 @@ pub fn remove_multiple_items_span<'info>(
     let current_lamports = jellybean_machine.to_account_info().lamports();
 
     // Reallocate to smaller size
-    jellybean_machine
-        .to_account_info()
-        .realloc(new_space, false)?;
+    jellybean_machine.to_account_info().resize(new_space)?;
 
     // Refund excess rent to authority
     let excess_lamports = current_lamports

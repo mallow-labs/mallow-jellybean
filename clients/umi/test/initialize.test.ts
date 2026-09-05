@@ -254,7 +254,7 @@ test('it fails to initialize with insufficient payer balance', async (t) => {
         jellybeanMachine,
         args: { feeAccounts, uri },
       }).then((tx) => tx.sendAndConfirm(poorUmi)),
-    { message: /Attempt to debit an account but found no record/ }
+    { message: /insufficient lamports|Attempt to debit an account but found no record/ }
   );
 });
 
