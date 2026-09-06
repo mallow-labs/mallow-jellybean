@@ -82,7 +82,7 @@ pub fn validate_fee_accounts(fee_accounts: &[FeeAccount]) -> Result<()> {
     }
 
     // Only validate if there are any fee accounts
-    if fee_accounts.len() > 0 && total_basis_points != 10000 {
+    if !fee_accounts.is_empty() && total_basis_points != 10000 {
         return err!(JellybeanError::InvalidFeeAccountBasisPoints);
     }
 

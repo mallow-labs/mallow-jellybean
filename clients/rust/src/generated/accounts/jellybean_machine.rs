@@ -5,99 +5,106 @@
 //! <https://github.com/codama-idl/codama>
 //!
 
-use solana_address::Address;
 use crate::generated::types::FeeAccount;
-use crate::generated::types::PrintFeeConfig;
 use crate::generated::types::JellybeanState;
-use borsh::BorshSerialize;
+use crate::generated::types::PrintFeeConfig;
 use borsh::BorshDeserialize;
-
+use borsh::BorshSerialize;
+use solana_address::Address;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct JellybeanMachine {
-pub discriminator: [u8; 8],
-/// Version of the account.
-pub version: u8,
-/// Authority address.
-#[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::DisplayFromStr>"))]
-pub authority: Address,
-/// Authority address allowed to mint from the jellybean machine.
-#[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::DisplayFromStr>"))]
-pub mint_authority: Address,
-/// Fee accounts for proceeds of each draw
-pub fee_accounts: Vec<FeeAccount>,
-/// Print fee config
-pub print_fee_config: Option<PrintFeeConfig>,
-/// Total unique items loaded. Up to 255 items.
-pub items_loaded: u8,
-/// Total supply_loaded of all items added.
-pub supply_loaded: u64,
-/// Number of times items have been redeemed.
-pub supply_redeemed: u64,
-/// State of the machine.
-pub state: JellybeanState,
-/// Uri of off-chain metadata, max length 196
-pub uri: String,
-/// Padding for future use
-#[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
-pub padding: [u8; 320],
+    pub discriminator: [u8; 8],
+    /// Version of the account.
+    pub version: u8,
+    /// Authority address.
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
+    )]
+    pub authority: Address,
+    /// Authority address allowed to mint from the jellybean machine.
+    #[cfg_attr(
+        feature = "serde",
+        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
+    )]
+    pub mint_authority: Address,
+    /// Fee accounts for proceeds of each draw
+    pub fee_accounts: Vec<FeeAccount>,
+    /// Print fee config
+    pub print_fee_config: Option<PrintFeeConfig>,
+    /// Total unique items loaded. Up to 255 items.
+    pub items_loaded: u8,
+    /// Total supply_loaded of all items added.
+    pub supply_loaded: u64,
+    /// Number of times items have been redeemed.
+    pub supply_redeemed: u64,
+    /// State of the machine.
+    pub state: JellybeanState,
+    /// Uri of off-chain metadata, max length 196
+    pub uri: String,
+    /// Padding for future use
+    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
+    pub padding: [u8; 320],
 }
-
 
 pub const JELLYBEAN_MACHINE_DISCRIMINATOR: [u8; 8] = [240, 170, 43, 148, 110, 172, 77, 89];
 
 impl JellybeanMachine {
-  
-  
-  
-  #[inline(always)]
-  pub fn from_bytes(data: &[u8]) -> Result<Self, std::io::Error> {
-    let mut data = data;
-    Self::deserialize(&mut data)
-  }
+    #[inline(always)]
+    pub fn from_bytes(data: &[u8]) -> Result<Self, std::io::Error> {
+        let mut data = data;
+        Self::deserialize(&mut data)
+    }
 }
 
 impl<'a> TryFrom<&solana_account_info::AccountInfo<'a>> for JellybeanMachine {
-  type Error = std::io::Error;
+    type Error = std::io::Error;
 
-  fn try_from(account_info: &solana_account_info::AccountInfo<'a>) -> Result<Self, Self::Error> {
-      let mut data: &[u8] = &(*account_info.data).borrow();
-      Self::deserialize(&mut data)
-  }
+    fn try_from(account_info: &solana_account_info::AccountInfo<'a>) -> Result<Self, Self::Error> {
+        let mut data: &[u8] = &(*account_info.data).borrow();
+        Self::deserialize(&mut data)
+    }
 }
 
 #[cfg(feature = "fetch")]
 pub fn fetch_jellybean_machine(
-  rpc: &solana_rpc_client::rpc_client::RpcClient,
-  address: &solana_address::Address,
+    rpc: &solana_rpc_client::rpc_client::RpcClient,
+    address: &solana_address::Address,
 ) -> Result<crate::shared::DecodedAccount<JellybeanMachine>, std::io::Error> {
-  let accounts = fetch_all_jellybean_machine(rpc, &[*address])?;
-  Ok(accounts[0].clone())
+    let accounts = fetch_all_jellybean_machine(rpc, &[*address])?;
+    Ok(accounts[0].clone())
 }
 
 #[cfg(feature = "fetch")]
 pub fn fetch_all_jellybean_machine(
-  rpc: &solana_rpc_client::rpc_client::RpcClient,
-  addresses: &[solana_address::Address],
+    rpc: &solana_rpc_client::rpc_client::RpcClient,
+    addresses: &[solana_address::Address],
 ) -> Result<Vec<crate::shared::DecodedAccount<JellybeanMachine>>, std::io::Error> {
-    let accounts = rpc.get_multiple_accounts(addresses)
-      .map_err(|e| std::io::Error::other(e.to_string()))?;
+    let accounts = rpc
+        .get_multiple_accounts(addresses)
+        .map_err(|e| std::io::Error::other(e.to_string()))?;
     let mut decoded_accounts: Vec<crate::shared::DecodedAccount<JellybeanMachine>> = Vec::new();
     for i in 0..addresses.len() {
-      let address = addresses[i];
-      let account = accounts[i].as_ref()
-        .ok_or(std::io::Error::other(format!("Account not found: {address}")))?;
-      let data = JellybeanMachine::from_bytes(&account.data)?;
-      decoded_accounts.push(crate::shared::DecodedAccount { address, account: account.clone(), data });
+        let address = addresses[i];
+        let account = accounts[i].as_ref().ok_or(std::io::Error::other(format!(
+            "Account not found: {address}"
+        )))?;
+        let data = JellybeanMachine::from_bytes(&account.data)?;
+        decoded_accounts.push(crate::shared::DecodedAccount {
+            address,
+            account: account.clone(),
+            data,
+        });
     }
     Ok(decoded_accounts)
 }
 
 #[cfg(feature = "fetch")]
 pub fn fetch_maybe_jellybean_machine(
-  rpc: &solana_rpc_client::rpc_client::RpcClient,
-  address: &solana_address::Address,
+    rpc: &solana_rpc_client::rpc_client::RpcClient,
+    address: &solana_address::Address,
 ) -> Result<crate::shared::MaybeAccount<JellybeanMachine>, std::io::Error> {
     let accounts = fetch_all_maybe_jellybean_machine(rpc, &[*address])?;
     Ok(accounts[0].clone())
@@ -105,49 +112,52 @@ pub fn fetch_maybe_jellybean_machine(
 
 #[cfg(feature = "fetch")]
 pub fn fetch_all_maybe_jellybean_machine(
-  rpc: &solana_rpc_client::rpc_client::RpcClient,
-  addresses: &[solana_address::Address],
+    rpc: &solana_rpc_client::rpc_client::RpcClient,
+    addresses: &[solana_address::Address],
 ) -> Result<Vec<crate::shared::MaybeAccount<JellybeanMachine>>, std::io::Error> {
-    let accounts = rpc.get_multiple_accounts(addresses)
-      .map_err(|e| std::io::Error::other(e.to_string()))?;
+    let accounts = rpc
+        .get_multiple_accounts(addresses)
+        .map_err(|e| std::io::Error::other(e.to_string()))?;
     let mut decoded_accounts: Vec<crate::shared::MaybeAccount<JellybeanMachine>> = Vec::new();
     for i in 0..addresses.len() {
-      let address = addresses[i];
-      if let Some(account) = accounts[i].as_ref() {
-        let data = JellybeanMachine::from_bytes(&account.data)?;
-        decoded_accounts.push(crate::shared::MaybeAccount::Exists(crate::shared::DecodedAccount { address, account: account.clone(), data }));
-      } else {
-        decoded_accounts.push(crate::shared::MaybeAccount::NotFound(address));
-      }
+        let address = addresses[i];
+        if let Some(account) = accounts[i].as_ref() {
+            let data = JellybeanMachine::from_bytes(&account.data)?;
+            decoded_accounts.push(crate::shared::MaybeAccount::Exists(
+                crate::shared::DecodedAccount {
+                    address,
+                    account: account.clone(),
+                    data,
+                },
+            ));
+        } else {
+            decoded_accounts.push(crate::shared::MaybeAccount::NotFound(address));
+        }
     }
-  Ok(decoded_accounts)
+    Ok(decoded_accounts)
 }
 
-  #[cfg(feature = "anchor")]
-  impl anchor_lang::AccountDeserialize for JellybeanMachine {
-      fn try_deserialize_unchecked(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
+#[cfg(feature = "anchor")]
+impl anchor_lang::AccountDeserialize for JellybeanMachine {
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
         Ok(Self::deserialize(buf)?)
-      }
-  }
+    }
+}
 
-  #[cfg(feature = "anchor")]
-  impl anchor_lang::AccountSerialize for JellybeanMachine {}
+#[cfg(feature = "anchor")]
+impl anchor_lang::AccountSerialize for JellybeanMachine {}
 
-  #[cfg(feature = "anchor")]
-  impl anchor_lang::Owner for JellybeanMachine {
-      fn owner() -> anchor_lang::solana_program::pubkey::Pubkey {
-        anchor_lang::solana_program::pubkey::Pubkey::from(
-          crate::MALLOW_JELLYBEAN_ID.to_bytes()
-        )
-      }
-  }
+#[cfg(feature = "anchor")]
+impl anchor_lang::Owner for JellybeanMachine {
+    fn owner() -> anchor_lang::solana_program::pubkey::Pubkey {
+        anchor_lang::solana_program::pubkey::Pubkey::from(crate::MALLOW_JELLYBEAN_ID.to_bytes())
+    }
+}
 
-  #[cfg(feature = "anchor-idl-build")]
-  impl anchor_lang::IdlBuild for JellybeanMachine {}
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::IdlBuild for JellybeanMachine {}
 
-  
-  #[cfg(feature = "anchor-idl-build")]
-  impl anchor_lang::Discriminator for JellybeanMachine {
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::Discriminator for JellybeanMachine {
     const DISCRIMINATOR: &[u8] = &[0; 8];
-  }
-
+}

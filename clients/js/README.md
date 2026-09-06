@@ -4,17 +4,16 @@ A generated JavaScript library for the Mallow Jellybean program.
 
 ## Getting started
 
-To build and test your JavaScript client, start the validator and run the tests directly from the client directory.
+The tests run against LiteSVM, so no local validator is needed — but they do load
+`target/deploy/mallow_jellybean.so`, so build the program first.
 
 ```sh
-# Build your programs and start the validator.
+# Build the program from the root of the repository.
 pnpm programs:build
-pnpm validator
 
 # Go into the client directory and run the tests.
 cd clients/js
 pnpm install
-pnpm build
 pnpm test
 ```
 

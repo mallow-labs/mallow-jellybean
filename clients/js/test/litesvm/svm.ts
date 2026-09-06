@@ -1,7 +1,7 @@
-import { existsSync } from 'fs';
-import { dirname, join } from 'path';
 import { address } from '@solana/kit';
+import { existsSync } from 'fs';
 import { LiteSVM } from 'litesvm';
+import { dirname, join } from 'path';
 
 /**
  * Programs loaded into each LiteSVM instance.

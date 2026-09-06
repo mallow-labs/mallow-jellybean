@@ -1,3 +1,4 @@
+import { base58 } from '@metaplex-foundation/umi';
 import { AccountLayout, MintLayout } from '@solana/spl-token';
 import {
   AddressLookupTableAccount,
@@ -10,7 +11,6 @@ import {
   VersionedMessage,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { base58 } from '@metaplex-foundation/umi';
 import {
   Account,
   FailedTransactionMetadata,
@@ -24,7 +24,8 @@ const SYSTEM_PROGRAM_ID_BYTES = new Uint8Array(32);
 
 // umi's `base58` serializer bridges bytes <-> base58 string: `deserialize` turns
 // bytes into the string, `serialize` turns the string back into bytes.
-const base58Encode = (bytes: Uint8Array): string => base58.deserialize(bytes)[0];
+const base58Encode = (bytes: Uint8Array): string =>
+  base58.deserialize(bytes)[0];
 const base58Decode = (str: string): Uint8Array => base58.serialize(str);
 
 /**
@@ -67,7 +68,9 @@ function messageFromRaw(raw: Uint8Array): Message | MessageV0 {
 function isVersionedTransaction(
   tx: Transaction | VersionedTransaction
 ): tx is VersionedTransaction {
-  return (tx as any).message !== undefined && (tx as any).instructions === undefined;
+  return (
+    (tx as any).message !== undefined && (tx as any).instructions === undefined
+  );
 }
 
 /**
@@ -86,7 +89,11 @@ function toTransactionError(failed: FailedTransactionMetadata): Error & {
   let rpcString = '';
   try {
     const inner = failed.err() as any;
-    if (inner && typeof inner.err === 'function' && typeof inner.index === 'number') {
+    if (
+      inner &&
+      typeof inner.err === 'function' &&
+      typeof inner.index === 'number'
+    ) {
       const instErr = inner.err();
       if (instErr && typeof instErr.code === 'number') {
         jsonErr = { InstructionError: [inner.index, { Custom: instErr.code }] };
@@ -184,9 +191,17 @@ export class LiteSVMConnection {
 
     let result: CachedResult;
     if (res instanceof FailedTransactionMetadata) {
-      result = { err: toTransactionError(res), logs: res.meta().logs(), message };
+      result = {
+        err: toTransactionError(res),
+        logs: res.meta().logs(),
+        message,
+      };
     } else {
-      result = { err: null, logs: (res as TransactionMetadata).logs(), message };
+      result = {
+        err: null,
+        logs: (res as TransactionMetadata).logs(),
+        message,
+      };
     }
     this.results.set(sig, result);
     return { sig, result };
@@ -217,7 +232,9 @@ export class LiteSVMConnection {
   }
 
   async getMultipleAccountsInfo(pubkeys: PublicKey[], _commitment?: unknown) {
-    return pubkeys.map((pk) => this.toAccountInfo(this.svm.getAccount(pk.toBytes())));
+    return pubkeys.map((pk) =>
+      this.toAccountInfo(this.svm.getAccount(pk.toBytes()))
+    );
   }
 
   async getMultipleAccountsInfoAndContext(
@@ -241,7 +258,10 @@ export class LiteSVMConnection {
   }
 
   async getBalanceAndContext(pubkey: PublicKey, _commitment?: unknown) {
-    return { context: { slot: this.slot() }, value: await this.getBalance(pubkey) };
+    return {
+      context: { slot: this.slot() },
+      value: await this.getBalance(pubkey),
+    };
   }
 
   async getMinimumBalanceForRentExemption(
@@ -253,7 +273,8 @@ export class LiteSVMConnection {
 
   async getTokenAccountBalance(pubkey: PublicKey, _commitment?: unknown) {
     const acc = this.svm.getAccount(pubkey.toBytes());
-    if (!acc) throw new Error(`Could not find token account ${pubkey.toBase58()}`);
+    if (!acc)
+      throw new Error(`Could not find token account ${pubkey.toBase58()}`);
     const tokenAccount = AccountLayout.decode(Buffer.from(acc.data()));
     const mintAcc = this.svm.getAccount(tokenAccount.mint.toBytes());
     const decimals = mintAcc
@@ -474,7 +495,10 @@ export class LiteSVMConnection {
       const tx = transaction as Transaction;
       if (!tx.recentBlockhash) tx.recentBlockhash = this.svm.latestBlockhash();
       if (!tx.feePayer) tx.feePayer = tx.signatures[0]?.publicKey;
-      raw = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
+      raw = tx.serialize({
+        requireAllSignatures: false,
+        verifySignatures: false,
+      });
     }
 
     const res = versioned
@@ -526,7 +550,13 @@ export class LiteSVMConnection {
     const rentEpoch = existing ? existing.rentEpoch() : 0n;
     this.svm.setAccount(
       key,
-      new Account(current + BigInt(lamports), data, owner, executable, rentEpoch)
+      new Account(
+        current + BigInt(lamports),
+        data,
+        owner,
+        executable,
+        rentEpoch
+      )
     );
     const sig = base58Encode(Keypair.generate().publicKey.toBytes());
     this.results.set(sig, { err: null, logs: [] });

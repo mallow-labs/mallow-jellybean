@@ -10,4 +10,5 @@ To build and test your Rust client from the root of the repository, you may use 
 pnpm clients:rust:test
 ```
 
-This will start a new local validator, if one is not already running, and run the tests for your Rust client.
+The Rust client is generated code with no runtime dependencies on a cluster, so this
+runs `cargo test` against the crate directly — no validator required.
