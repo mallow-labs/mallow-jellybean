@@ -14,8 +14,8 @@ import {
   fetchJellybeanMachineWithItems,
   generateKeyPairSignerWithSol,
   getBalance,
-  sameAddress,
   removeCoreItem,
+  sameAddress,
   sendTransaction,
 } from './_setup';
 
@@ -337,7 +337,10 @@ test('it can remove a one-of-one asset after being claimed', async (t) => {
   t.is(account.itemsLoaded, 0);
   t.is(account.supplyLoaded, 0n);
   t.true(
-    sameAddress((await fetchAsset(client.umi, asset.publicKey)).owner, buyer.address)
+    sameAddress(
+      (await fetchAsset(client.umi, asset.publicKey)).owner,
+      buyer.address
+    )
   );
 });
 

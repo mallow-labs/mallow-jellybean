@@ -1,106 +1,13 @@
 {
-  "version": "0.1.3",
-  "name": "mallow_jellybean",
+  "address": "J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq",
+  "metadata": {
+    "name": "mallow_jellybean",
+    "version": "1.0.0",
+    "spec": "0.1.0"
+  },
   "instructions": [
     {
-      "name": "initialize",
-      "docs": [
-        "Initialize the jellybean machine account with the specified data.",
-        "",
-        "# Accounts",
-        "",
-        "0. `[writable]` Gumball Machine account (must be pre-allocated but zero content)",
-        "1. `[]` Gumball Machine authority",
-        "2. `[writable]` Authority PDA (PDA, seeds: [\"authority\", jellybean_machine])",
-        "3. `[signer, writable]` Payer",
-        "4. `[]` System program"
-      ],
-      "accounts": [
-        {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Jellybean machine account.",
-            ""
-          ]
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Gumball Machine authority. This is the address that controls the upate of the jellybean machine.",
-            ""
-          ]
-        },
-        {
-          "name": "authorityPda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "Payer of the transaction."
-          ]
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "SettingsArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "updateSettings",
-      "docs": [
-        "Updates jellybean machine settings.",
-        "",
-        "# Accounts",
-        "",
-        "0. `[writable]` Gumball Machine account",
-        "1. `[signer, writable]` Gumball Machine authority"
-      ],
-      "accounts": [
-        {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Gumball machine account."
-          ]
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "Gumball Machine authority. This is the address that controls the upate of the jellybean machine."
-          ]
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "SettingsArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "addCoreItem",
+      "name": "add_core_item",
       "docs": [
         "Add Core assets to the jellybean machine.",
         "",
@@ -115,66 +22,582 @@
         "6. `[]` MPL Core program",
         "7. `[]` System program"
       ],
+      "discriminator": [
+        138,
+        200,
+        152,
+        167,
+        252,
+        149,
+        240,
+        114
+      ],
       "accounts": [
         {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
+          "name": "jellybean_machine",
           "docs": [
             "Gumball Machine account."
-          ]
+          ],
+          "writable": true
         },
         {
-          "name": "authorityPda",
-          "isMut": true,
-          "isSigner": false
+          "name": "authority_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  106,
+                  101,
+                  108,
+                  108,
+                  121,
+                  98,
+                  101,
+                  97,
+                  110,
+                  95,
+                  109,
+                  97,
+                  99,
+                  104,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "jellybean_machine"
+              }
+            ]
+          }
         },
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true,
           "docs": [
             "Authority of the jellybean machine."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
           ]
         },
         {
           "name": "payer",
-          "isMut": true,
-          "isSigner": true,
           "docs": [
             "Payer for account reallocation"
-          ]
+          ],
+          "writable": true,
+          "signer": true
         },
         {
           "name": "asset",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
+          "writable": true,
+          "optional": true
         },
         {
           "name": "collection",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true,
           "docs": [
             "Core asset's collection if it's part of one."
-          ]
+          ],
+          "writable": true,
+          "optional": true
         },
         {
-          "name": "mplCoreProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "mpl_core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "removeCoreItem",
+      "name": "claim_core_item",
+      "docs": [
+        "Claims a Core asset from the jellybean machine for a specific buyer.",
+        "Transfers the asset from the PDA to the buyer.",
+        "",
+        "# Accounts",
+        "",
+        "0. `[signer, writable]` Payer (anyone can claim the item)",
+        "1. `[writable]` Gumball Machine account (must be in SaleLive or SaleEnded state)",
+        "2. `[writable]` Authority PDA (PDA, seeds: [\"authority\", jellybean_machine])",
+        "3. `[writable]` Seller account",
+        "4. `[]` Buyer account",
+        "5. `[]` System program",
+        "6. `[writable]` Asset account",
+        "7. `[writable, optional]` Collection account if asset is part of one.",
+        "8. `[]` MPL Core program."
+      ],
+      "discriminator": [
+        128,
+        125,
+        241,
+        133,
+        118,
+        242,
+        177,
+        175
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Anyone can settle the sale"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "jellybean_machine",
+          "docs": [
+            "Jellybean machine account."
+          ],
+          "writable": true,
+          "relations": [
+            "unclaimed_prizes"
+          ]
+        },
+        {
+          "name": "authority_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  106,
+                  101,
+                  108,
+                  108,
+                  121,
+                  98,
+                  101,
+                  97,
+                  110,
+                  95,
+                  109,
+                  97,
+                  99,
+                  104,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "jellybean_machine"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "docs": [
+            "buyer of the nft"
+          ],
+          "writable": true,
+          "relations": [
+            "unclaimed_prizes"
+          ]
+        },
+        {
+          "name": "unclaimed_prizes",
+          "docs": [
+            "Buyer unclaimed draws account."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "jellybean_machine"
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "collection",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "print_asset",
+          "writable": true,
+          "signer": true,
+          "optional": true
+        },
+        {
+          "name": "mpl_core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "index",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "draw",
+      "docs": [
+        "Draw for a random item from the jellybean machine.",
+        "Only the jellybean machine mint authority is allowed to draw.",
+        "",
+        "# Accounts",
+        "",
+        "0. `[writable]` Gumball Machine account",
+        "1. `[signer]` Gumball Machine mint authority",
+        "2. `[signer, writable]` Payer",
+        "3. `[]` Buyer account",
+        "4. `[]` System program",
+        "5. `[]` SlotHashes sysvar cluster data"
+      ],
+      "discriminator": [
+        61,
+        40,
+        62,
+        184,
+        31,
+        176,
+        24,
+        130
+      ],
+      "accounts": [
+        {
+          "name": "jellybean_machine",
+          "docs": [
+            "Jellybean machine account."
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  106,
+                  101,
+                  108,
+                  108,
+                  121,
+                  98,
+                  101,
+                  97,
+                  110,
+                  95,
+                  109,
+                  97,
+                  99,
+                  104,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "jellybean_machine"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint_authority",
+          "docs": [
+            "Jellybean machine mint authority (mint only allowed for the mint_authority)."
+          ],
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
+          ]
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Payer for the transaction and account allocation (rent)."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "buyer",
+          "docs": [
+            "NFT account owner.",
+            ""
+          ]
+        },
+        {
+          "name": "unclaimed_prizes",
+          "docs": [
+            "Buyer unclaimed draws account."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  100,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "jellybean_machine"
+              },
+              {
+                "kind": "account",
+                "path": "buyer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "print_fee_account",
+          "docs": [
+            "Print fee account. Required if the jellybean machine has a print fee config."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "system_program",
+          "docs": [
+            "System program."
+          ],
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "docs": [
+            "Rent."
+          ],
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "recent_slothashes",
+          "docs": [
+            "SlotHashes sysvar cluster data.",
+            ""
+          ],
+          "address": "SysvarS1otHashes111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "end_sale",
+      "docs": [
+        "Disables minting and allows sales to be settled.",
+        "",
+        "# Accounts",
+        "",
+        "0. `[writable]` Gumball Machine account",
+        "1. `[signer, writable]` Gumball Machine authority"
+      ],
+      "discriminator": [
+        37,
+        239,
+        52,
+        17,
+        120,
+        44,
+        213,
+        125
+      ],
+      "accounts": [
+        {
+          "name": "jellybean_machine",
+          "docs": [
+            "Gumball machine account."
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Gumball Machine authority. This is the address that controls the upate of the jellybean machine."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "Initialize the jellybean machine account with the specified data.",
+        "",
+        "# Accounts",
+        "",
+        "0. `[writable]` Gumball Machine account (must be pre-allocated but zero content)",
+        "1. `[]` Gumball Machine authority",
+        "2. `[writable]` Authority PDA (PDA, seeds: [\"authority\", jellybean_machine])",
+        "3. `[signer, writable]` Payer",
+        "4. `[]` System program"
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "jellybean_machine",
+          "docs": [
+            "Jellybean machine account.",
+            ""
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Gumball Machine authority. This is the address that controls the upate of the jellybean machine.",
+            ""
+          ]
+        },
+        {
+          "name": "authority_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  106,
+                  101,
+                  108,
+                  108,
+                  121,
+                  98,
+                  101,
+                  97,
+                  110,
+                  95,
+                  109,
+                  97,
+                  99,
+                  104,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "jellybean_machine"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Payer of the transaction."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "SettingsArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "remove_core_item",
       "docs": [
         "Remove Core asset from the jellybean machine.",
         "Thaws and revokes delegate from the seller's asset and removes it from the config lines.",
@@ -192,52 +615,89 @@
         "7. `[]` MPL Core program.",
         "8. `[]` System program."
       ],
+      "discriminator": [
+        146,
+        20,
+        197,
+        215,
+        49,
+        62,
+        130,
+        92
+      ],
       "accounts": [
         {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
+          "name": "jellybean_machine",
           "docs": [
             "Gumball Machine account."
-          ]
+          ],
+          "writable": true
         },
         {
-          "name": "authorityPda",
-          "isMut": true,
-          "isSigner": false
+          "name": "authority_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  106,
+                  101,
+                  108,
+                  108,
+                  121,
+                  98,
+                  101,
+                  97,
+                  110,
+                  95,
+                  109,
+                  97,
+                  99,
+                  104,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "jellybean_machine"
+              }
+            ]
+          }
         },
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true,
           "docs": [
             "Authority of the jellybean machine."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
           ]
         },
         {
           "name": "asset",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
+          "writable": true,
+          "optional": true
         },
         {
           "name": "collection",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true,
           "docs": [
             "Core asset's collection if it's part of one."
-          ]
+          ],
+          "writable": true,
+          "optional": true
         },
         {
-          "name": "mplCoreProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "mpl_core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -248,278 +708,7 @@
       ]
     },
     {
-      "name": "startSale",
-      "docs": [
-        "Allows minting to begin.",
-        "",
-        "# Accounts",
-        "",
-        "0. `[writable]` Gumball Machine account",
-        "1. `[signer]` Gumball Machine authority (authority or mint_authority)"
-      ],
-      "accounts": [
-        {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Jellybean machine account."
-          ]
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true,
-          "docs": [
-            "Jellybean Machine authority. This can be the mint authority or the authority."
-          ]
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "endSale",
-      "docs": [
-        "Disables minting and allows sales to be settled.",
-        "",
-        "# Accounts",
-        "",
-        "0. `[writable]` Gumball Machine account",
-        "1. `[signer, writable]` Gumball Machine authority"
-      ],
-      "accounts": [
-        {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Gumball machine account."
-          ]
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "Gumball Machine authority. This is the address that controls the upate of the jellybean machine."
-          ]
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "draw",
-      "docs": [
-        "Draw for a random item from the jellybean machine.",
-        "Only the jellybean machine mint authority is allowed to draw.",
-        "",
-        "# Accounts",
-        "",
-        "0. `[writable]` Gumball Machine account",
-        "1. `[signer]` Gumball Machine mint authority",
-        "2. `[signer, writable]` Payer",
-        "3. `[]` Buyer account",
-        "4. `[]` System program",
-        "5. `[]` SlotHashes sysvar cluster data"
-      ],
-      "accounts": [
-        {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Jellybean machine account."
-          ]
-        },
-        {
-          "name": "authorityPda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintAuthority",
-          "isMut": false,
-          "isSigner": true,
-          "docs": [
-            "Jellybean machine mint authority (mint only allowed for the mint_authority)."
-          ]
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "Payer for the transaction and account allocation (rent)."
-          ]
-        },
-        {
-          "name": "buyer",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "NFT account owner.",
-            ""
-          ]
-        },
-        {
-          "name": "unclaimedPrizes",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Buyer unclaimed draws account."
-          ]
-        },
-        {
-          "name": "printFeeAccount",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true,
-          "docs": [
-            "Print fee account. Required if the jellybean machine has a print fee config."
-          ]
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "System program."
-          ]
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "Rent."
-          ]
-        },
-        {
-          "name": "recentSlothashes",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "SlotHashes sysvar cluster data.",
-            ""
-          ]
-        },
-        {
-          "name": "eventAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "program",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "claimCoreItem",
-      "docs": [
-        "Claims a Core asset from the jellybean machine for a specific buyer.",
-        "Transfers the asset from the PDA to the buyer.",
-        "",
-        "# Accounts",
-        "",
-        "0. `[signer, writable]` Payer (anyone can claim the item)",
-        "1. `[writable]` Gumball Machine account (must be in SaleLive or SaleEnded state)",
-        "2. `[writable]` Authority PDA (PDA, seeds: [\"authority\", jellybean_machine])",
-        "3. `[writable]` Seller account",
-        "4. `[]` Buyer account",
-        "5. `[]` System program",
-        "6. `[writable]` Asset account",
-        "7. `[writable, optional]` Collection account if asset is part of one.",
-        "8. `[]` MPL Core program."
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true,
-          "docs": [
-            "Anyone can settle the sale"
-          ]
-        },
-        {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Jellybean machine account."
-          ]
-        },
-        {
-          "name": "authorityPda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "buyer",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "buyer of the nft"
-          ]
-        },
-        {
-          "name": "unclaimedPrizes",
-          "isMut": true,
-          "isSigner": false,
-          "docs": [
-            "Buyer unclaimed draws account."
-          ]
-        },
-        {
-          "name": "asset",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "collection",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "printAsset",
-          "isMut": true,
-          "isSigner": true,
-          "isOptional": true
-        },
-        {
-          "name": "mplCoreProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "eventAuthority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "program",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "index",
-          "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "setMintAuthority",
+      "name": "set_mint_authority",
       "docs": [
         "Set a new mint authority of the jellybean machine.",
         "",
@@ -529,33 +718,132 @@
         "1. `[signer]` Gumball Machine authority",
         "2. `[signer]` New jellybean machine authority"
       ],
+      "discriminator": [
+        67,
+        127,
+        155,
+        187,
+        100,
+        174,
+        103,
+        121
+      ],
       "accounts": [
         {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
+          "name": "jellybean_machine",
           "docs": [
             "Gumball Machine account."
-          ]
+          ],
+          "writable": true
         },
         {
           "name": "authority",
-          "isMut": false,
-          "isSigner": true,
           "docs": [
             "Gumball Machine authority"
+          ],
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
           ]
         },
         {
-          "name": "mintAuthority",
-          "isMut": false,
-          "isSigner": true,
+          "name": "mint_authority",
           "docs": [
             "New jellybean machine authority"
-          ]
+          ],
+          "signer": true
         }
       ],
       "args": []
+    },
+    {
+      "name": "start_sale",
+      "docs": [
+        "Allows minting to begin.",
+        "",
+        "# Accounts",
+        "",
+        "0. `[writable]` Gumball Machine account",
+        "1. `[signer]` Gumball Machine authority (authority or mint_authority)"
+      ],
+      "discriminator": [
+        130,
+        69,
+        235,
+        113,
+        173,
+        219,
+        48,
+        228
+      ],
+      "accounts": [
+        {
+          "name": "jellybean_machine",
+          "docs": [
+            "Jellybean machine account."
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Jellybean Machine authority. This can be the mint authority or the authority."
+          ],
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_settings",
+      "docs": [
+        "Updates jellybean machine settings.",
+        "",
+        "# Accounts",
+        "",
+        "0. `[writable]` Gumball Machine account",
+        "1. `[signer, writable]` Gumball Machine authority"
+      ],
+      "discriminator": [
+        81,
+        166,
+        51,
+        213,
+        158,
+        84,
+        157,
+        108
+      ],
+      "accounts": [
+        {
+          "name": "jellybean_machine",
+          "docs": [
+            "Gumball machine account."
+          ],
+          "writable": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Gumball Machine authority. This is the address that controls the upate of the jellybean machine."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "SettingsArgs"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "withdraw",
@@ -579,29 +867,44 @@
         "- `[]` System program",
         "- `[]` Rent sysvar"
       ],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
       "accounts": [
         {
-          "name": "jellybeanMachine",
-          "isMut": true,
-          "isSigner": false,
+          "name": "jellybean_machine",
           "docs": [
             "Gumball Machine acccount."
-          ]
+          ],
+          "writable": true
         },
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true,
           "docs": [
             "Authority of the jellybean machine."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
           ]
         },
         {
-          "name": "mintAuthority",
-          "isMut": true,
-          "isSigner": true,
+          "name": "mint_authority",
           "docs": [
             "Mint authority of the jellybean machine."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "jellybean_machine"
           ]
         }
       ],
@@ -611,289 +914,56 @@
   "accounts": [
     {
       "name": "JellybeanMachine",
-      "docs": [
-        "Jellybean machine state and config data."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "version",
-            "docs": [
-              "Version of the account."
-            ],
-            "type": "u8"
-          },
-          {
-            "name": "authority",
-            "docs": [
-              "Authority address."
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "mintAuthority",
-            "docs": [
-              "Authority address allowed to mint from the jellybean machine."
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "feeAccounts",
-            "docs": [
-              "Fee accounts for proceeds of each draw"
-            ],
-            "type": {
-              "vec": {
-                "defined": "FeeAccount"
-              }
-            }
-          },
-          {
-            "name": "printFeeConfig",
-            "docs": [
-              "Print fee config"
-            ],
-            "type": {
-              "option": {
-                "defined": "PrintFeeConfig"
-              }
-            }
-          },
-          {
-            "name": "itemsLoaded",
-            "docs": [
-              "Total unique items loaded. Up to 255 items."
-            ],
-            "type": "u8"
-          },
-          {
-            "name": "supplyLoaded",
-            "docs": [
-              "Total supply_loaded of all items added."
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "supplyRedeemed",
-            "docs": [
-              "Number of times items have been redeemed."
-            ],
-            "type": "u64"
-          },
-          {
-            "name": "state",
-            "docs": [
-              "State of the machine."
-            ],
-            "type": {
-              "defined": "JellybeanState"
-            }
-          },
-          {
-            "name": "uri",
-            "docs": [
-              "Uri of off-chain metadata, max length 196"
-            ],
-            "type": "string"
-          },
-          {
-            "name": "padding",
-            "docs": [
-              "Padding for future use"
-            ],
-            "type": {
-              "array": [
-                "u8",
-                320
-              ]
-            }
-          }
-        ]
-      }
+      "discriminator": [
+        240,
+        170,
+        43,
+        148,
+        110,
+        172,
+        77,
+        89
+      ]
     },
     {
       "name": "UnclaimedPrizes",
-      "docs": [
-        "Jellybean machine state and config data."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "version",
-            "docs": [
-              "Version of the account."
-            ],
-            "type": "u8"
-          },
-          {
-            "name": "jellybeanMachine",
-            "docs": [
-              "Pubkey of the JellybeanMachine account."
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "buyer",
-            "docs": [
-              "Pubkey of the buyer who drew items"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "prizes",
-            "docs": [
-              "Indices of prizes drawn by the buyer"
-            ],
-            "type": {
-              "vec": {
-                "defined": "Prize"
-              }
-            }
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "FeeAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "address",
-            "docs": [
-              "Where fees will go"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "basisPoints",
-            "docs": [
-              "Sale basis points for fees"
-            ],
-            "type": "u16"
-          }
-        ]
-      }
-    },
-    {
-      "name": "JellybeanState",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "None"
-          },
-          {
-            "name": "SaleLive"
-          },
-          {
-            "name": "SaleEnded"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PrintFeeConfig",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "address",
-            "type": "publicKey"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "SettingsArgs",
-      "docs": [
-        "Common arguments for settings-related operations (initialize and update_settings)"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "uri",
-            "type": "string"
-          },
-          {
-            "name": "feeAccounts",
-            "type": {
-              "vec": {
-                "defined": "FeeAccount"
-              }
-            }
-          },
-          {
-            "name": "printFeeConfig",
-            "type": {
-              "option": {
-                "defined": "PrintFeeConfig"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "Prize",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "itemIndex",
-            "type": "u8"
-          },
-          {
-            "name": "editionNumber",
-            "type": "u32"
-          }
-        ]
-      }
+      "discriminator": [
+        171,
+        187,
+        169,
+        217,
+        28,
+        112,
+        80,
+        133
+      ]
     }
   ],
   "events": [
     {
       "name": "ClaimItemEvent",
-      "fields": [
-        {
-          "name": "authority",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "editionNumber",
-          "type": "u32",
-          "index": false
-        }
+      "discriminator": [
+        60,
+        75,
+        118,
+        64,
+        253,
+        30,
+        11,
+        170
       ]
     },
     {
       "name": "DrawItemEvent",
-      "fields": [
-        {
-          "name": "authority",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "index",
-          "type": "u32",
-          "index": false
-        },
-        {
-          "name": "editionNumber",
-          "type": "u32",
-          "index": false
-        }
+      "discriminator": [
+        61,
+        185,
+        5,
+        236,
+        195,
+        249,
+        169,
+        187
       ]
     }
   ],
@@ -1027,12 +1097,309 @@
       "code": 6025,
       "name": "InvalidFeeAccountsLength",
       "msg": "Invalid fee accounts length"
+    },
+    {
+      "code": 6026,
+      "name": "AccountAlreadyInitialized",
+      "msg": "Account already initialized"
     }
   ],
-  "metadata": {
-    "address": "J3LLYcm8V5hJRzCKENRPW3yGdQ6xU8Nie8jr3mU88eqq",
-    "origin": "anchor",
-    "binaryVersion": "0.29.0",
-    "libVersion": "0.29.0"
-  }
+  "types": [
+    {
+      "name": "ClaimItemEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "edition_number",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DrawItemEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "index",
+            "type": "u32"
+          },
+          {
+            "name": "edition_number",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "docs": [
+              "Where fees will go"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "basis_points",
+            "docs": [
+              "Sale basis points for fees"
+            ],
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "JellybeanMachine",
+      "docs": [
+        "Jellybean machine state and config data."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "docs": [
+              "Version of the account."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "authority",
+            "docs": [
+              "Authority address."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "mint_authority",
+            "docs": [
+              "Authority address allowed to mint from the jellybean machine."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_accounts",
+            "docs": [
+              "Fee accounts for proceeds of each draw"
+            ],
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "FeeAccount"
+                }
+              }
+            }
+          },
+          {
+            "name": "print_fee_config",
+            "docs": [
+              "Print fee config"
+            ],
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "PrintFeeConfig"
+                }
+              }
+            }
+          },
+          {
+            "name": "items_loaded",
+            "docs": [
+              "Total unique items loaded. Up to 255 items."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "supply_loaded",
+            "docs": [
+              "Total supply_loaded of all items added."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "supply_redeemed",
+            "docs": [
+              "Number of times items have been redeemed."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "state",
+            "docs": [
+              "State of the machine."
+            ],
+            "type": {
+              "defined": {
+                "name": "JellybeanState"
+              }
+            }
+          },
+          {
+            "name": "uri",
+            "docs": [
+              "Uri of off-chain metadata, max length 196"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "padding",
+            "docs": [
+              "Padding for future use"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                320
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "JellybeanState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "SaleLive"
+          },
+          {
+            "name": "SaleEnded"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrintFeeConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Prize",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "item_index",
+            "type": "u8"
+          },
+          {
+            "name": "edition_number",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SettingsArgs",
+      "docs": [
+        "Common arguments for settings-related operations (initialize and update_settings)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "fee_accounts",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "FeeAccount"
+                }
+              }
+            }
+          },
+          {
+            "name": "print_fee_config",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "PrintFeeConfig"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UnclaimedPrizes",
+      "docs": [
+        "Jellybean machine state and config data."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "docs": [
+              "Version of the account."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "jellybean_machine",
+            "docs": [
+              "Pubkey of the JellybeanMachine account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "docs": [
+              "Pubkey of the buyer who drew items"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "prizes",
+            "docs": [
+              "Indices of prizes drawn by the buyer"
+            ],
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Prize"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
 }

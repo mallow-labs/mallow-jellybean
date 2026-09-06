@@ -1,6 +1,6 @@
 import { fetchAsset } from '@metaplex-foundation/mpl-core';
-import { generateKeyPairSigner } from '@solana/kit';
 import { getTransferSolInstruction } from '@solana-program/system';
+import { generateKeyPairSigner } from '@solana/kit';
 import test from 'ava';
 import { JellybeanState } from '../src';
 import {
@@ -16,8 +16,8 @@ import {
   fetchUnclaimedPrizesFromSeeds,
   generateKeyPairSignerWithSol,
   getBalance,
-  sameAddress,
   safeFetchUnclaimedPrizesFromSeeds,
+  sameAddress,
   sendTransaction,
 } from './_setup';
 

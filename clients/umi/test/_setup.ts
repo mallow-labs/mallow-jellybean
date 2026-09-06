@@ -22,6 +22,7 @@ import {
   setComputeUnitLimit,
 } from '@metaplex-foundation/mpl-toolbox';
 import {
+  createUmi as baseCreateUmi,
   DateTime,
   generateSigner,
   now,
@@ -37,9 +38,7 @@ import {
   Umi,
 } from '@metaplex-foundation/umi';
 import { testPlugins } from '@metaplex-foundation/umi-bundle-tests';
-import { createUmi as baseCreateUmi } from '@metaplex-foundation/umi';
 import { Assertions } from 'ava';
-import { LiteSVMConnection } from './litesvm/connection';
 import { chunk } from 'lodash';
 import {
   addCoreItem,
@@ -51,6 +50,7 @@ import {
   Prize,
   startSale,
 } from '../src';
+import { LiteSVMConnection } from './litesvm/connection';
 
 export const DEFAULT_MAX_SUPPLY = 100;
 export const DEFAULT_MARKETPLACE_FEE_BASIS_POINTS = 500;
