@@ -61,12 +61,31 @@ runs:
         version: ${{ env.SOLANA_VERSION }}
         cache: true
 
-    - name: Install Anchor
+    # Inlined rather than using `metaplex-foundation/actions/install-anchor-cli@v1`,
+    # which still pins `actions/cache@v4` (Node 20). The cache key matches the one
+    # that action used, so existing cache entries stay warm.
+    - name: Cache Anchor CLI
       if: ${{ inputs.anchor == 'true' }}
-      uses: metaplex-foundation/actions/install-anchor-cli@v1
+      id: cache-anchor-cli
+      uses: actions/cache@v6
       with:
-        version: ${{ env.ANCHOR_VERSION }}
-        cache: true
+        path: ~/.cargo/bin/anchor
+        key: ${{ runner.os }}-anchor-cli-v${{ env.ANCHOR_VERSION }}
+
+    - name: Install Anchor
+      if: ${{ inputs.anchor == 'true' && steps.cache-anchor-cli.outputs.cache-hit != 'true' }}
+      run: cargo install anchor-cli --version ${{ env.ANCHOR_VERSION }} --root ~/.cargo
+      shell: bash
+
+    - name: Add Anchor CLI To Path
+      if: ${{ inputs.anchor == 'true' }}
+      run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      shell: bash
+
+    - name: Verify Anchor Install
+      if: ${{ inputs.anchor == 'true' }}
+      run: anchor --version
+      shell: bash
 
     - name: Cache Cargo Dependencies
       if: ${{ inputs.cargo-cache-key && !inputs.cargo-cache-fallback-key }}
