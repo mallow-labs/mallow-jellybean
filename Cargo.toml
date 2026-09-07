@@ -16,12 +16,9 @@ opt-level = 3
 incremental = false
 codegen-units = 1
 
-# Consumed by the CI setup action (scripts/ci/set-env.mjs) to pin the toolchain.
-[workspace.metadata.cli]
-anchor = "1.1.2"
-solana = "4.1.2"
-
-# Rust toolchains for rustfmt, clippy, and build.
+# Rust toolchains for rustfmt, clippy, and build. Consumed by the CI setup action
+# (scripts/ci/set-env.mjs); the Anchor and Solana CLI versions it also publishes
+# come from `Anchor.toml [toolchain]`, not from here.
 [workspace.metadata.toolchains]
 format = "1.92.0"
 lint = "1.92.0"
