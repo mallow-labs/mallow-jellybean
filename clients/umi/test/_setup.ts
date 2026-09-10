@@ -22,6 +22,7 @@ import {
   setComputeUnitLimit,
 } from '@metaplex-foundation/mpl-toolbox';
 import {
+  base58,
   createUmi as baseCreateUmi,
   DateTime,
   generateSigner,
@@ -339,13 +340,21 @@ export const createGumballGuard = async <
 
 export const assertBotTax = async (
   t: Assertions,
-  umi: Umi,
+  _umi: Umi,
   signature: TransactionSignature,
   extraRegex?: RegExp
 ) => {
-  const transaction = await umi.rpc.getTransaction(signature);
+  // This helper is only used with createUmi's per-worker LiteSVM connection.
+  // Call the Connection shim directly so umi-rpc-web3js cannot replace the v1
+  // ceiling with 0. LiteSVM's local read is version-agnostic; the explicit 1 is
+  // retained as a searchable marker for the required production RPC ceiling.
+  const connection = new LiteSVMConnection();
+  const transaction = await connection.getTransaction(
+    base58.deserialize(signature)[0],
+    { maxSupportedTransactionVersion: 1 }
+  );
   t.true(transaction !== null);
-  const logs = transaction!.meta.logs.join('');
+  const logs = transaction!.meta.logMessages.join('');
   t.regex(logs, /Gumball Guard Botting is taxed/);
   if (extraRegex !== undefined) t.regex(logs, extraRegex);
 };
