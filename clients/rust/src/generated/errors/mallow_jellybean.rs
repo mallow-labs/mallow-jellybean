@@ -91,6 +91,18 @@ pub enum MallowJellybeanError {
     /// 6026 - Account already initialized
     #[error("Account already initialized")]
     AccountAlreadyInitialized = 0x178A,
+    /// 6027 - Item can still be controlled by someone other than the jellybean machine
+    #[error("Item can still be controlled by someone other than the jellybean machine")]
+    RetainedItemControl = 0x178B,
+    /// 6028 - Insufficient funds to cover the most this draw can cost
+    #[error("Insufficient funds to cover the most this draw can cost")]
+    InsufficientFunds = 0x178C,
+    /// 6029 - Print fee account cannot receive the print fee
+    #[error("Print fee account cannot receive the print fee")]
+    InvalidPrintFeeAccount = 0x178D,
+    /// 6030 - Payer must be a wallet the system program can debit
+    #[error("Payer must be a wallet the system program can debit")]
+    InvalidPayer = 0x178E,
 }
 
 impl From<MallowJellybeanError> for solana_program_error::ProgramError {

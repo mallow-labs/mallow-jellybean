@@ -182,7 +182,10 @@ await addCoreItem(umi, {
 **Requirements for master editions:**
 - Collection must have a `MasterEdition` plugin with a non-null `maxSupply`.
 - `currentSize` must be `0` — no prints can exist yet.
+- No plugin authority held by an address, no additional update delegates, and none of the plugins refused for one-of-ones below.
 - The payer must have enough SOL to cover the escrow for all edition slots.
+
+**Refused for both item types** (`RetainedItemControl`): a `Permanent*` delegate on the asset or its collection, a plugin newer than the program knows, and any external plugin adapter other than `AppData`, `LinkedAppData` and `DataSection`. An asset in a collection must be passed with that collection.
 
 You can add up to 255 distinct items (each may be one-of-one or an edition). Items can be added in batches of up to ~8 per transaction.
 
@@ -364,7 +367,7 @@ await setMintAuthority(umi, {
 
 ## Removing Items
 
-Items can be removed before the sale (`None` state) or after it ends (`SaleEnded` state). An item can only be removed if all of its drawn copies have been claimed.
+Items can be removed before the sale (`None` state) or after it ends (`SaleEnded` state). An item can only be removed if all of its drawn copies have been claimed, and so must every item after it, because removal moves the later items down one slot. To empty a machine, claim the prizes and remove items from the last index to the first.
 
 ```typescript
 import { removeCoreItem } from '@mallow-labs/mallow-jellybean-umi';

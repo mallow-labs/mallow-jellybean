@@ -372,6 +372,70 @@ export class AccountAlreadyInitializedError extends ProgramError {
 codeToErrorMap.set(0x178a, AccountAlreadyInitializedError);
 nameToErrorMap.set('AccountAlreadyInitialized', AccountAlreadyInitializedError);
 
+/** RetainedItemControl: Item can still be controlled by someone other than the jellybean machine */
+export class RetainedItemControlError extends ProgramError {
+  override readonly name: string = 'RetainedItemControl';
+
+  readonly code: number = 0x178b; // 6027
+
+  constructor(program: Program, cause?: Error) {
+    super(
+      'Item can still be controlled by someone other than the jellybean machine',
+      program,
+      cause
+    );
+  }
+}
+codeToErrorMap.set(0x178b, RetainedItemControlError);
+nameToErrorMap.set('RetainedItemControl', RetainedItemControlError);
+
+/** InsufficientFunds: Insufficient funds to cover the most this draw can cost */
+export class InsufficientFundsError extends ProgramError {
+  override readonly name: string = 'InsufficientFunds';
+
+  readonly code: number = 0x178c; // 6028
+
+  constructor(program: Program, cause?: Error) {
+    super(
+      'Insufficient funds to cover the most this draw can cost',
+      program,
+      cause
+    );
+  }
+}
+codeToErrorMap.set(0x178c, InsufficientFundsError);
+nameToErrorMap.set('InsufficientFunds', InsufficientFundsError);
+
+/** InvalidPrintFeeAccount: Print fee account cannot receive the print fee */
+export class InvalidPrintFeeAccountError extends ProgramError {
+  override readonly name: string = 'InvalidPrintFeeAccount';
+
+  readonly code: number = 0x178d; // 6029
+
+  constructor(program: Program, cause?: Error) {
+    super('Print fee account cannot receive the print fee', program, cause);
+  }
+}
+codeToErrorMap.set(0x178d, InvalidPrintFeeAccountError);
+nameToErrorMap.set('InvalidPrintFeeAccount', InvalidPrintFeeAccountError);
+
+/** InvalidPayer: Payer must be a wallet the system program can debit */
+export class InvalidPayerError extends ProgramError {
+  override readonly name: string = 'InvalidPayer';
+
+  readonly code: number = 0x178e; // 6030
+
+  constructor(program: Program, cause?: Error) {
+    super(
+      'Payer must be a wallet the system program can debit',
+      program,
+      cause
+    );
+  }
+}
+codeToErrorMap.set(0x178e, InvalidPayerError);
+nameToErrorMap.set('InvalidPayer', InvalidPayerError);
+
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors

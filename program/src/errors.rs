@@ -56,4 +56,12 @@ pub enum JellybeanError {
     InvalidFeeAccountsLength,
     #[msg("Account already initialized")]
     AccountAlreadyInitialized,
+    #[msg("Item can still be controlled by someone other than the jellybean machine")]
+    RetainedItemControl,
+    #[msg("Insufficient funds to cover the most this draw can cost")]
+    InsufficientFunds,
+    #[msg("Print fee account cannot receive the print fee")]
+    InvalidPrintFeeAccount,
+    #[msg("Payer must be a wallet the system program can debit")]
+    InvalidPayer,
 }

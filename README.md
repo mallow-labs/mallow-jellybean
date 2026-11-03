@@ -230,6 +230,10 @@ Adds an item to the machine. Must be in the `None` state. Supports two item type
 
 The machine account is reallocated to accommodate the new `LoadedItem` entry.
 
+An item is refused with `RetainedItemControl` if someone could still act on it in custody: a `Permanent*` delegate on the asset or on its collection, a plugin newer than this program knows, or an external plugin adapter other than the data-only ones (`AppData`, `LinkedAppData`, `DataSection`). A master edition is also refused if a plugin's authority is held by an address, or if it names additional update delegates, because those survive the move of its update authority. An asset in a collection must be passed with that collection.
+
+A one-of-one's update authority stays with its creator, on the asset or on its collection. That authority can still add or change a `Royalties` rule set or an `Oracle` adapter after loading, which makes the buyer's `claim_core_item` fail for as long as it stays there.
+
 **Accounts:**
 
 | # | Name | Writable | Signer | Description |
@@ -249,7 +253,9 @@ Exactly one of `asset` or `collection` must be provided.
 
 ### `remove_core_item`
 
-Removes an item from the machine by index. Can be called in `None` state (before the sale) or `SaleEnded` state (to reclaim unsold items). The item must be fully claimed before removal (i.e. `supply_redeemed == supply_claimed`).
+Removes an item from the machine by index. Can be called in `None` state (before the sale) or `SaleEnded` state (to reclaim unsold items). The item must be fully claimed before removal (i.e. `supply_redeemed == supply_claimed`), and so must every item after it: removal moves the later items down one slot, and a `Prize` names its item only by slot. To empty a machine, claim the prizes and remove items from the last index to the first.
+
+**Known limit:** a prize that cannot be claimed blocks removal of every item below it, unsold ones included, and those assets stay in the authority PDA for as long as the block lasts. A retained update authority can cause this with a `Royalties` rule set or an `Oracle` adapter, and on a machine loaded before these checks, so can a prize asset that was burned or pulled through a `Permanent*` delegate. `withdraw` stays blocked too, as it was, because it needs `items_loaded == 0`.
 
 **Accounts:**
 
@@ -304,6 +310,8 @@ Performs a random draw, selecting an item for a buyer. Only callable by the `min
 The selection is weighted by each item's remaining unredeemed supply — items with more supply remaining are proportionally more likely to be selected. Randomness is seeded from the most recent slot hash combined with the current unix timestamp.
 
 The draw result is stored in the buyer's `UnclaimedPrizes` account (created if it doesn't exist). For edition draws, the escrow for that print's creation cost is transferred from the payer to the authority PDA. If the draw exhausts all supply, the machine transitions to `SaleEnded`.
+
+Before it selects an item, the draw fails with `InsufficientFunds` unless the payer holds the largest amount any remaining item could charge (escrow, plus the print fee for an edition of more than one) on top of its rent floor, and with `PublicKeyMismatch` if a print fee is due on any remaining item and the print fee account is missing or wrong, and with `InvalidPrintFeeAccount` if that account is executable or the fee would leave it below its rent floor. If any remaining item charges the payer, the draw also fails with `InvalidPayer` unless the payer is a system-owned account with no data, because the system program cannot debit anything else. A shortfall therefore fails every outcome alike, so a payer cannot revert only the items it does not want.
 
 **Accounts:**
 

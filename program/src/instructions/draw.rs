@@ -170,6 +170,67 @@ pub(crate) fn process_draw<'a>(
         return err!(JellybeanError::JellybeanMachineEmpty);
     }
 
+    // What the payer is charged depends on the item drawn below, and a buyer sets
+    // the payer's balance and accounts. Anything that can fail on one item alone
+    // would let a buyer revert the outcomes they do not want, so it has to fail
+    // here, before the item is known, on every outcome alike.
+    let (max_item_charge, print_fee_due) = {
+        let account_info = jellybean_machine.to_account_info();
+        let account_data = account_info.data.borrow();
+        jellybean_machine.get_max_item_charge(&account_data)?
+    };
+
+    if print_fee_due {
+        let print_fee_config = jellybean_machine
+            .print_fee_config
+            .as_ref()
+            .ok_or(JellybeanError::PublicKeyMismatch)?;
+        let fee_account = accounts
+            .print_fee_account
+            .as_ref()
+            .ok_or(JellybeanError::PublicKeyMismatch)?;
+        assert_keys_equal(
+            fee_account.key(),
+            print_fee_config.address,
+            "Invalid print fee account",
+        )?;
+        // An executable account, or one the fee leaves below its rent floor, fails the
+        // transaction, and only when the fee is charged.
+        require!(
+            !fee_account.executable,
+            JellybeanError::InvalidPrintFeeAccount
+        );
+        let balance_after_fee = fee_account
+            .lamports()
+            .checked_add(print_fee_config.amount)
+            .ok_or(JellybeanError::NumericalOverflowError)?;
+        require_gte!(
+            balance_after_fee,
+            Rent::get()?.minimum_balance(fee_account.data_len()),
+            JellybeanError::InvalidPrintFeeAccount
+        );
+    }
+
+    if max_item_charge > 0 {
+        // The system program debits only a wallet it owns that carries no data. A nonce
+        // account can sign and pay fees, and with its prize account funded up front a
+        // one-of-one never debits it, so only the items that charge would fail.
+        require!(
+            accounts.payer.owner == accounts.system_program.key && accounts.payer.data_is_empty(),
+            JellybeanError::InvalidPayer
+        );
+
+        // Left below its rent floor by the charge, the payer fails the transaction too.
+        let required_lamports = max_item_charge
+            .checked_add(Rent::get()?.minimum_balance(accounts.payer.data_len()))
+            .ok_or(JellybeanError::NumericalOverflowError)?;
+        require_gte!(
+            accounts.payer.lamports(),
+            required_lamports,
+            JellybeanError::InsufficientFunds
+        );
+    }
+
     // (2) selecting an item to mint
     let recent_slothashes = &accounts.recent_slothashes;
     let data = recent_slothashes.data.borrow();

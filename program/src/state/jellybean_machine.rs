@@ -1,4 +1,6 @@
+use crate::JellybeanError;
 use anchor_lang::prelude::*;
+use arrayref::array_ref;
 
 pub const MAX_URI_LENGTH: usize = 196;
 pub const MAX_FEE_ACCOUNTS: usize = 6;
@@ -92,6 +94,54 @@ impl JellybeanMachine {
             &account_data[item_position..item_position + LOADED_ITEM_SIZE],
         )?)
     }
+
+    /// The most a draw can charge its payer depending on the item it lands on, over
+    /// the items that can still be drawn, and whether any of those pays the print fee.
+    /// Reads the fields in place: this runs on every draw, over up to 255 items.
+    pub fn get_max_item_charge(&self, account_data: &[u8]) -> Result<(u64, bool)> {
+        let print_fee = self
+            .print_fee_config
+            .as_ref()
+            .map_or(0, |config| config.amount);
+        let mut max_charge = 0u64;
+        let mut print_fee_due = false;
+
+        for index in 0..self.items_loaded as usize {
+            let position = self.get_loaded_item_position(index);
+            let supply_loaded = u32::from_le_bytes(*array_ref![
+                account_data,
+                position + LOADED_ITEM_SUPPLY_LOADED_OFFSET,
+                4
+            ]);
+            let supply_redeemed = u32::from_le_bytes(*array_ref![
+                account_data,
+                position + LOADED_ITEM_SUPPLY_REDEMED_OFFSET,
+                4
+            ]);
+
+            if supply_redeemed >= supply_loaded {
+                continue;
+            }
+
+            let mut charge = u64::from_le_bytes(*array_ref![
+                account_data,
+                position + LOADED_ITEM_ESCROW_AMOUNT_OFFSET,
+                8
+            ]);
+
+            // Is master edition?
+            if supply_loaded > 1 {
+                charge = charge
+                    .checked_add(print_fee)
+                    .ok_or(JellybeanError::NumericalOverflowError)?;
+                print_fee_due |= print_fee > 0;
+            }
+
+            max_charge = max_charge.max(charge);
+        }
+
+        Ok((max_charge, print_fee_due))
+    }
 }
 
 pub const FEE_ACCOUNT_SIZE: usize = 32 + 2;
@@ -110,7 +160,9 @@ pub const LOADED_ITEM_SIZE: usize = 32 + // mint
     4 + // supply_claimed
     8; // escrow_amount
 
+pub const LOADED_ITEM_SUPPLY_LOADED_OFFSET: usize = 32;
 pub const LOADED_ITEM_SUPPLY_REDEMED_OFFSET: usize = 32 + 4;
+pub const LOADED_ITEM_ESCROW_AMOUNT_OFFSET: usize = 32 + 4 + 4 + 4;
 
 /// Config line struct for storing asset (NFT) data pre-mint.
 #[derive(AnchorSerialize, AnchorDeserialize, Debug)]

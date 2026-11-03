@@ -6,8 +6,10 @@ import test from 'ava';
 import {
   addCoreItem,
   claimCoreItem,
+  closeJellybeanMachine,
   endSale,
   fetchJellybeanMachineWithItems,
+  fetchUnclaimedPrizesFromSeeds,
   JellybeanState,
   removeCoreItem,
 } from '../src';
@@ -622,4 +624,186 @@ test('it fails when trying to remove a master edition before being fully claimed
     }).sendAndConfirm(umi),
     { message: /ItemNotFullyClaimed/ }
   );
+});
+
+/**
+ * Three one-of-ones, all drawn by different buyers, so the sale has ended and
+ * every item has one prize outstanding. `buyerByItem[i]` drew the item at slot i.
+ */
+const createSoldOutMachine = async () => {
+  const sellerUmi = await createUmi();
+  const assets = [
+    await createCoreAsset(sellerUmi),
+    await createCoreAsset(sellerUmi),
+    await createCoreAsset(sellerUmi),
+  ];
+  const jellybeanMachine = await create(sellerUmi, {
+    items: assets.map((asset) => ({ asset: asset.publicKey })),
+    startSale: true,
+  });
+
+  const buyerByItem: Awaited<ReturnType<typeof createUmi>>[] = [];
+  for (let i = 0; i < assets.length; i += 1) {
+    const buyer = await generateSignerWithSol(sellerUmi);
+    const buyerUmi = await createUmi(buyer);
+    await drawJellybean(buyerUmi, {
+      jellybeanMachine,
+      mintArgs: {
+        solPayment: some({ feeAccounts: [sellerUmi.identity.publicKey] }),
+      },
+    }).sendAndConfirm(buyerUmi);
+    const { prizes } = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+      jellybeanMachine,
+      buyer: buyer.publicKey,
+    });
+    buyerByItem[prizes[0].itemIndex] = buyerUmi;
+  }
+
+  const claim = (index: number) =>
+    claimCoreItem(buyerByItem[index], {
+      jellybeanMachine,
+      buyer: buyerByItem[index].identity.publicKey,
+      asset: assets[index].publicKey,
+      index,
+    }).sendAndConfirm(buyerByItem[index]);
+
+  const remove = (index: number) =>
+    removeCoreItem(sellerUmi, {
+      jellybeanMachine,
+      asset: assets[index].publicKey,
+      index,
+    }).sendAndConfirm(sellerUmi);
+
+  return { sellerUmi, assets, jellybeanMachine, buyerByItem, claim, remove };
+};
+
+test('it refuses to shift an item that still has prizes outstanding', async (t) => {
+  const { sellerUmi, assets, jellybeanMachine, buyerByItem, claim, remove } =
+    await createSoldOutMachine();
+
+  await claim(0);
+
+  // Item 0 is fully claimed, but removing it would move the items above it.
+  await t.throwsAsync(() => remove(0), { message: /ItemNotFullyClaimed/ });
+
+  // The outstanding prizes still resolve to the items they drew.
+  await claim(1);
+  await claim(2);
+  for (const index of [1, 2]) {
+    const asset = await fetchAsset(sellerUmi, assets[index].publicKey);
+    t.is(asset.owner, buyerByItem[index].identity.publicKey);
+  }
+
+  const account = await fetchJellybeanMachineWithItems(
+    sellerUmi,
+    jellybeanMachine
+  );
+  t.is(account.itemsLoaded, 3);
+});
+
+test.serial(
+  'it refuses to shift an outstanding prize past an unsold item',
+  async (t) => {
+    const realNow = Date.now;
+    t.teardown(() => {
+      Date.now = realNow;
+    });
+
+    // The draw's seed subtracts the clock, so one of two consecutive seconds lands
+    // on the upper item and leaves the lower one unsold. Serial tests run before
+    // the concurrent ones, so pinning the clock disturbs nothing.
+    const outcomes = new Set<number>();
+    for (const seconds of [1_800_000_000, 1_800_000_001]) {
+      Date.now = () => seconds * 1000;
+
+      const sellerUmi = await createUmi();
+      const assets = [
+        await createCoreAsset(sellerUmi),
+        await createCoreAsset(sellerUmi),
+      ];
+      const jellybeanMachine = await create(sellerUmi, {
+        items: assets.map((asset) => ({ asset: asset.publicKey })),
+        startSale: true,
+      });
+
+      const buyer = await generateSignerWithSol(sellerUmi);
+      const buyerUmi = await createUmi(buyer);
+      await drawJellybean(buyerUmi, {
+        jellybeanMachine,
+        mintArgs: {
+          solPayment: some({ feeAccounts: [sellerUmi.identity.publicKey] }),
+        },
+      }).sendAndConfirm(buyerUmi);
+      await endSale(sellerUmi, { jellybeanMachine }).sendAndConfirm(sellerUmi);
+
+      const { prizes } = await fetchUnclaimedPrizesFromSeeds(sellerUmi, {
+        jellybeanMachine,
+        buyer: buyer.publicKey,
+      });
+      const drawn = prizes[0].itemIndex;
+      const unsold = 1 - drawn;
+      outcomes.add(drawn);
+
+      const removeUnsold = () =>
+        removeCoreItem(sellerUmi, {
+          jellybeanMachine,
+          asset: assets[unsold].publicKey,
+          index: unsold,
+        }).sendAndConfirm(sellerUmi);
+
+      if (unsold < drawn) {
+        await t.throwsAsync(removeUnsold, { message: /ItemNotFullyClaimed/ });
+      } else {
+        // Nothing sits above the last slot, so nothing moves.
+        await removeUnsold();
+      }
+
+      await claimCoreItem(buyerUmi, {
+        jellybeanMachine,
+        buyer: buyer.publicKey,
+        asset: assets[drawn].publicKey,
+        index: drawn,
+      }).sendAndConfirm(buyerUmi);
+      const asset = await fetchAsset(sellerUmi, assets[drawn].publicKey);
+      t.is(asset.owner, buyer.publicKey);
+    }
+    t.is(outcomes.size, 2);
+  }
+);
+
+test('it can remove the top item while lower ones have prizes outstanding', async (t) => {
+  const { sellerUmi, jellybeanMachine, claim, remove } =
+    await createSoldOutMachine();
+
+  await claim(2);
+  await remove(2);
+
+  const account = await fetchJellybeanMachineWithItems(
+    sellerUmi,
+    jellybeanMachine
+  );
+  t.is(account.itemsLoaded, 2);
+
+  await claim(0);
+  await claim(1);
+  t.pass();
+});
+
+test('the close flow claims every prize, removes back to front and withdraws', async (t) => {
+  const { sellerUmi, jellybeanMachine, claim, remove } =
+    await createSoldOutMachine();
+
+  await claim(0);
+  await claim(1);
+  await claim(2);
+
+  await remove(2);
+  await remove(1);
+  await remove(0);
+
+  await closeJellybeanMachine(sellerUmi, { jellybeanMachine }).sendAndConfirm(
+    sellerUmi
+  );
+
+  t.false(await sellerUmi.rpc.accountExists(jellybeanMachine));
 });

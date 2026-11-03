@@ -63,6 +63,17 @@ pub fn remove_core_item(ctx: Context<RemoveCoreItem>, index: u8) -> Result<()> {
         JellybeanError::ItemNotFullyClaimed
     );
 
+    // Removal compacts the later items down one slot, and a prize names its item
+    // only by slot: moving an item with prizes outstanding hands them to the item
+    // that takes its place. Items are removed back to front once claimed.
+    for later_index in (index as usize + 1)..(jellybean_machine.items_loaded as usize) {
+        let later_item = jellybean_machine.get_loaded_item_at_index(&data, later_index)?;
+        require!(
+            later_item.supply_claimed == later_item.supply_redeemed,
+            JellybeanError::ItemNotFullyClaimed
+        );
+    }
+
     drop(data);
 
     let collection_info = ctx

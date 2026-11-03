@@ -68,10 +68,19 @@ export const MALLOW_JELLYBEAN_ERROR__TOO_MANY_ITEMS = 0x1788; // 6024
 export const MALLOW_JELLYBEAN_ERROR__INVALID_FEE_ACCOUNTS_LENGTH = 0x1789; // 6025
 /** AccountAlreadyInitialized: Account already initialized */
 export const MALLOW_JELLYBEAN_ERROR__ACCOUNT_ALREADY_INITIALIZED = 0x178a; // 6026
+/** RetainedItemControl: Item can still be controlled by someone other than the jellybean machine */
+export const MALLOW_JELLYBEAN_ERROR__RETAINED_ITEM_CONTROL = 0x178b; // 6027
+/** InsufficientFunds: Insufficient funds to cover the most this draw can cost */
+export const MALLOW_JELLYBEAN_ERROR__INSUFFICIENT_FUNDS = 0x178c; // 6028
+/** InvalidPrintFeeAccount: Print fee account cannot receive the print fee */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_PRINT_FEE_ACCOUNT = 0x178d; // 6029
+/** InvalidPayer: Payer must be a wallet the system program can debit */
+export const MALLOW_JELLYBEAN_ERROR__INVALID_PAYER = 0x178e; // 6030
 
 export type MallowJellybeanError =
   | typeof MALLOW_JELLYBEAN_ERROR__ACCOUNT_ALREADY_INITIALIZED
   | typeof MALLOW_JELLYBEAN_ERROR__INDEX_GREATER_THAN_LENGTH
+  | typeof MALLOW_JELLYBEAN_ERROR__INSUFFICIENT_FUNDS
   | typeof MALLOW_JELLYBEAN_ERROR__INVALID_ASSET
   | typeof MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY
   | typeof MALLOW_JELLYBEAN_ERROR__INVALID_BUYER
@@ -83,6 +92,8 @@ export type MallowJellybeanError =
   | typeof MALLOW_JELLYBEAN_ERROR__INVALID_MASTER_EDITION_SUPPLY
   | typeof MALLOW_JELLYBEAN_ERROR__INVALID_MINT_AUTHORITY
   | typeof MALLOW_JELLYBEAN_ERROR__INVALID_OWNER
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_PAYER
+  | typeof MALLOW_JELLYBEAN_ERROR__INVALID_PRINT_FEE_ACCOUNT
   | typeof MALLOW_JELLYBEAN_ERROR__INVALID_STATE
   | typeof MALLOW_JELLYBEAN_ERROR__ITEM_NOT_FULLY_CLAIMED
   | typeof MALLOW_JELLYBEAN_ERROR__ITEMS_STILL_LOADED
@@ -93,6 +104,7 @@ export type MallowJellybeanError =
   | typeof MALLOW_JELLYBEAN_ERROR__NOT_ALL_SETTLED
   | typeof MALLOW_JELLYBEAN_ERROR__NUMERICAL_OVERFLOW_ERROR
   | typeof MALLOW_JELLYBEAN_ERROR__PUBLIC_KEY_MISMATCH
+  | typeof MALLOW_JELLYBEAN_ERROR__RETAINED_ITEM_CONTROL
   | typeof MALLOW_JELLYBEAN_ERROR__TOO_MANY_FEE_ACCOUNTS
   | typeof MALLOW_JELLYBEAN_ERROR__TOO_MANY_ITEMS
   | typeof MALLOW_JELLYBEAN_ERROR__UNINITIALIZED_ACCOUNT
@@ -104,6 +116,7 @@ if (process.env['NODE_ENV'] !== 'production') {
   mallowJellybeanErrorMessages = {
     [MALLOW_JELLYBEAN_ERROR__ACCOUNT_ALREADY_INITIALIZED]: `Account already initialized`,
     [MALLOW_JELLYBEAN_ERROR__INDEX_GREATER_THAN_LENGTH]: `Index greater than length`,
+    [MALLOW_JELLYBEAN_ERROR__INSUFFICIENT_FUNDS]: `Insufficient funds to cover the most this draw can cost`,
     [MALLOW_JELLYBEAN_ERROR__INVALID_ASSET]: `Invalid asset`,
     [MALLOW_JELLYBEAN_ERROR__INVALID_AUTHORITY]: `Invalid authority`,
     [MALLOW_JELLYBEAN_ERROR__INVALID_BUYER]: `Invalid buyer`,
@@ -115,6 +128,8 @@ if (process.env['NODE_ENV'] !== 'production') {
     [MALLOW_JELLYBEAN_ERROR__INVALID_MASTER_EDITION_SUPPLY]: `Invalid master edition supply`,
     [MALLOW_JELLYBEAN_ERROR__INVALID_MINT_AUTHORITY]: `Invalid mint authority`,
     [MALLOW_JELLYBEAN_ERROR__INVALID_OWNER]: `Invalid owner`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_PAYER]: `Payer must be a wallet the system program can debit`,
+    [MALLOW_JELLYBEAN_ERROR__INVALID_PRINT_FEE_ACCOUNT]: `Print fee account cannot receive the print fee`,
     [MALLOW_JELLYBEAN_ERROR__INVALID_STATE]: `Invalid state`,
     [MALLOW_JELLYBEAN_ERROR__ITEM_NOT_FULLY_CLAIMED]: `Item not fully claimed`,
     [MALLOW_JELLYBEAN_ERROR__ITEMS_STILL_LOADED]: `Items still loaded`,
@@ -125,6 +140,7 @@ if (process.env['NODE_ENV'] !== 'production') {
     [MALLOW_JELLYBEAN_ERROR__NOT_ALL_SETTLED]: `Not all items have been settled`,
     [MALLOW_JELLYBEAN_ERROR__NUMERICAL_OVERFLOW_ERROR]: `Numerical overflow error`,
     [MALLOW_JELLYBEAN_ERROR__PUBLIC_KEY_MISMATCH]: `Invalid public key`,
+    [MALLOW_JELLYBEAN_ERROR__RETAINED_ITEM_CONTROL]: `Item can still be controlled by someone other than the jellybean machine`,
     [MALLOW_JELLYBEAN_ERROR__TOO_MANY_FEE_ACCOUNTS]: `Too many fee accounts`,
     [MALLOW_JELLYBEAN_ERROR__TOO_MANY_ITEMS]: `Too many items`,
     [MALLOW_JELLYBEAN_ERROR__UNINITIALIZED_ACCOUNT]: `Account not initialized`,

@@ -1102,6 +1102,26 @@
       "code": 6026,
       "name": "AccountAlreadyInitialized",
       "msg": "Account already initialized"
+    },
+    {
+      "code": 6027,
+      "name": "RetainedItemControl",
+      "msg": "Item can still be controlled by someone other than the jellybean machine"
+    },
+    {
+      "code": 6028,
+      "name": "InsufficientFunds",
+      "msg": "Insufficient funds to cover the most this draw can cost"
+    },
+    {
+      "code": 6029,
+      "name": "InvalidPrintFeeAccount",
+      "msg": "Print fee account cannot receive the print fee"
+    },
+    {
+      "code": 6030,
+      "name": "InvalidPayer",
+      "msg": "Payer must be a wallet the system program can debit"
     }
   ],
   "types": [
