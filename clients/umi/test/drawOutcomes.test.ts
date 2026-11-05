@@ -156,9 +156,12 @@ test.serial(
         TX_FEE_LAMPORTS + PRICE_LAMPORTS + prizes + escrow + floor - 1n
       );
 
-      await t.throwsAsync(() => draw(buyerUmi, machine).sendAndConfirm(buyerUmi), {
-        message: /InsufficientFunds/,
-      });
+      await t.throwsAsync(
+        () => draw(buyerUmi, machine).sendAndConfirm(buyerUmi),
+        {
+          message: /InsufficientFunds/,
+        }
+      );
     }
   }
 );
@@ -207,9 +210,12 @@ test.serial('the print fee counts towards the worst case', async (t) => {
       TX_FEE_LAMPORTS + PRICE_LAMPORTS + prizes + escrow + printFee + floor - 1n
     );
 
-    await t.throwsAsync(() => draw(buyerUmi, machine).sendAndConfirm(buyerUmi), {
-      message: /InsufficientFunds/,
-    });
+    await t.throwsAsync(
+      () => draw(buyerUmi, machine).sendAndConfirm(buyerUmi),
+      {
+        message: /InsufficientFunds/,
+      }
+    );
   }
 });
 
@@ -247,9 +253,12 @@ test.serial(
       const machine = await createMixedMachine(1_000n);
       const { buyerUmi } = await fundedBuyer(machine.sellerUmi, 1_000_000_000n);
 
-      await t.throwsAsync(() => draw(buyerUmi, machine).sendAndConfirm(buyerUmi), {
-        message: /InvalidPrintFeeAccount/,
-      });
+      await t.throwsAsync(
+        () => draw(buyerUmi, machine).sendAndConfirm(buyerUmi),
+        {
+          message: /InvalidPrintFeeAccount/,
+        }
+      );
     }
   }
 );
@@ -259,12 +268,18 @@ test.serial(
   async (t) => {
     for (const seconds of PINNED_SECONDS) {
       pinClock(seconds);
-      const machine = await createMixedMachine(11_000_000n, MPL_CORE_PROGRAM_ID);
+      const machine = await createMixedMachine(
+        11_000_000n,
+        MPL_CORE_PROGRAM_ID
+      );
       const { buyerUmi } = await fundedBuyer(machine.sellerUmi, 1_000_000_000n);
 
-      await t.throwsAsync(() => draw(buyerUmi, machine).sendAndConfirm(buyerUmi), {
-        message: /InvalidPrintFeeAccount/,
-      });
+      await t.throwsAsync(
+        () => draw(buyerUmi, machine).sendAndConfirm(buyerUmi),
+        {
+          message: /InvalidPrintFeeAccount/,
+        }
+      );
     }
   }
 );
@@ -370,7 +385,8 @@ test.serial(
         machine.jellybeanMachine,
         buyer
       );
-      const left = (await sellerUmi.rpc.getBalance(buyer.publicKey)).basisPoints;
+      const left = (await sellerUmi.rpc.getBalance(buyer.publicKey))
+        .basisPoints;
       t.is(left, item === 1 ? floor : floor + escrow);
     }
   }
