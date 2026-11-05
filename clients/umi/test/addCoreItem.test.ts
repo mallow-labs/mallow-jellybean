@@ -347,10 +347,7 @@ test('it refuses an asset passed with a collection it is not in', async (t) => {
     { type: 'PermanentTransferDelegate' },
   ]);
   const otherCollection = await createCollectionWithPlugins(umi, []);
-  const collection = await fetchCollection(
-    umi,
-    realCollectionSigner.publicKey
-  );
+  const collection = await fetchCollection(umi, realCollectionSigner.publicKey);
   const asset = await createCoreAsset(umi, { plugins: [], collection });
 
   await t.throwsAsync(
@@ -401,7 +398,11 @@ test('it can add an asset with plugins that hold no control', async (t) => {
   const asset = await createCoreAsset(umi, {
     plugins: [
       { type: 'Attributes', attributeList: [] },
-      { type: 'AppData', dataAuthority: { type: 'UpdateAuthority' }, schema: 0 },
+      {
+        type: 'AppData',
+        dataAuthority: { type: 'UpdateAuthority' },
+        schema: 0,
+      },
     ] as any,
   });
 
@@ -483,10 +484,7 @@ for (const [name, getPlugins] of [
   ],
   [
     'an oracle that can veto the print',
-    () => [
-      masterEdition(),
-      oraclePlugin({ create: [CheckResult.CAN_REJECT] }),
-    ],
+    () => [masterEdition(), oraclePlugin({ create: [CheckResult.CAN_REJECT] })],
   ],
 ] as [string, (umi: Umi) => any[]][]) {
   test(`it refuses a master edition with ${name}`, async (t) => {
