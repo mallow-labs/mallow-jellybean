@@ -1020,7 +1020,7 @@ checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
 name = "mallow_jellybean"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
